@@ -1,14 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { 
-  BookOpen, RotateCcw, Dice5, Download, Upload, Plus, Trash2, 
+  RotateCcw, Dice5, Download, Upload, Plus, Trash2, 
   Heart, Shield, Printer, ArrowLeft, Shuffle, 
-  Users, Share2, Compass, Feather
+  Users, Share2, Compass, Feather, BookOpen as BookIcon, Search
 } from 'lucide-react';
 import { 
   TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, PRE_GENS, UNIVERSAL_TRAITS,
   Tool, Lineage, Trait, Technique
 } from './data';
+import { getInkIcon } from './icons';
+import { 
+  APPENDIX_TRAITS, APPENDIX_TECHNIQUES, APPENDIX_STATES, APPENDIX_ACTIONS 
+} from './appendixData';
 
 // Definition for our dynamic character state
 interface Character {
@@ -57,18 +61,19 @@ interface Character {
 }
 
 const BUILTIN_AVATARS = [
-  { value: '🎣', label: '渔夫' },
-  { value: '🥐', label: '面包师' },
-  { value: '🍖', label: '屠夫' },
-  { value: '🌶️', label: '调味者' },
-  { value: '🦫', label: '储藏者' },
-  { value: '🦎', label: '变形者' },
-  { value: '🐺', label: '狼' },
-  { value: '🦅', label: '鹰' },
-  { value: '🐻', label: '熊' },
-  { value: '🦀', label: '蟹' },
-  { value: '🐙', label: '触手' },
-  { value: '🌲', label: '森林' }
+  { value: '渔夫', label: '渔夫' },
+  { value: '面包师', label: '面包师' },
+  { value: '屠夫', label: '屠夫' },
+  { value: '调味者', label: '调味者' },
+  { value: '储藏者', label: '储藏者' },
+  { value: '变形者', label: '变形者' },
+  { value: '园丁', label: '园丁' },
+  { value: '烧烤师', label: '烧烤师' },
+  { value: 'wolf', label: '狼' },
+  { value: 'eagle', label: '鹰' },
+  { value: 'bear', label: '熊' },
+  { value: 'dragon', label: '龙' },
+  { value: 'tree', label: '森林' }
 ];
 
 export default function App() {
@@ -104,6 +109,8 @@ export default function App() {
   const [wizLineage, setWizLineage] = useState<Lineage>(LINEAGES[0]);
   const [wizTraitPrimary, setWizTraitPrimary] = useState<Trait | null>(null);
   const [wizTraitSecondary, setWizTraitSecondary] = useState<Trait | null>(null);
+  const [wizSecondaryTraitSource, setWizSecondaryTraitSource] = useState<'specialty' | 'appendix'>('specialty');
+  const [wizSecondarySearchQuery, setWizSecondarySearchQuery] = useState('');
   const [wizCompanionIndex, setWizCompanionIndex] = useState<number>(0);
   const [wizCompanionCustomName, setWizCompanionCustomName] = useState('');
 
@@ -126,7 +133,12 @@ export default function App() {
 
   const [wizBond, setWizBond] = useState('');
   const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload'>('emoji');
-  const [wizAvatarValue, setWizAvatarValue] = useState('🎣');
+  const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
+
+  // Appendix State
+  const [activeAppendixTab, setActiveAppendixTab] = useState<'a' | 'b' | 'c' | 'd'>('d');
+  const [appendixSearchQuery, setAppendixSearchQuery] = useState('');
+  const [appendixFilterWeapon, setAppendixFilterWeapon] = useState('all');
 
   // Alert/Notification State
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -181,11 +193,11 @@ export default function App() {
           disharmony: false
         },
         avatarType: 'emoji',
-        avatarValue: pg.name === '普莱兹' ? '🎣' : 
-                     pg.name === '巴格' ? '🦫' : 
-                     pg.name === '娜特·辛' ? '🥐' : 
-                     pg.name === '泰伦' ? '🍖' : 
-                     pg.name === '莲恩' ? '🌶️' : '🦎',
+        avatarValue: pg.name === '普莱兹' ? '渔夫' : 
+                     pg.name === '巴格' ? '储藏者' : 
+                     pg.name === '娜特·辛' ? '面包师' : 
+                     pg.name === '泰伦' ? '屠夫' : 
+                     pg.name === '莲恩' ? '调味者' : '变形者',
         notes: `预设角色 ${pg.name} (${pg.specialty})`
       };
     });
@@ -236,11 +248,11 @@ export default function App() {
           disharmony: false
         },
         avatarType: 'emoji',
-        avatarValue: pg.name === '普莱兹' ? '🎣' : 
-                     pg.name === '巴格' ? '🦫' : 
-                     pg.name === '娜特·辛' ? '🥐' : 
-                     pg.name === '泰伦' ? '🍖' : 
-                     pg.name === '莲恩' ? '🌶️' : '🦎'
+        avatarValue: pg.name === '普莱兹' ? '渔夫' : 
+                     pg.name === '巴格' ? '储藏者' : 
+                     pg.name === '娜特·辛' ? '面包师' : 
+                     pg.name === '泰伦' ? '屠夫' : 
+                     pg.name === '莲恩' ? '调味者' : '变形者'
       };
     });
 
@@ -684,7 +696,7 @@ export default function App() {
       {/* HEADER SECTION */}
       <header className="flex flex-col md:flex-row justify-between items-center pb-6 mb-6 border-b-2 border-forest-800">
         <div className="flex items-center space-x-3 mb-4 md:mb-0">
-          <span className="text-4xl">🍖</span>
+          <span className="text-parchment-200">{getInkIcon('屠夫', 40)}</span>
           <div>
             <h1 className="text-3xl font-extrabold text-parchment-200 tracking-wide font-serif">
               荒野盛宴电子人物卡
@@ -755,9 +767,9 @@ export default function App() {
                         : 'bg-forest-900 border-forest-700 text-parchment-200'
                     }`}
                   >
-                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-forest-850 overflow-hidden flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-forest-850 overflow-hidden flex-shrink-0 text-parchment-300">
                       {char.avatarType === 'emoji' ? (
-                        <span className="text-3xl">{char.avatarValue}</span>
+                        getInkIcon(char.avatarValue, 32)
                       ) : (
                         <img src={char.avatarValue} alt="avatar" className="w-full h-full object-cover" />
                       )}
@@ -772,8 +784,8 @@ export default function App() {
                       <p className="text-xs text-forest-300 truncate">
                         {char.adjectives.join(' / ')} • {char.specialty}
                       </p>
-                      <p className="text-xs text-parchment-300 font-mono mt-1 flex items-center gap-1">
-                        ⚔️ {char.tool} | ❤️ 体力: {char.stamina}/20 | 🤝 和谐: {char.harmony}/{char.harmonyMax}
+                      <p className="text-xs text-parchment-300 font-serif mt-1 flex items-center gap-1">
+                        工具: {char.tool} | 体力: {char.stamina}/20 | 和谐: {char.harmony}/{char.harmonyMax}
                       </p>
                     </div>
                     {char.isCustom && (
@@ -806,7 +818,7 @@ export default function App() {
               {/* Step bar indicator */}
               <div className="flex justify-between items-center mb-6 pb-4 border-b border-forest-800">
                 <span className="font-serif font-bold text-xl text-parchment-200">
-                  🍖 创建荒野食客 ({wizardStep}/3 步)
+                  创建荒野食客 ({wizardStep}/3 步)
                 </span>
                 <div className="flex space-x-1">
                   {[1, 2, 3].map(s => (
@@ -887,12 +899,12 @@ export default function App() {
                     </div>
 
                     <div className="bg-forest-900 p-4 rounded border border-forest-800 mt-4">
-                      <h4 className="font-bold text-sm text-parchment-200">⚔️ {wizTool.name} 的机制细节:</h4>
+                      <h4 className="font-bold text-sm text-parchment-200">{wizTool.name} 的机制细节:</h4>
                       <p className="text-xs text-forest-300 mt-1 leading-relaxed">{wizTool.description}</p>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-forest-800">
                         <div>
-                          <span className="block text-xs font-bold text-parchment-200 mb-1">📐 风格分配选择：</span>
+                          <span className="block text-xs font-bold text-parchment-200 mb-1">风格分配选择：</span>
                           <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-xs cursor-pointer">
                               <input 
@@ -916,7 +928,7 @@ export default function App() {
                         </div>
 
                         <div>
-                          <span className="block text-xs font-bold text-parchment-200 mb-1">🛡️ 招牌战技（自动获得）：</span>
+                          <span className="block text-xs font-bold text-parchment-200 mb-1">招牌战技（自动获得）：</span>
                           {wizTool.techniques.filter(tk => tk.type === 'signature').map(tk => (
                             <div key={tk.name} className="text-xs">
                               <span className="font-bold text-earth-400">{tk.name}</span> <span className="text-[10px] bg-forest-800 px-1 rounded">{tk.cost}</span>
@@ -927,7 +939,7 @@ export default function App() {
                       </div>
 
                       <div className="mt-4">
-                        <span className="block text-xs font-bold text-parchment-200 mb-2">🎁 自选次要初始战技（从下列 3 选 1）：</span>
+                        <span className="block text-xs font-bold text-parchment-200 mb-2">自选次要初始战技（从下列 3 选 1）：</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {wizTool.techniques.filter(tk => tk.type === 'optional').map(tk => (
                             <div 
@@ -955,9 +967,9 @@ export default function App() {
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择人物卡头像</h3>
                     <div className="flex items-center space-x-6">
-                      <div className="w-20 h-20 rounded-full border-3 border-dashed border-earth-500 bg-forest-900 flex items-center justify-center text-4xl overflow-hidden flex-shrink-0">
+                      <div className="w-20 h-20 rounded-full border-3 border-dashed border-earth-500 bg-forest-900 flex items-center justify-center text-parchment-200 overflow-hidden flex-shrink-0">
                         {wizAvatarType === 'emoji' ? (
-                          wizAvatarValue
+                          getInkIcon(wizAvatarValue, 40)
                         ) : (
                           <img src={wizAvatarValue} alt="avatar" className="w-full h-full object-cover" />
                         )}
@@ -969,14 +981,14 @@ export default function App() {
                               key={av.value}
                               type="button"
                               onClick={() => { setWizAvatarType('emoji'); setWizAvatarValue(av.value); }}
-                              className={`w-10 h-10 rounded border-2 text-xl flex items-center justify-center ${
+                              className={`w-10 h-10 rounded border-2 text-parchment-200 flex items-center justify-center transition-all ${
                                 wizAvatarType === 'emoji' && wizAvatarValue === av.value 
-                                  ? 'bg-earth-800 border-earth-500' 
+                                  ? 'bg-earth-800 border-earth-500 ring-2 ring-earth-400' 
                                   : 'bg-forest-900 border-forest-700 hover:border-forest-500'
                               }`}
                               title={av.label}
                             >
-                              {av.value}
+                              {getInkIcon(av.value, 20)}
                             </button>
                           ))}
                         </div>
@@ -1059,30 +1071,92 @@ export default function App() {
                       </div>
 
                       {/* General second trait selection */}
-                      <div className="border-t border-forest-800 pt-3">
-                        <span className="block text-xs font-bold text-parchment-200 mb-2">🌍 初始特性二（杂学：可从 8 种专长的全部 24 项特性中任选其一！）：</span>
-                        
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-forest-950 rounded border border-forest-800">
-                          {LINEAGES.map(lg => (
-                            <div key={lg.name} className="space-y-1">
-                              <div className="text-[9px] bg-forest-800 px-1.5 py-0.5 text-parchment-300 font-bold truncate">{lg.name}</div>
-                              {lg.traits.map(tr => (
+                      <div className="border-t border-forest-800 pt-3 space-y-3">
+                        <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
+                          <span className="block text-xs font-bold text-parchment-200">初始特性二（杂学：可自选自大专长或附录A特性库）：</span>
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => setWizSecondaryTraitSource('specialty')}
+                              className={`px-3 py-1 rounded text-xs font-bold transition-all border ${
+                                wizSecondaryTraitSource === 'specialty' 
+                                  ? 'bg-earth-600 border-earth-400 text-white shadow-rough' 
+                                  : 'bg-forest-900 border-forest-700 text-parchment-300'
+                              }`}
+                            >
+                              8大专长特性
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setWizSecondaryTraitSource('appendix')}
+                              className={`px-3 py-1 rounded text-xs font-bold transition-all border ${
+                                wizSecondaryTraitSource === 'appendix' 
+                                  ? 'bg-earth-600 border-earth-400 text-white shadow-rough' 
+                                  : 'bg-forest-900 border-forest-700 text-parchment-300'
+                              }`}
+                            >
+                              附录A特性库
+                            </button>
+                          </div>
+                        </div>
+
+                        {wizSecondaryTraitSource === 'specialty' ? (
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-forest-950 rounded border border-forest-800">
+                            {LINEAGES.map(lg => (
+                              <div key={lg.name} className="space-y-1">
+                                <div className="text-[9px] bg-forest-800 px-1.5 py-0.5 text-parchment-300 font-bold truncate">{lg.name}</div>
+                                {lg.traits.map(tr => (
+                                  <div 
+                                    key={tr.name}
+                                    onClick={() => setWizTraitSecondary(tr)}
+                                    className={`p-1.5 rounded cursor-pointer text-[10px] transition-all truncate ${
+                                      wizTraitSecondary?.name === tr.name 
+                                        ? 'bg-earth-800 text-white' 
+                                        : 'text-parchment-400 hover:bg-forest-900'
+                                    }`}
+                                    title={`${tr.name}: ${tr.effect}`}
+                                  >
+                                    {tr.name}
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-center bg-forest-950 border border-forest-800 rounded px-2 py-1">
+                              <Search size={14} className="text-forest-400 mr-1.5" />
+                              <input 
+                                type="text"
+                                value={wizSecondarySearchQuery}
+                                onChange={(e) => setWizSecondarySearchQuery(e.target.value)}
+                                placeholder="搜索附录A特性名称 or 描述..."
+                                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-forest-600 w-full"
+                              />
+                            </div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1 bg-forest-950 rounded border border-forest-800">
+                              {APPENDIX_TRAITS.filter(tr => 
+                                tr.name.includes(wizSecondarySearchQuery) || 
+                                tr.effect.includes(wizSecondarySearchQuery)
+                              ).map(tr => (
                                 <div 
                                   key={tr.name}
-                                  onClick={() => setWizTraitSecondary(tr)}
-                                  className={`p-1.5 rounded cursor-pointer text-[10px] transition-all truncate ${
+                                  onClick={() => setWizTraitSecondary({ name: tr.name, cost: tr.cost, effect: tr.effect })}
+                                  className={`p-2 rounded cursor-pointer text-[10px] transition-all border ${
                                     wizTraitSecondary?.name === tr.name 
-                                      ? 'bg-earth-800 text-white' 
-                                      : 'text-parchment-400 hover:bg-forest-900'
+                                      ? 'bg-earth-800 border-earth-500 text-white' 
+                                      : 'bg-forest-900 border-forest-800 text-parchment-400 hover:bg-forest-850 hover:text-white'
                                   }`}
-                                  title={`${tr.name}: ${tr.effect}`}
+                                  title={`${tr.name} (${tr.cost}): ${tr.effect}`}
                                 >
-                                  {tr.name}
+                                  <div className="font-bold truncate">{tr.name}</div>
+                                  <div className="text-[8px] text-forest-400 truncate mt-0.5">{tr.cost}</div>
                                 </div>
                               ))}
                             </div>
-                          ))}
-                        </div>
+                          </div>
+                        )}
+
                         {wizTraitSecondary && (
                           <div className="mt-2 text-xs bg-forest-850 p-2 rounded border border-forest-800 text-forest-300">
                             已选择次要特性: <span className="font-bold text-earth-400">{wizTraitSecondary.name}</span> ({wizTraitSecondary.cost}) — {wizTraitSecondary.effect}
@@ -1160,7 +1234,7 @@ export default function App() {
                       <div className="bg-forest-900 p-4 rounded border border-forest-800 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
-                            🍽️ 第一道菜：成长背景 (Upbringing) — 童年餐食
+                            第一道菜：成长背景 (Upbringing) — 童年餐食
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('upbringing')}
@@ -1225,7 +1299,7 @@ export default function App() {
                       <div className="bg-forest-900 p-4 rounded border border-forest-800 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
-                            🥩 第二道菜：入伙动机 (Motivation) — 变异野兽餐
+                            第二道菜：入伙动机 (Motivation) — 变异野兽餐
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('motivation')}
@@ -1268,7 +1342,7 @@ export default function App() {
                       <div className="bg-forest-900 p-4 rounded border border-forest-800 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
-                            🥧 第三道菜：一生雄心 (Ambition) — 梦想终极餐
+                            第三道菜：一生雄心 (Ambition) — 梦想终极餐
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('ambition')}
@@ -1337,7 +1411,7 @@ export default function App() {
                       onClick={handleCreateCharacter}
                       className="btn-sketch rounded px-8 py-3 bg-earth-600 border-earth-400 text-white flex items-center gap-2 font-serif font-bold text-lg hover:shadow-rough"
                     >
-                      ⚔️ 刻入猎群契约（创建荒野食客）
+                      刻入猎群契约（创建荒野食客）
                     </button>
                   </div>
                 </div>
@@ -1487,9 +1561,9 @@ export default function App() {
                 {/* Print layout header */}
                 <div className="flex flex-col md:flex-row justify-between items-start pb-4 border-b-2 border-earth-900">
                   <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-full border-2 border-earth-900 flex items-center justify-center bg-white/50 text-4xl overflow-hidden shadow-sm flex-shrink-0">
+                    <div className="w-16 h-16 rounded-full border-2 border-earth-900 flex items-center justify-center bg-white/50 text-earth-900 overflow-hidden shadow-sm flex-shrink-0">
                       {activeChar.avatarType === 'emoji' ? (
-                        activeChar.avatarValue
+                        getInkIcon(activeChar.avatarValue, 32)
                       ) : (
                         <img src={activeChar.avatarValue} alt="avatar" className="w-full h-full object-cover" />
                       )}
@@ -1503,7 +1577,7 @@ export default function App() {
                   </div>
                   <div className="text-right mt-3 md:mt-0 font-serif text-sm">
                     <div className="border-2 border-earth-900 px-3 py-1 bg-white/40 font-bold">
-                      ⚔️ 工具：{activeChar.tool}
+                      工具：{activeChar.tool}
                     </div>
                     <div className="text-[10px] text-earth-800 mt-1 font-mono">
                       《荒野盛宴》 官方标准电子角色卡
@@ -1626,7 +1700,7 @@ export default function App() {
                   {/* Middle Column: 12 Skills */}
                   <div className="md:col-span-5 space-y-2">
                     <h3 className="font-serif font-bold border-b border-earth-900 pb-1 flex justify-between text-sm">
-                      <span>📖 荒野技能 (Skills)</span>
+                      <span>荒野技能 (Skills)</span>
                       <span className="text-[10px] text-earth-700 font-mono">点击掷骰组合</span>
                     </h3>
                     
@@ -1669,7 +1743,7 @@ export default function App() {
                   {/* Right Column: Techniques & Traits */}
                   <div className="md:col-span-3 space-y-4">
                     <div className="border-2 border-earth-900 p-3 bg-white/40 rounded">
-                      <h3 className="font-serif font-bold border-b border-earth-900 pb-1 text-xs mb-2">🐾 突变特性与战技 (Traits)</h3>
+                      <h3 className="font-serif font-bold border-b border-earth-900 pb-1 text-xs mb-2">突变特性与战技 (Traits)</h3>
                       <div className="space-y-2">
                         {activeChar.traits.map(tName => {
                           // Search for trait details
@@ -1724,18 +1798,18 @@ export default function App() {
                 {/* BACKGROUND COURSES & BOND INFO */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t-2 border-earth-900">
                   <div className="space-y-3">
-                    <h3 className="font-serif font-bold text-sm border-b border-earth-900 pb-1">🍲 荒野食客背景三道菜</h3>
+                    <h3 className="font-serif font-bold text-sm border-b border-earth-900 pb-1">荒野食客背景三道菜</h3>
                     <div className="space-y-2 text-xs">
                       <div className="bg-white/40 p-2.5 rounded border border-earth-300">
-                        <span className="font-bold text-earth-800 block mb-0.5">🍰 第一道菜（成长背景） — {activeChar.backgroundMeals.upbringing.meal}</span>
+                        <span className="font-bold text-earth-800 block mb-0.5">第一道菜（成长背景） — {activeChar.backgroundMeals.upbringing.meal}</span>
                         <p className="text-earth-950 text-[11px] leading-tight italic">"{activeChar.backgroundMeals.upbringing.text}"</p>
                       </div>
                       <div className="bg-white/40 p-2.5 rounded border border-earth-300">
-                        <span className="font-bold text-earth-800 block mb-0.5">🥣 第二道菜（求生动机） — {activeChar.backgroundMeals.motivation.meal}</span>
+                        <span className="font-bold text-earth-800 block mb-0.5">第二道菜（求生动机） — {activeChar.backgroundMeals.motivation.meal}</span>
                         <p className="text-earth-950 text-[11px] leading-tight italic">"{activeChar.backgroundMeals.motivation.text}"</p>
                       </div>
                       <div className="bg-white/40 p-2.5 rounded border border-earth-300">
-                        <span className="font-bold text-earth-800 block mb-0.5">🥧 第三道菜（终生雄心） — {activeChar.backgroundMeals.ambition.meal}</span>
+                        <span className="font-bold text-earth-800 block mb-0.5">第三道菜（终生雄心） — {activeChar.backgroundMeals.ambition.meal}</span>
                         <p className="text-earth-950 text-[11px] leading-tight italic">"{activeChar.backgroundMeals.ambition.text}"</p>
                       </div>
                     </div>
@@ -1752,7 +1826,7 @@ export default function App() {
                         </p>
                       </div>
                       <div className="mt-4 pt-3 border-t border-earth-300 text-xs">
-                        <span className="font-bold block text-earth-800 mb-1">🐾 契约怪物同伴 (Companion)</span>
+                        <span className="font-bold block text-earth-800 mb-1">契约怪物同伴 (Companion)</span>
                         <p className="font-bold text-earth-950 text-sm">{activeChar.companion.name}</p>
                         <p className="text-[10px] text-earth-800 mt-0.5 leading-tight">{activeChar.companion.description}</p>
                       </div>
@@ -1762,7 +1836,7 @@ export default function App() {
 
                 {/* Interactive Player Notes */}
                 <div className="pt-4 border-t border-earth-900">
-                  <label className="block text-xs font-serif font-bold text-earth-800 mb-1">📝 冒险笔记与食谱素材 (Adventure Log):</label>
+                  <label className="block text-xs font-serif font-bold text-earth-800 mb-1">冒险笔记与食谱素材 (Adventure Log):</label>
                   <textarea 
                     value={activeChar.notes || ''}
                     onChange={(e) => updateActiveCharStat('notes', e.target.value)}
@@ -1806,7 +1880,7 @@ export default function App() {
 
                 <div className="space-y-2">
                   <span className="block text-xs font-bold text-parchment-300">
-                    🎲 投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
+                    投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
                   </span>
 
                   <div className="flex flex-wrap gap-2.5 justify-center py-2">
@@ -1847,11 +1921,11 @@ export default function App() {
                   <div className="text-xs pt-2 border-t border-forest-800 leading-tight">
                     {diceRoll.successes > 0 ? (
                       <span className="text-forest-400 font-bold">
-                        🎉 检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！
+                        检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！
                       </span>
                     ) : (
                       <span className="text-earth-400 font-bold">
-                        💀 检定失败！未掷出5点以上的成功值。你可能会陷入暴露、遭遇阻碍或导致和谐度降！
+                        检定失败！未掷出5点以上的成功值。你可能会陷入暴露、遭遇阻碍或导致和谐度降！
                       </span>
                     )}
                   </div>
@@ -1868,29 +1942,174 @@ export default function App() {
             )}
           </div>
 
-          {/* QUICK RULES TIPS PANEL */}
+          {/* APPENDIX REFERENCE GUIDE PANEL */}
           <div className="wood-panel p-5 rounded-lg text-parchment-100 space-y-4">
-            <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
-              <BookOpen size={18} className="text-earth-400" /> 荒野契约快速备忘
-            </h3>
-            
-            <div className="space-y-3 text-xs leading-relaxed text-forest-300">
-              <div className="border-b border-forest-800 pb-2">
-                <span className="font-bold text-parchment-200 block mb-0.5">🎯 检定判定核心规则</span>
-                <p>风格决定你的骰子池（d6个数）。技能等级决定在投掷后，你有多少次机会将任意骰子结果 <b>+1</b>。</p>
-                <p className="mt-1"><b>成功：</b> 任何 5、6 点。 <b>[A] 行动评级：</b> 成功中最高的骰子点数。</p>
-              </div>
+            <div className="flex justify-between items-center border-b border-forest-800 pb-2">
+              <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
+                <BookIcon size={18} className="text-earth-400" /> 附录参考手册
+              </h3>
+            </div>
 
-              <div className="border-b border-forest-800 pb-2">
-                <span className="font-bold text-parchment-200 block mb-0.5">🤝 和谐与不谐规则 &lt;H&gt;</span>
-                <p>和谐代表与自然世界及队友的关系。<b>“释放野性”并失败</b> 或 <b>帮助队友但队友失败</b> 会扣除 1 点和谐。</p>
-                <p className="mt-1">和谐降到0再扣除时，该猎人陷入 <b>【不谐】</b> 状态：脑海中冲突加剧，<b>所有检定获得劣势（重投最高成功骰）</b>。</p>
-              </div>
+            {/* Tab Selection buttons */}
+            <div className="grid grid-cols-4 gap-1">
+              {[
+                { key: 'd', label: 'D：速查' },
+                { key: 'a', label: 'A：特性' },
+                { key: 'b', label: 'B：战技' },
+                { key: 'c', label: 'C：状态' }
+              ].map(tb => (
+                <button
+                  key={tb.key}
+                  type="button"
+                  onClick={() => { setActiveAppendixTab(tb.key as any); setAppendixSearchQuery(''); }}
+                  className={`py-1.5 text-center text-xs font-bold transition-all border rounded ${
+                    activeAppendixTab === tb.key 
+                      ? 'bg-earth-600 border-earth-400 text-white shadow' 
+                      : 'bg-forest-900 border-forest-800 text-parchment-300 hover:bg-forest-850'
+                  }`}
+                >
+                  {tb.label}
+                </button>
+              ))}
+            </div>
 
-              <div>
-                <span className="font-bold text-parchment-200 block mb-0.5">🍖 盛宴烹饪净化</span>
-                <p>在休整期，荒野食客可以将打猎得到的怪物部位配合家乡特产和香料进行烹饪。成功烹食能够净化狂厄，恢复体力并获得不可思议的突变力量！</p>
+            {/* Search Input bar */}
+            <div className="flex items-center bg-forest-950 border border-forest-800 rounded px-2.5 py-1.5">
+              <Search size={14} className="text-forest-400 mr-2" />
+              <input 
+                type="text"
+                value={appendixSearchQuery}
+                onChange={(e) => setAppendixSearchQuery(e.target.value)}
+                placeholder="搜索当前手册内容..."
+                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-forest-600 w-full"
+              />
+            </div>
+
+            {/* If tab B (techniques) is chosen, show weapon filter buttons */}
+            {activeAppendixTab === 'b' && (
+              <div className="flex flex-wrap gap-1 pt-1">
+                {['all', '大砍刀', '防护手套', '平底锅', '叉子', '喷火器', '钢绳', '通用'].map(wp => (
+                  <button
+                    key={wp}
+                    type="button"
+                    onClick={() => setAppendixFilterWeapon(wp)}
+                    className={`px-2 py-0.5 rounded text-[10px] transition-all border ${
+                      appendixFilterWeapon === wp 
+                        ? 'bg-earth-800 border-earth-500 text-white font-bold' 
+                        : 'bg-forest-950 border-forest-800 text-forest-300'
+                    }`}
+                  >
+                    {wp === 'all' ? '全部' : wp === '通用' ? '通用' : wp}
+                  </button>
+                ))}
               </div>
+            )}
+
+            {/* Interactive Lists */}
+            <div className="max-h-96 overflow-y-auto space-y-3 pr-1 text-xs">
+              
+              {/* Appendix A: Traits */}
+              {activeAppendixTab === 'a' && (
+                APPENDIX_TRAITS.filter(tr => 
+                  tr.name.includes(appendixSearchQuery) || 
+                  tr.effect.includes(appendixSearchQuery)
+                ).map(tr => (
+                  <div key={tr.name} className="bg-forest-900 border border-forest-850 p-2.5 rounded hover:border-forest-700">
+                    <div className="flex justify-between items-center font-bold text-parchment-200">
+                      <span className="font-serif">{tr.name}</span>
+                      <span className="text-[9px] bg-forest-950 text-earth-300 px-1.5 rounded">{tr.cost}</span>
+                    </div>
+                    <p className="text-forest-300 text-[11px] mt-1 leading-tight">{tr.effect}</p>
+                  </div>
+                ))
+              )}
+
+              {/* Appendix B: Techniques */}
+              {activeAppendixTab === 'b' && (
+                APPENDIX_TECHNIQUES.filter(tk => {
+                  const matchesSearch = tk.name.includes(appendixSearchQuery) || tk.effect.includes(appendixSearchQuery);
+                  if (appendixFilterWeapon === 'all') return matchesSearch;
+                  if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
+                  return tk.weapon === appendixFilterWeapon && matchesSearch;
+                }).map(tk => (
+                  <div key={tk.name} className="bg-forest-900 border border-forest-850 p-2.5 rounded hover:border-forest-700">
+                    <div className="flex justify-between items-center font-bold text-parchment-200">
+                      <span className="font-serif">{tk.name}</span>
+                      <span className="text-[9px] bg-forest-950 text-earth-300 px-1.5 rounded">{tk.cost}</span>
+                    </div>
+                    <div className="flex space-x-2 text-[9px] text-forest-400 mt-0.5">
+                      <span>🔧 {tk.weapon}</span>
+                      <span>•</span>
+                      <span>⭐ {tk.rank}</span>
+                    </div>
+                    <p className="text-forest-300 text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
+                  </div>
+                ))
+              )}
+
+              {/* Appendix C: States */}
+              {activeAppendixTab === 'c' && (
+                APPENDIX_STATES.filter(st => 
+                  st.name.includes(appendixSearchQuery) || 
+                  st.effect.includes(appendixSearchQuery)
+                ).map(st => (
+                  <div key={st.name} className="bg-forest-900 border border-forest-850 p-2.5 rounded hover:border-forest-700">
+                    <div className="font-serif font-bold text-parchment-200">{st.name}</div>
+                    <p className="text-forest-300 text-[11px] mt-1 leading-tight"><span className="font-bold text-earth-400">效果:</span> {st.effect}</p>
+                    <p className="text-[10px] text-forest-400 mt-1"><span className="font-bold text-parchment-300">结束条件:</span> {st.endCondition}</p>
+                  </div>
+                ))
+              )}
+
+              {/* Appendix D: Quick Reference Actions */}
+              {activeAppendixTab === 'd' && (
+                <div className="space-y-4">
+                  {/* Combat */}
+                  {(!appendixSearchQuery || '战斗狩猎行动'.includes(appendixSearchQuery)) && (
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] bg-forest-850 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">⚔️ 狩猎回合行动 (Combat Actions)</div>
+                      {APPENDIX_ACTIONS.filter(act => act.type === 'combat' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                        <div key={act.name} className="bg-forest-900/50 p-2 rounded border border-forest-850">
+                          <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
+                            <span>{act.name}</span>
+                            <span className="text-[9px] text-forest-400 font-mono">{act.cost}</span>
+                          </div>
+                          <p className="text-forest-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Feast */}
+                  {(!appendixSearchQuery || '盛宴共餐问题'.includes(appendixSearchQuery)) && (
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] bg-forest-850 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🍲 盛宴共享探讨 (Feast Questions)</div>
+                      {APPENDIX_ACTIONS.filter(act => act.type === 'feast' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                        <div key={act.name} className="bg-forest-900/50 p-2 rounded border border-forest-850">
+                          <p className="text-parchment-200 text-[11px] leading-tight font-serif">{act.effect}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Rest */}
+                  {(!appendixSearchQuery || '休整营地行动'.includes(appendixSearchQuery)) && (
+                    <div className="space-y-1.5">
+                      <div className="text-[10px] bg-forest-850 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🏕️ 休整营地行动 (Rest Actions)</div>
+                      {APPENDIX_ACTIONS.filter(act => act.type === 'rest' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                        <div key={act.name} className="bg-forest-900/50 p-2 rounded border border-forest-850">
+                          <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
+                            <span>{act.name}</span>
+                            <span className="text-[9px] text-forest-400 font-mono">{act.cost}</span>
+                          </div>
+                          <p className="text-forest-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
             </div>
           </div>
         </div>
