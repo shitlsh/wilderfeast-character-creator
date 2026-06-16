@@ -95,10 +95,13 @@ export default function App() {
     dice: { value: number; active: boolean; adjustedValue: number }[];
     successes: number;
     actionRating: number;
+    actionDieType: 'd8' | 'd20';
+    actionDieValue: number;
   } | null>(null);
 
   const [selectedRollStyle, setSelectedRollStyle] = useState<string>('力量');
   const [selectedRollSkill, setSelectedRollSkill] = useState<string>('打击');
+  const [actionDieMode, setActionDieMode] = useState<'focus' | 'wild'>('focus');
 
   // Character Wizard temporary state
   const [wizardStep, setWizardStep] = useState<number>(1);
@@ -406,7 +409,7 @@ export default function App() {
       const canvas = await html2canvas(cardPrintRef.current, {
         useCORS: true,
         scale: 2, // High DPI
-        backgroundColor: '#142b1f', // dark forest backdrop
+        backgroundColor: '#150a02', // dark amber backdrop
       });
       
       const imgData = canvas.toDataURL('image/png');
@@ -638,12 +641,18 @@ export default function App() {
   };
 
   // Dice Rolling Logic
-  const handleRollDice = (styleName: string, styleCount: number, skillName: string, skillBonus: number) => {
+  const handleRollDice = (styleName: string, styleCount: number, skillName: string, skillBonus: number, dieMode: 'focus' | 'wild') => {
     // Generate fresh d6 values
     const diceList = Array.from({ length: styleCount }, () => {
       const val = Math.floor(Math.random() * 6) + 1;
       return { value: val, active: false, adjustedValue: val };
     });
+
+    const dieType = dieMode === 'focus' ? 'd8' : 'd20';
+    const dieVal = Math.floor(Math.random() * (dieMode === 'focus' ? 8 : 20)) + 1;
+
+    // Initially count successes on the unmodified d6s
+    const successes = diceList.filter(d => d.value >= 5).length;
 
     setDiceRoll({
       styleName,
@@ -652,8 +661,10 @@ export default function App() {
       skillBonus,
       rolled: true,
       dice: diceList,
-      successes: 0,
-      actionRating: 0
+      successes,
+      actionRating: successes > 0 ? dieVal : 0,
+      actionDieType: dieType,
+      actionDieValue: dieVal
     });
   };
 
@@ -683,42 +694,40 @@ export default function App() {
 
     // Count successes (dice value >= 5 after adjustments)
     const successes = nextDice.filter(d => d.adjustedValue >= 5).length;
-    // Action Rating [A] is the highest adjusted dice value
-    const highestVal = nextDice.reduce((max, d) => d.adjustedValue > max ? d.adjustedValue : max, 0);
 
     setDiceRoll({
       ...diceRoll,
       dice: nextDice,
       successes,
-      actionRating: successes > 0 ? highestVal : 0
+      actionRating: successes > 0 ? diceRoll.actionDieValue : 0
     });
   };
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* HEADER SECTION */}
-      <header className="flex flex-col md:flex-row justify-between items-center pb-6 mb-6 border-b-2 border-forest-800">
+      <header className="flex flex-col md:flex-row justify-between items-center pb-6 mb-6 border-b-2 border-orange-900">
         <div className="flex items-center space-x-3 mb-4 md:mb-0">
           <span className="text-parchment-200">{getInkIcon('屠夫', 40)}</span>
           <div>
             <h1 className="text-3xl font-extrabold text-parchment-200 tracking-wide font-serif">
               荒野盛宴电子人物卡
             </h1>
-            <p className="text-xs text-forest-300">
-              Wilderfeast Character Sheet & Creator Wizard — 纯前端本地免登版
+            <p className="text-xs text-orange-300">
+              Wilderfeast Character Sheet & Creator Wizard
             </p>
           </div>
         </div>
         <div className="flex space-x-2">
           <button 
             onClick={() => { setActiveTab('roster'); setDiceRoll(null); }}
-            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'roster' ? 'bg-earth-600 border-earth-400 text-white' : 'bg-forest-900 border-forest-600 text-parchment-200'}`}
+            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'roster' ? 'bg-earth-600 border-earth-400 text-white' : 'bg-[#241103] border-orange-700 text-parchment-200'}`}
           >
             <Users size={16} /> 猎人群罗盘 (猎人列表)
           </button>
           <button 
             onClick={() => { setActiveTab('create'); setWizardStep(1); setDiceRoll(null); }}
-            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'create' ? 'bg-earth-600 border-earth-400 text-white' : 'bg-forest-900 border-forest-600 text-parchment-200'}`}
+            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'create' ? 'bg-earth-600 border-earth-400 text-white' : 'bg-[#241103] border-orange-700 text-parchment-200'}`}
           >
             <Plus size={16} /> 新建荒野角色
           </button>
@@ -728,7 +737,7 @@ export default function App() {
       {/* NOTIFICATIONS */}
       {notification && (
         <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-md shadow-rough border-3 text-sm flex items-center gap-2 ${
-          notification.type === 'success' ? 'bg-forest-600 border-forest-400 text-white' : 
+          notification.type === 'success' ? 'bg-orange-700 border-orange-500 text-white' : 
           notification.type === 'error' ? 'bg-earth-700 border-earth-500 text-white' : 
           'bg-yellow-850 border-yellow-500 text-yellow-100'
         }`}>
@@ -752,7 +761,7 @@ export default function App() {
                 </h2>
                 
                 <div className="relative">
-                  <label className="btn-sketch rounded px-3 py-1.5 bg-forest-800 border-forest-600 text-parchment-200 flex items-center gap-1 cursor-pointer text-xs">
+                  <label className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-parchment-200 flex items-center gap-1 cursor-pointer text-xs">
                     <Upload size={14} /> 导入 JSON
                     <input type="file" accept=".json" onChange={handleJsonImport} className="hidden" />
                   </label>
@@ -767,10 +776,10 @@ export default function App() {
                     className={`border-3 p-4 rounded-md cursor-pointer transition-all hover:translate-y-[-2px] hover:shadow-rough flex items-center space-x-4 ${
                       selectedCharId === char.id 
                         ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                        : 'bg-forest-900 border-forest-700 text-parchment-200'
+                        : 'bg-[#241103] border-orange-800 text-parchment-200'
                     }`}
                   >
-                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-forest-850 overflow-hidden flex-shrink-0 text-parchment-300">
+                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-amber-950 overflow-hidden flex-shrink-0 text-parchment-300">
                       {char.avatarType === 'emoji' ? (
                         getInkIcon(char.avatarValue, 32)
                       ) : (
@@ -780,11 +789,11 @@ export default function App() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <span className="font-bold font-serif text-lg truncate">{char.name}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded ${char.isCustom ? 'bg-earth-600 text-white' : 'bg-forest-700 text-forest-200'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded ${char.isCustom ? 'bg-earth-600 text-white' : 'bg-orange-800 text-orange-200'}`}>
                           {char.isCustom ? '自建' : '官方预设'}
                         </span>
                       </div>
-                      <p className="text-xs text-forest-300 truncate">
+                      <p className="text-xs text-orange-300 truncate">
                         {char.adjectives.join(' / ')} • {char.specialty}
                       </p>
                       <p className="text-xs text-parchment-300 font-serif mt-1 flex items-center gap-1">
@@ -794,7 +803,7 @@ export default function App() {
                     {char.isCustom && (
                       <button 
                         onClick={(e) => deleteCharacter(char.id, e)}
-                        className="text-forest-400 hover:text-earth-400 p-2"
+                        className="text-orange-400 hover:text-earth-400 p-2"
                         title="删除角色"
                       >
                         <Trash2 size={16} />
@@ -805,11 +814,11 @@ export default function App() {
 
                 <div 
                   onClick={() => { setActiveTab('create'); setWizardStep(1); }}
-                  className="border-3 border-dashed border-forest-600 p-6 rounded-md cursor-pointer transition-all hover:bg-forest-900 flex flex-col items-center justify-center text-forest-300"
+                  className="border-3 border-dashed border-orange-700 p-6 rounded-md cursor-pointer transition-all hover:bg-[#241103] flex flex-col items-center justify-center text-orange-300"
                 >
                   <Plus size={32} className="mb-2" />
                   <span className="font-bold">契约新猎人</span>
-                  <span className="text-xs mt-1 text-forest-400">开始分步向导，定制属于你的荒野食客</span>
+                  <span className="text-xs mt-1 text-orange-400">开始分步向导，定制属于你的荒野食客</span>
                 </div>
               </div>
             </div>
@@ -819,7 +828,7 @@ export default function App() {
           {activeTab === 'create' && (
             <div className="wood-panel p-6 rounded-lg text-parchment-100">
               {/* Step bar indicator */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b border-forest-800">
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-orange-900">
                 <span className="font-serif font-bold text-xl text-parchment-200">
                   创建荒野食客 ({wizardStep}/3 步)
                 </span>
@@ -827,7 +836,7 @@ export default function App() {
                   {[1, 2, 3].map(s => (
                     <div 
                       key={s} 
-                      className={`h-2 w-10 rounded ${s <= wizardStep ? 'bg-earth-500' : 'bg-forest-800'}`} 
+                      className={`h-2 w-10 rounded ${s <= wizardStep ? 'bg-earth-500' : 'bg-orange-950'}`} 
                     />
                   ))}
                 </div>
@@ -840,22 +849,22 @@ export default function App() {
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">第一步：输入名字与身份描述</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold mb-1 text-forest-300">姓名 (Name)</label>
+                        <label className="block text-xs font-bold mb-1 text-orange-300">姓名 (Name)</label>
                         <input 
                           type="text" 
                           value={wizName} 
                           onChange={(e) => setWizName(e.target.value)}
                           placeholder="例如: 普莱兹, 巴格, 或是你自己的称呼"
-                          className="w-full bg-forest-900 border-2 border-forest-700 rounded px-3 py-2 text-parchment-100 focus:outline-none focus:border-earth-500"
+                          className="w-full bg-[#241103] border-2 border-orange-800 rounded px-3 py-2 text-parchment-100 focus:outline-none focus:border-earth-500"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs font-bold mb-1 text-forest-300">目前的你 (形容词)</label>
+                          <label className="block text-xs font-bold mb-1 text-orange-300">目前的你 (形容词)</label>
                           <select 
                             value={wizAdjectiveCurrent} 
                             onChange={(e) => setWizAdjectiveCurrent(e.target.value)}
-                            className="w-full bg-forest-900 border-2 border-forest-700 rounded px-2 py-2 text-parchment-100 focus:outline-none"
+                            className="w-full bg-[#241103] border-2 border-orange-800 rounded px-2 py-2 text-parchment-100 focus:outline-none"
                           >
                             {wizTool.adjectives.map(adj => (
                               <option key={adj} value={adj}>{adj}</option>
@@ -863,11 +872,11 @@ export default function App() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-bold mb-1 text-forest-300">向往却难成为的你</label>
+                          <label className="block text-xs font-bold mb-1 text-orange-300">向往却难成为的你</label>
                           <select 
                             value={wizAdjectiveAspiring} 
                             onChange={(e) => setWizAdjectiveAspiring(e.target.value)}
-                            className="w-full bg-forest-900 border-2 border-forest-700 rounded px-2 py-2 text-parchment-100 focus:outline-none"
+                            className="w-full bg-[#241103] border-2 border-orange-800 rounded px-2 py-2 text-parchment-100 focus:outline-none"
                           >
                             {wizTool.adjectives.map(adj => (
                               <option key={adj} value={adj}>{adj}</option>
@@ -880,7 +889,7 @@ export default function App() {
 
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择你的方舟钢工具</h3>
-                    <p className="text-xs text-forest-300 mb-4">
+                    <p className="text-xs text-orange-300 mb-4">
                       工具决定你的核心战斗风格 (Styles) 与初始招式 (Techniques)。每项工具代表你在战斗中的独特战术定位。
                     </p>
 
@@ -892,20 +901,20 @@ export default function App() {
                           className={`border-3 p-3 rounded cursor-pointer transition-all ${
                             wizTool.name === t.name 
                               ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                              : 'bg-forest-900 border-forest-800 text-parchment-300 hover:border-forest-600'
+                              : 'bg-[#241103] border-orange-900 text-parchment-300 hover:border-orange-700'
                           }`}
                         >
                           <div className="font-bold font-serif text-md">{t.name}</div>
-                          <div className="text-[10px] text-forest-400 mt-1 truncate">{t.styles.name}</div>
+                          <div className="text-[10px] text-orange-400 mt-1 truncate">{t.styles.name}</div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="bg-forest-900 p-4 rounded border border-forest-800 mt-4">
+                    <div className="bg-[#241103] p-4 rounded border border-orange-900 mt-4">
                       <h4 className="font-bold text-sm text-parchment-200">{wizTool.name} 的机制细节:</h4>
-                      <p className="text-xs text-forest-300 mt-1 leading-relaxed">{wizTool.description}</p>
+                      <p className="text-xs text-orange-300 mt-1 leading-relaxed">{wizTool.description}</p>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-forest-800">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-orange-900">
                         <div>
                           <span className="block text-xs font-bold text-parchment-200 mb-1">风格分配选择：</span>
                           <div className="space-y-2">
@@ -934,8 +943,8 @@ export default function App() {
                           <span className="block text-xs font-bold text-parchment-200 mb-1">招牌战技（自动获得）：</span>
                           {wizTool.techniques.filter(tk => tk.type === 'signature').map(tk => (
                             <div key={tk.name} className="text-xs">
-                              <span className="font-bold text-earth-400">{tk.name}</span> <span className="text-[10px] bg-forest-800 px-1 rounded">{tk.cost}</span>
-                              <p className="text-[10px] text-forest-400 mt-0.5">{tk.effect}</p>
+                              <span className="font-bold text-earth-400">{tk.name}</span> <span className="text-[10px] bg-orange-950 px-1 rounded">{tk.cost}</span>
+                              <p className="text-[10px] text-orange-400 mt-0.5">{tk.effect}</p>
                             </div>
                           ))}
                         </div>
@@ -951,14 +960,14 @@ export default function App() {
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizSecondaryTech?.name === tk.name 
                                   ? 'bg-earth-950 border-earth-600 text-white' 
-                                  : 'bg-forest-850 border-forest-800 text-parchment-300'
+                                  : 'bg-amber-950 border-orange-900 text-parchment-300'
                               }`}
                             >
                               <div className="flex justify-between font-bold">
                                 <span>{tk.name}</span>
-                                <span className="text-[9px] bg-forest-800 px-1 rounded text-earth-300">{tk.cost}</span>
+                                <span className="text-[9px] bg-orange-950 px-1 rounded text-earth-300">{tk.cost}</span>
                               </div>
-                              <p className="text-[10px] text-forest-400 mt-1 line-clamp-3">{tk.effect}</p>
+                              <p className="text-[10px] text-orange-400 mt-1 line-clamp-3">{tk.effect}</p>
                             </div>
                           ))}
                         </div>
@@ -970,7 +979,7 @@ export default function App() {
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择人物卡头像</h3>
                     <div className="flex items-center space-x-6">
-                      <div className="w-20 h-20 rounded-full border-3 border-dashed border-earth-500 bg-forest-900 flex items-center justify-center text-parchment-200 overflow-hidden flex-shrink-0">
+                      <div className="w-20 h-20 rounded-full border-3 border-dashed border-earth-500 bg-[#241103] flex items-center justify-center text-parchment-200 overflow-hidden flex-shrink-0">
                         {wizAvatarType === 'emoji' ? (
                           getInkIcon(wizAvatarValue, 40)
                         ) : (
@@ -987,7 +996,7 @@ export default function App() {
                               className={`w-10 h-10 rounded border-2 text-parchment-200 flex items-center justify-center transition-all ${
                                 wizAvatarType === 'emoji' && wizAvatarValue === av.value 
                                   ? 'bg-earth-800 border-earth-500 ring-2 ring-earth-400' 
-                                  : 'bg-forest-900 border-forest-700 hover:border-forest-500'
+                                  : 'bg-[#241103] border-orange-800 hover:border-orange-500'
                               }`}
                               title={av.label}
                             >
@@ -996,8 +1005,8 @@ export default function App() {
                           ))}
                         </div>
                         <div className="flex items-center space-x-2 text-xs">
-                          <span className="text-forest-400">或者自己上传图片：</span>
-                          <label className="btn-sketch rounded px-2.5 py-1 bg-forest-800 border-forest-600 cursor-pointer text-[11px]">
+                          <span className="text-orange-400">或者自己上传图片：</span>
+                          <label className="btn-sketch rounded px-2.5 py-1 bg-orange-950 border-orange-700 cursor-pointer text-[11px]">
                             选择文件
                             <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                           </label>
@@ -1022,7 +1031,7 @@ export default function App() {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400 font-serif">选择你的突变专长 (Specialty)</h3>
-                    <p className="text-xs text-forest-300 mb-4">
+                    <p className="text-xs text-orange-300 mb-4">
                       荒野食客通过烹食怪物来获得基因突变。选择你所擅长的怪物谱系。专长决定你的初始特性和亲密同伴。
                     </p>
 
@@ -1034,23 +1043,23 @@ export default function App() {
                           className={`border-3 p-3 rounded cursor-pointer transition-all ${
                             wizLineage.name === l.name 
                               ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                              : 'bg-forest-900 border-forest-800 text-parchment-300 hover:border-forest-600'
+                              : 'bg-[#241103] border-orange-900 text-parchment-300 hover:border-orange-700'
                           }`}
                         >
                           <div className="font-bold font-serif text-md">{l.name}</div>
-                          <div className="text-[9px] text-forest-400 mt-1 line-clamp-1">{l.description}</div>
+                          <div className="text-[9px] text-orange-400 mt-1 line-clamp-1">{l.description}</div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="bg-forest-900 p-4 rounded border border-forest-800 mt-4 space-y-4">
+                    <div className="bg-[#241103] p-4 rounded border border-orange-900 mt-4 space-y-4">
                       <div>
                         <h4 className="font-bold text-sm text-parchment-200">🥗 {wizLineage.name} 的生物特征:</h4>
-                        <p className="text-xs text-forest-300 mt-1 leading-relaxed">{wizLineage.description}</p>
+                        <p className="text-xs text-orange-300 mt-1 leading-relaxed">{wizLineage.description}</p>
                       </div>
 
                       {/* Lineage traits selection */}
-                      <div className="border-t border-forest-800 pt-3">
+                      <div className="border-t border-orange-900 pt-3">
                         <span className="block text-xs font-bold text-parchment-200 mb-2">🧬 初始特性一（从本谱系专属特性中 3 选 1）：</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {wizLineage.traits.map(tr => (
@@ -1060,21 +1069,21 @@ export default function App() {
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizTraitPrimary?.name === tr.name 
                                   ? 'bg-earth-950 border-earth-600 text-white' 
-                                  : 'bg-forest-850 border-forest-800 text-parchment-300'
+                                  : 'bg-amber-950 border-orange-900 text-parchment-300'
                               }`}
                             >
                               <div className="flex justify-between font-bold text-earth-400">
                                 <span>{tr.name}</span>
-                                <span className="text-[9px] bg-forest-850 px-1 rounded text-parchment-400">{tr.cost}</span>
+                                <span className="text-[9px] bg-amber-950 px-1 rounded text-parchment-400">{tr.cost}</span>
                               </div>
-                              <p className="text-[10px] text-forest-400 mt-1">{tr.effect}</p>
+                              <p className="text-[10px] text-orange-400 mt-1">{tr.effect}</p>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       {/* General second trait selection */}
-                      <div className="border-t border-forest-800 pt-3 space-y-3">
+                      <div className="border-t border-orange-900 pt-3 space-y-3">
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
                           <span className="block text-xs font-bold text-parchment-200">初始特性二（杂学：可自选自大专长或附录A特性库）：</span>
                           <div className="flex space-x-2">
@@ -1084,7 +1093,7 @@ export default function App() {
                               className={`px-3 py-1 rounded text-xs font-bold transition-all border ${
                                 wizSecondaryTraitSource === 'specialty' 
                                   ? 'bg-earth-600 border-earth-400 text-white shadow-rough' 
-                                  : 'bg-forest-900 border-forest-700 text-parchment-300'
+                                  : 'bg-[#241103] border-orange-800 text-parchment-300'
                               }`}
                             >
                               8大专长特性
@@ -1095,7 +1104,7 @@ export default function App() {
                               className={`px-3 py-1 rounded text-xs font-bold transition-all border ${
                                 wizSecondaryTraitSource === 'appendix' 
                                   ? 'bg-earth-600 border-earth-400 text-white shadow-rough' 
-                                  : 'bg-forest-900 border-forest-700 text-parchment-300'
+                                  : 'bg-[#241103] border-orange-800 text-parchment-300'
                               }`}
                             >
                               附录A特性库
@@ -1104,10 +1113,10 @@ export default function App() {
                         </div>
 
                         {wizSecondaryTraitSource === 'specialty' ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-forest-950 rounded border border-forest-800">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-[#150a02] rounded border border-orange-900">
                             {LINEAGES.map(lg => (
                               <div key={lg.name} className="space-y-1">
-                                <div className="text-[9px] bg-forest-800 px-1.5 py-0.5 text-parchment-300 font-bold truncate">{lg.name}</div>
+                                <div className="text-[9px] bg-orange-950 px-1.5 py-0.5 text-parchment-300 font-bold truncate">{lg.name}</div>
                                 {lg.traits.map(tr => (
                                   <div 
                                     key={tr.name}
@@ -1115,7 +1124,7 @@ export default function App() {
                                     className={`p-1.5 rounded cursor-pointer text-[10px] transition-all truncate ${
                                       wizTraitSecondary?.name === tr.name 
                                         ? 'bg-earth-800 text-white' 
-                                        : 'text-parchment-400 hover:bg-forest-900'
+                                        : 'text-parchment-400 hover:bg-[#241103]'
                                     }`}
                                     title={`${tr.name}: ${tr.effect}`}
                                   >
@@ -1127,17 +1136,17 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <div className="flex items-center bg-forest-950 border border-forest-800 rounded px-2 py-1">
-                              <Search size={14} className="text-forest-400 mr-1.5" />
+                            <div className="flex items-center bg-[#150a02] border border-orange-900 rounded px-2 py-1">
+                              <Search size={14} className="text-orange-400 mr-1.5" />
                               <input 
                                 type="text"
                                 value={wizSecondarySearchQuery}
                                 onChange={(e) => setWizSecondarySearchQuery(e.target.value)}
                                 placeholder="搜索附录A特性名称 or 描述..."
-                                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-forest-600 w-full"
+                                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-orange-800 w-full"
                               />
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1 bg-forest-950 rounded border border-forest-800">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1 bg-[#150a02] rounded border border-orange-900">
                               {APPENDIX_TRAITS.filter(tr => 
                                 tr.name.includes(wizSecondarySearchQuery) || 
                                 tr.effect.includes(wizSecondarySearchQuery)
@@ -1148,12 +1157,12 @@ export default function App() {
                                   className={`p-2 rounded cursor-pointer text-[10px] transition-all border ${
                                     wizTraitSecondary?.name === tr.name 
                                       ? 'bg-earth-800 border-earth-500 text-white' 
-                                      : 'bg-forest-900 border-forest-800 text-parchment-400 hover:bg-forest-850 hover:text-white'
+                                      : 'bg-[#241103] border-orange-900 text-parchment-400 hover:bg-amber-950 hover:text-white'
                                   }`}
                                   title={`${tr.name} (${tr.cost}): ${tr.effect}`}
                                 >
                                   <div className="font-bold truncate">{tr.name}</div>
-                                  <div className="text-[8px] text-forest-400 truncate mt-0.5">{tr.cost}</div>
+                                  <div className="text-[8px] text-orange-400 truncate mt-0.5">{tr.cost}</div>
                                 </div>
                               ))}
                             </div>
@@ -1161,7 +1170,7 @@ export default function App() {
                         )}
 
                         {wizTraitSecondary && (
-                          <div className="mt-2 text-xs bg-forest-850 p-2 rounded border border-forest-800 text-forest-300">
+                          <div className="mt-2 text-xs bg-amber-950 p-2 rounded border border-orange-900 text-orange-300">
                             已选择次要特性: <span className="font-bold text-earth-400">{wizTraitSecondary.name}</span> ({wizTraitSecondary.cost}) — {wizTraitSecondary.effect}
                           </div>
                         )}
@@ -1172,7 +1181,7 @@ export default function App() {
                   {/* Companion choice */}
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择你的密切同伴 (Companion)</h3>
-                    <p className="text-xs text-forest-300 mb-3">
+                    <p className="text-xs text-orange-300 mb-3">
                       每一名荒野食客都与一只怪物同伴有着深厚的默契和牵绊。
                     </p>
 
@@ -1184,23 +1193,23 @@ export default function App() {
                           className={`border-2 p-2.5 rounded cursor-pointer text-xs transition-all ${
                             wizCompanionIndex === i 
                               ? 'bg-earth-900 border-earth-600 text-white' 
-                              : 'bg-forest-900 border-forest-800 text-parchment-400 hover:border-forest-700'
+                              : 'bg-[#241103] border-orange-900 text-parchment-400 hover:border-orange-800'
                           }`}
                         >
                           <div className="font-bold font-serif">{comp.name}</div>
-                          <p className="text-[10px] text-forest-400 mt-1 line-clamp-3">{comp.description}</p>
+                          <p className="text-[10px] text-orange-400 mt-1 line-clamp-3">{comp.description}</p>
                         </div>
                       ))}
                     </div>
 
                     <div className="mt-3">
-                      <label className="block text-xs font-bold mb-1 text-forest-300">给同伴起个自定义名字（留空则使用默认名）：</label>
+                      <label className="block text-xs font-bold mb-1 text-orange-300">给同伴起个自定义名字（留空则使用默认名）：</label>
                       <input 
                         type="text" 
                         value={wizCompanionCustomName} 
                         onChange={(e) => setWizCompanionCustomName(e.target.value)}
                         placeholder={`默认：${wizLineage.companions[wizCompanionIndex].name}`}
-                        className="w-full max-w-md bg-forest-900 border-2 border-forest-700 rounded px-3 py-1.5 text-xs text-parchment-100"
+                        className="w-full max-w-md bg-[#241103] border-2 border-orange-800 rounded px-3 py-1.5 text-xs text-parchment-100"
                       />
                     </div>
                   </div>
@@ -1208,7 +1217,7 @@ export default function App() {
                   <div className="flex justify-between pt-4">
                     <button 
                       onClick={() => setWizardStep(1)}
-                      className="btn-sketch rounded px-4 py-2 bg-forest-900 border-forest-700 text-parchment-200"
+                      className="btn-sketch rounded px-4 py-2 bg-[#241103] border-orange-800 text-parchment-200"
                     >
                       ← 上一步
                     </button>
@@ -1227,14 +1236,14 @@ export default function App() {
                 <div className="space-y-6">
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-1 text-earth-400">第三步：设定“三道菜式”背景故事</h3>
-                    <p className="text-xs text-forest-300 mb-4 leading-relaxed">
+                    <p className="text-xs text-orange-300 mb-4 leading-relaxed">
                       荒野食客通过特定的食物铭记自己的过往。在下方设定你的童年餐食、入伙动机以及毕生雄心。
                       <span className="text-earth-400 font-bold block mt-1">💡 规则计算：每个背景对应的选择会给你提供一项唯一的 +1 初始技能加值，三种背景对应的初始技能必须各不相同！</span>
                     </p>
 
                     <div className="space-y-4">
                       {/* Course 1: Upbringing */}
-                      <div className="bg-forest-900 p-4 rounded border border-forest-800 space-y-3">
+                      <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
                             第一道菜：成长背景 (Upbringing) — 童年餐食
@@ -1248,58 +1257,58 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-forest-400 mb-1">童年美食名称</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">童年美食名称</label>
                             <input 
                               type="text" 
                               value={wizUpbringingMeal} 
                               onChange={(e) => setWizUpbringingMeal(e.target.value)}
                               placeholder="例如: 黑麦酸面包配咸鱼"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
                           <div className="md:col-span-6">
-                            <label className="block text-[10px] text-forest-400 mb-1">童年成长细节</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">童年成长细节</label>
                             <textarea 
                               rows={2}
                               value={wizUpbringingText} 
                               onChange={(e) => setWizUpbringingText(e.target.value)}
                               placeholder="描述在什么环境下吃、谁在身边、什么样的情感"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-[10px] text-forest-400 mb-1">对应技能加成</label>
-                            <div className="bg-forest-950 border border-forest-700 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                            <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
+                            <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
                               +1 {UPBRINGINGS[wizUpbringingIndex].skill}
                             </div>
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-forest-850">
+                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-orange-950">
                           <div>
-                            <label className="block text-[10px] text-forest-400 mb-0.5">家乡特产</label>
+                            <label className="block text-[10px] text-orange-400 mb-0.5">家乡特产</label>
                             <input 
                               type="text" 
                               value={wizUpbringingSpecialty} 
                               onChange={(e) => setWizUpbringingSpecialty(e.target.value)}
                               placeholder="例如: 白米, 玉米, 虫尾"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2 py-1 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2 py-1 text-xs text-white"
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-forest-400 mb-0.5">家乡香料</label>
+                            <label className="block text-[10px] text-orange-400 mb-0.5">家乡香料</label>
                             <input 
                               type="text" 
                               value={wizUpbringingSpice} 
                               onChange={(e) => setWizUpbringingSpice(e.target.value)}
                               placeholder="例如: 大蒜, 鱼露, 怪物之血"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2 py-1 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2 py-1 text-xs text-white"
                             />
                           </div>
                         </div>
                       </div>
 
                       {/* Course 2: Motivation */}
-                      <div className="bg-forest-900 p-4 rounded border border-forest-800 space-y-3">
+                      <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
                             第二道菜：入伙动机 (Motivation) — 变异野兽餐
@@ -1313,28 +1322,28 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-forest-400 mb-1">怪物之餐名称</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">怪物之餐名称</label>
                             <input 
                               type="text" 
                               value={wizMotivationMeal} 
                               onChange={(e) => setWizMotivationMeal(e.target.value)}
                               placeholder="例如: 类似鲨鱼肉的稠粥"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
                           <div className="md:col-span-6">
-                            <label className="block text-[10px] text-forest-400 mb-1">入伙故事与野性觉醒</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">入伙故事与野性觉醒</label>
                             <textarea 
                               rows={2}
                               value={wizMotivationText} 
                               onChange={(e) => setWizMotivationText(e.target.value)}
                               placeholder="那是什么怪物？怎么死的？你为什么吃它？"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-[10px] text-forest-400 mb-1">对应技能加成</label>
-                            <div className="bg-forest-950 border border-forest-700 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                            <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
+                            <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
                               +1 {MOTIVATIONS[wizMotivationIndex].skill}
                             </div>
                           </div>
@@ -1342,7 +1351,7 @@ export default function App() {
                       </div>
 
                       {/* Course 3: Ambition */}
-                      <div className="bg-forest-900 p-4 rounded border border-forest-800 space-y-3">
+                      <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
                             第三道菜：一生雄心 (Ambition) — 梦想终极餐
@@ -1356,28 +1365,28 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-forest-400 mb-1">梦想终极料理名称</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">梦想终极料理名称</label>
                             <input 
                               type="text" 
                               value={wizAmbitionMeal} 
                               onChange={(e) => setWizAmbitionMeal(e.target.value)}
                               placeholder="例如: 巨人之心, 传奇盛宴"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
                           <div className="md:col-span-6">
-                            <label className="block text-[10px] text-forest-400 mb-1">渴望达成的成就</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">渴望达成的成就</label>
                             <textarea 
                               rows={2}
                               value={wizAmbitionText} 
                               onChange={(e) => setWizAmbitionText(e.target.value)}
                               placeholder="这道餐代表什么？你为什么如此渴望？什么在阻碍你？"
-                              className="w-full bg-forest-950 border border-forest-700 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-[10px] text-forest-400 mb-1">对应技能加成</label>
-                            <div className="bg-forest-950 border border-forest-700 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                            <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
+                            <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
                               +1 {AMBITIONS[wizAmbitionIndex].skill}
                             </div>
                           </div>
@@ -1389,7 +1398,7 @@ export default function App() {
                   {/* Bond input */}
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">设立契约牵绊 (Connection Bond)</h3>
-                    <p className="text-xs text-forest-300 mb-2">
+                    <p className="text-xs text-orange-300 mb-2">
                       餐食很少独自享用。选择一道菜，指定你与猎群中另一名队友建立特定的情感羁绊（Connection）。
                     </p>
                     <textarea 
@@ -1397,7 +1406,7 @@ export default function App() {
                       value={wizBond} 
                       onChange={(e) => setWizBond(e.target.value)}
                       placeholder="例如: 每次你吃黑麦咸鱼时，队友都在场，你们在生死关头曾互相帮扶过，你发誓守护他们..."
-                      className="w-full bg-forest-900 border-2 border-forest-700 rounded px-3 py-2 text-xs text-parchment-100"
+                      className="w-full bg-[#241103] border-2 border-orange-800 rounded px-3 py-2 text-xs text-parchment-100"
                     />
                   </div>
 
@@ -1405,7 +1414,7 @@ export default function App() {
                   <div className="flex justify-between pt-4">
                     <button 
                       onClick={() => setWizardStep(2)}
-                      className="btn-sketch rounded px-4 py-2 bg-forest-900 border-forest-700 text-parchment-200"
+                      className="btn-sketch rounded px-4 py-2 bg-[#241103] border-orange-800 text-parchment-200"
                     >
                       ← 上一步
                     </button>
@@ -1429,7 +1438,7 @@ export default function App() {
               {/* INTERACTIVE TRACKERS */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 wood-panel p-5 rounded-lg">
                 {/* Stamina Tracker */}
-                <div className="bg-forest-900 p-3 rounded border border-forest-700 text-center flex flex-col justify-between">
+                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between">
                   <span className="text-xs font-bold text-parchment-300 flex items-center justify-center gap-1">
                     <Heart size={14} className="text-earth-500 fill-earth-500" /> 最大体力 (Stamina)
                   </span>
@@ -1439,13 +1448,13 @@ export default function App() {
                   <div className="flex justify-center space-x-2">
                     <button 
                       onClick={() => updateActiveCharStat('stamina', activeChar.stamina - 1)}
-                      className="px-3 py-1 bg-forest-800 rounded border border-forest-600 font-bold hover:bg-forest-700 text-sm"
+                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       -1
                     </button>
                     <button 
                       onClick={() => updateActiveCharStat('stamina', activeChar.stamina + 1)}
-                      className="px-3 py-1 bg-forest-800 rounded border border-forest-600 font-bold hover:bg-forest-700 text-sm"
+                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       +1
                     </button>
@@ -1453,7 +1462,7 @@ export default function App() {
                 </div>
 
                 {/* Durability Tracker */}
-                <div className="bg-forest-900 p-3 rounded border border-forest-700 text-center flex flex-col justify-between">
+                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between">
                   <span className="text-xs font-bold text-parchment-300 flex items-center justify-center gap-1">
                     <Shield size={14} className="text-yellow-500" /> 工具耐久度 (Durability)
                   </span>
@@ -1463,13 +1472,13 @@ export default function App() {
                   <div className="flex justify-center space-x-2">
                     <button 
                       onClick={() => updateActiveCharStat('durability', activeChar.durability - 1)}
-                      className="px-3 py-1 bg-forest-800 rounded border border-forest-600 font-bold hover:bg-forest-700 text-sm"
+                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       -1
                     </button>
                     <button 
                       onClick={() => updateActiveCharStat('durability', activeChar.durability + 1)}
-                      className="px-3 py-1 bg-forest-800 rounded border border-forest-600 font-bold hover:bg-forest-700 text-sm"
+                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       +1
                     </button>
@@ -1477,7 +1486,7 @@ export default function App() {
                 </div>
 
                 {/* Harmony Tracker */}
-                <div className="bg-forest-900 p-3 rounded border border-forest-700 text-center flex flex-col justify-between">
+                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between">
                   <span className="text-xs font-bold text-parchment-300 flex items-center justify-center gap-1">
                     <Feather size={14} className="text-parchment-300" /> 和谐值 (Harmony) &lt;H&gt;
                   </span>
@@ -1487,13 +1496,13 @@ export default function App() {
                   <div className="flex justify-center space-x-2">
                     <button 
                       onClick={() => updateActiveCharStat('harmony', activeChar.harmony - 1)}
-                      className="px-3 py-1 bg-forest-800 rounded border border-forest-600 font-bold hover:bg-forest-700 text-sm"
+                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       -1
                     </button>
                     <button 
                       onClick={() => updateActiveCharStat('harmony', activeChar.harmony + 1)}
-                      className="px-3 py-1 bg-forest-800 rounded border border-forest-600 font-bold hover:bg-forest-700 text-sm"
+                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       +1
                     </button>
@@ -1501,20 +1510,20 @@ export default function App() {
                 </div>
 
                 {/* Harmony Max cap modifier */}
-                <div className="bg-forest-900 p-3 rounded border border-forest-700 text-center flex flex-col justify-between text-xs">
+                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between text-xs">
                   <span className="font-bold text-parchment-300">⚙️ 调整和谐上限</span>
-                  <p className="text-[10px] text-forest-400 my-1 leading-tight">休整期间，上限会根据旅途成功与否而波动。</p>
+                  <p className="text-[10px] text-orange-400 my-1 leading-tight">休整期间，上限会根据旅途成功与否而波动。</p>
                   <div className="flex justify-center items-center space-x-3 my-1">
                     <button 
                       onClick={() => updateActiveCharStat('harmonyMax', activeChar.harmonyMax - 1)}
-                      className="px-2 py-0.5 bg-forest-800 border border-forest-600 rounded font-bold hover:bg-forest-700"
+                      className="px-2 py-0.5 bg-orange-950 border border-orange-700 rounded font-bold hover:bg-orange-800"
                     >
                       -
                     </button>
                     <span className="font-bold font-serif text-sm">{activeChar.harmonyMax}</span>
                     <button 
                       onClick={() => updateActiveCharStat('harmonyMax', activeChar.harmonyMax + 1)}
-                      className="px-2 py-0.5 bg-forest-800 border border-forest-600 rounded font-bold hover:bg-forest-700"
+                      className="px-2 py-0.5 bg-orange-950 border border-orange-700 rounded font-bold hover:bg-orange-800"
                     >
                       +
                     </button>
@@ -1524,17 +1533,17 @@ export default function App() {
               </div>
 
               {/* ACTION SHEET PREVIEW CARD */}
-              <div className="flex justify-between items-center bg-forest-900 p-3 rounded border border-forest-700">
+              <div className="flex justify-between items-center bg-[#241103] p-3 rounded border border-orange-800">
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => setActiveTab('roster')} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-forest-800 border-forest-600 text-xs text-parchment-200 flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-xs text-parchment-200 flex items-center gap-1"
                   >
                     <ArrowLeft size={14} /> 返回列表
                   </button>
                   <button 
                     onClick={() => handleJsonExport(activeChar)} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-forest-800 border-forest-600 text-xs text-parchment-200 flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-xs text-parchment-200 flex items-center gap-1"
                   >
                     <Download size={14} /> 导出 JSON
                   </button>
@@ -1546,12 +1555,12 @@ export default function App() {
                   </button>
                   <button 
                     onClick={handlePrint} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-forest-800 border-forest-600 text-xs text-parchment-200 flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-xs text-parchment-200 flex items-center gap-1"
                   >
                     <Printer size={14} /> 打印本卡
                   </button>
                 </div>
-                <div className="text-xs text-forest-300 font-bold italic">
+                <div className="text-xs text-orange-300 font-bold italic">
                   点击任意【属性风格】即可快捷模拟掷骰
                 </div>
               </div>
@@ -1974,8 +1983,8 @@ export default function App() {
             <h3 className="font-serif font-bold text-lg mb-2 text-parchment-200 flex items-center gap-1.5">
               <Dice5 className="text-earth-400" /> 荒野投掷组合契约
             </h3>
-            <p className="text-[11px] text-forest-300 leading-relaxed mb-4">
-              你可以<b>任意组合</b> 1 种风格和 1 种技能进行检定（符合页码 42-44 规范）。在下方自由配置你的投掷池！
+            <p className="text-[11px] text-orange-300 leading-relaxed mb-4">
+              你可以<b>任意组合</b> 1 种风格和 1 种技能。在下方自由配置并开始投掷！
             </p>
 
             {/* FREE COMBINATION INTERACTIVE PANELS */}
@@ -1991,11 +2000,11 @@ export default function App() {
               const currentSkillVal = activeChar.skills[selectedRollSkill] || 0;
 
               return (
-                <div className="space-y-4 bg-forest-900 p-4 rounded border border-forest-800 text-xs">
+                <div className="space-y-4 bg-[#241103] p-4 rounded border border-orange-900 text-xs">
                   
                   {/* Style selection */}
                   <div>
-                    <label className="block text-[10px] text-forest-300 font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 骰池数 ):</label>
+                    <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 骰池数 ):</label>
                     <div className="grid grid-cols-4 gap-1">
                       {['力量', '精准', '迅捷', '技巧'].map(st => {
                         const styleVal = activeChar.styleValues[styleKeyMap[st] || 'power'] || 1;
@@ -2008,7 +2017,7 @@ export default function App() {
                             className={`py-1.5 rounded text-center border font-bold transition-all ${
                               isSelected 
                                 ? 'bg-earth-600 border-earth-400 text-white shadow font-extrabold' 
-                                : 'bg-forest-950 border-forest-800 text-forest-300 hover:border-forest-700'
+                                : 'bg-[#150a02] border-orange-900 text-orange-300 hover:border-orange-800'
                             }`}
                           >
                             <div>{st}</div>
@@ -2021,11 +2030,11 @@ export default function App() {
 
                   {/* Skill selection */}
                   <div>
-                    <label className="block text-[10px] text-forest-300 font-bold mb-1.5 uppercase">2. 选择配套技能 ( 骰面等级加成 ):</label>
+                    <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">2. 选择配套技能 ( 骰面等级加成 ):</label>
                     <select
                       value={selectedRollSkill}
                       onChange={(e) => setSelectedRollSkill(e.target.value)}
-                      className="w-full bg-forest-950 border-2 border-forest-800 text-parchment-200 rounded px-2.5 py-2 text-xs focus:outline-none focus:border-earth-500"
+                      className="w-full bg-[#150a02] border-2 border-orange-900 text-parchment-200 rounded px-2.5 py-2 text-xs focus:outline-none focus:border-earth-500"
                     >
                       {['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'].map(sk => {
                         const skillVal = activeChar.skills[sk] || 0;
@@ -2038,17 +2047,49 @@ export default function App() {
                     </select>
                   </div>
 
-                  {/* Confirm combination message */}
-                  <div className="border-t border-forest-850 pt-3 text-center">
-                    <div className="text-parchment-200 font-serif text-sm font-bold">
-                      当前备战组合：<span className="text-earth-400 font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
+                  {/* Action Die selection */}
+                  <div>
+                    <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">3. 选择行动骰与心境 (Action Die & Mindset):</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => { setActionDieMode('focus'); showNotification('心境已设为：集中精神 (d8)', 'success'); }}
+                        className={`p-2 rounded text-left border transition-all ${
+                          actionDieMode === 'focus'
+                            ? 'bg-earth-900 border-earth-500 text-white font-extrabold shadow'
+                            : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
+                        }`}
+                      >
+                        <div className="font-bold font-serif text-xs">集中精神 (Focus)</div>
+                        <p className="text-[9px] text-stone-400 leading-snug mt-0.5">依靠人类力量。获得 1d8 行动骰，稳定可靠。</p>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => { setActionDieMode('wild'); showNotification('心境已设为：释放野性 (d20, 风格骰-1)', 'success'); }}
+                        className={`p-2 rounded text-left border transition-all ${
+                          actionDieMode === 'wild'
+                            ? 'bg-red-950 border-red-500 text-white font-extrabold shadow'
+                            : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
+                        }`}
+                      >
+                        <div className="font-bold font-serif text-xs text-red-400">释放野性 (Go Wild)</div>
+                        <p className="text-[9px] text-stone-400 leading-snug mt-0.5">化身狂乱怪物。获得 1d20 行动骰，但风格骰数减少 1。</p>
+                      </button>
                     </div>
-                    <div className="text-[10px] text-forest-400 mt-1">
-                      投掷：{styleDiceCount}d6 骰子 • 拥有 +{currentSkillVal} 加值
+                  </div>
+
+                  {/* Confirm combination message */}
+                  <div className="border-t border-orange-950 pt-3 text-center">
+                    <div className="text-parchment-200 font-serif text-sm font-bold">
+                      当前备战：<span className="text-earth-400 font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
+                    </div>
+                    <div className="text-[10px] text-orange-400 mt-1">
+                      投掷：{styleDiceCount}d6 (风格) + {actionDieMode === 'focus' ? '1d8' : '1d20'} (行动) • 拥有 +{currentSkillVal} 技能加值
                     </div>
                     
                     <button
-                      onClick={() => handleRollDice(selectedRollStyle, styleDiceCount, selectedRollSkill, currentSkillVal)}
+                      onClick={() => handleRollDice(selectedRollStyle, styleDiceCount, selectedRollSkill, currentSkillVal, actionDieMode)}
                       className="w-full btn-sketch rounded mt-3 py-2.5 bg-earth-600 border-earth-400 text-white font-serif font-black text-sm flex items-center justify-center gap-1.5"
                     >
                       投 掷 契 约
@@ -2061,50 +2102,67 @@ export default function App() {
 
             {/* RESULTS RENDERING */}
             {diceRoll && (
-              <div className="mt-4 space-y-4 pt-4 border-t border-forest-800">
+              <div className="mt-4 space-y-4 pt-4 border-t border-orange-900">
                 <div className="space-y-2">
                   <span className="block text-xs font-bold text-parchment-300">
                     投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
                   </span>
 
-                  <div className="flex flex-wrap gap-2.5 justify-center py-2">
-                    {diceRoll.dice.map((d, index) => (
-                      <div 
-                        key={index}
-                        onClick={() => toggleDiceActive(index)}
-                        className={`w-11 h-11 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${
-                          d.adjustedValue >= 5 
-                            ? 'bg-earth-600 border-earth-300 text-white shadow-md scale-105' 
-                            : 'bg-forest-950 border-forest-800 text-parchment-400'
-                        }`}
-                      >
-                        <span className="text-lg font-extrabold font-serif">{d.adjustedValue}</span>
-                        {d.active && <span className="text-[8px] bg-yellow-500 text-forest-950 font-bold px-1 rounded scale-75 mt-[-3px]">+1</span>}
-                      </div>
-                    ))}
+                  <div className="flex flex-wrap gap-2.5 justify-center py-2 items-center">
+                    {/* Style D6 Dice */}
+                    <div className="flex flex-wrap gap-1.5 justify-center">
+                      {diceRoll.dice.map((d, index) => (
+                        <div 
+                          key={index}
+                          onClick={() => toggleDiceActive(index)}
+                          className={`w-11 h-11 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${
+                            d.adjustedValue >= 5 
+                              ? 'bg-earth-600 border-earth-300 text-white shadow-md scale-105' 
+                              : 'bg-[#150a02] border-orange-900 text-parchment-400'
+                          }`}
+                          title="点击应用或撤销技能 +1 修正"
+                        >
+                          <span className="text-lg font-extrabold font-serif">{d.adjustedValue}</span>
+                          {d.active && <span className="text-[8px] bg-yellow-500 text-amber-950 font-bold px-1 rounded scale-75 mt-[-3px]">+1</span>}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Divider spacer */}
+                    <span className="text-orange-900 font-bold mx-1">＋</span>
+
+                    {/* Action Die Box */}
+                    <div className={`p-1.5 border-3 rounded-lg flex flex-col items-center justify-center text-center shadow-md min-w-[70px] ${
+                      diceRoll.actionDieType === 'd8'
+                        ? 'bg-amber-900/40 border-amber-500 text-amber-100'
+                        : 'bg-red-950/40 border-red-500 text-red-200'
+                    }`}>
+                      <span className="text-[8px] font-bold uppercase tracking-wider block leading-none">行动骰 {diceRoll.actionDieType}</span>
+                      <span className="text-xl font-serif font-black block mt-0.5">{diceRoll.actionDieValue}</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* Score results card */}
-                <div className="bg-forest-950 p-4 rounded-lg border border-forest-800 text-center space-y-2 shadow-inner">
+                <div className="bg-[#150a02] p-4 rounded-lg border border-orange-900 text-center space-y-2 shadow-inner">
                   <div className="grid grid-cols-2 gap-2">
-                    <div className="border-r border-forest-800">
-                      <span className="text-[10px] text-forest-400 block uppercase font-bold">成功次数</span>
+                    <div className="border-r border-orange-900">
+                      <span className="text-[10px] text-orange-400 block uppercase font-bold">成功次数</span>
                       <span className="text-3xl font-black font-serif text-earth-400">
                         {diceRoll.successes}
                       </span>
                     </div>
                     <div>
-                      <span className="text-[10px] text-forest-400 block uppercase font-bold">行动评级 [A]</span>
+                      <span className="text-[10px] text-orange-400 block uppercase font-bold">行动评级 [A]</span>
                       <span className="text-3xl font-black font-serif text-yellow-500">
                         {diceRoll.actionRating}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-xs pt-2 border-t border-forest-800 leading-tight">
+                  <div className="text-xs pt-2 border-t border-orange-900 leading-tight">
                     {diceRoll.successes > 0 ? (
-                      <span className="text-forest-400 font-bold">
+                      <span className="text-orange-400 font-bold">
                         检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！
                       </span>
                     ) : (
@@ -2120,7 +2178,7 @@ export default function App() {
 
           {/* APPENDIX REFERENCE GUIDE PANEL */}
           <div className="wood-panel p-5 rounded-lg text-parchment-100 space-y-4">
-            <div className="flex justify-between items-center border-b border-forest-800 pb-2">
+            <div className="flex justify-between items-center border-b border-orange-900 pb-2">
               <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
                 <BookIcon size={18} className="text-earth-400" /> 附录参考手册
               </h3>
@@ -2141,7 +2199,7 @@ export default function App() {
                   className={`py-1.5 text-center text-xs font-bold transition-all border rounded ${
                     activeAppendixTab === tb.key 
                       ? 'bg-earth-600 border-earth-400 text-white shadow' 
-                      : 'bg-forest-900 border-forest-800 text-parchment-300 hover:bg-forest-850'
+                      : 'bg-[#241103] border-orange-900 text-parchment-300 hover:bg-amber-950'
                   }`}
                 >
                   {tb.label}
@@ -2150,14 +2208,14 @@ export default function App() {
             </div>
 
             {/* Search Input bar */}
-            <div className="flex items-center bg-forest-950 border border-forest-800 rounded px-2.5 py-1.5">
-              <Search size={14} className="text-forest-400 mr-2" />
+            <div className="flex items-center bg-[#150a02] border border-orange-900 rounded px-2.5 py-1.5">
+              <Search size={14} className="text-orange-400 mr-2" />
               <input 
                 type="text"
                 value={appendixSearchQuery}
                 onChange={(e) => setAppendixSearchQuery(e.target.value)}
                 placeholder="搜索当前手册内容..."
-                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-forest-600 w-full"
+                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-orange-800 w-full"
               />
             </div>
 
@@ -2172,7 +2230,7 @@ export default function App() {
                     className={`px-2 py-0.5 rounded text-[10px] transition-all border ${
                       appendixFilterWeapon === wp 
                         ? 'bg-earth-800 border-earth-500 text-white font-bold' 
-                        : 'bg-forest-950 border-forest-800 text-forest-300'
+                        : 'bg-[#150a02] border-orange-900 text-orange-300'
                     }`}
                   >
                     {wp === 'all' ? '全部' : wp === '通用' ? '通用' : wp}
@@ -2190,12 +2248,12 @@ export default function App() {
                   tr.name.includes(appendixSearchQuery) || 
                   tr.effect.includes(appendixSearchQuery)
                 ).map(tr => (
-                  <div key={tr.name} className="bg-forest-900 border border-forest-850 p-2.5 rounded hover:border-forest-700">
+                  <div key={tr.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
                     <div className="flex justify-between items-center font-bold text-parchment-200">
                       <span className="font-serif">{tr.name}</span>
-                      <span className="text-[9px] bg-forest-950 text-earth-300 px-1.5 rounded">{tr.cost}</span>
+                      <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tr.cost}</span>
                     </div>
-                    <p className="text-forest-300 text-[11px] mt-1 leading-tight">{tr.effect}</p>
+                    <p className="text-orange-300 text-[11px] mt-1 leading-tight">{tr.effect}</p>
                   </div>
                 ))
               )}
@@ -2208,17 +2266,17 @@ export default function App() {
                   if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
                   return tk.weapon === appendixFilterWeapon && matchesSearch;
                 }).map(tk => (
-                  <div key={tk.name} className="bg-forest-900 border border-forest-850 p-2.5 rounded hover:border-forest-700">
+                  <div key={tk.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
                     <div className="flex justify-between items-center font-bold text-parchment-200">
                       <span className="font-serif">{tk.name}</span>
-                      <span className="text-[9px] bg-forest-950 text-earth-300 px-1.5 rounded">{tk.cost}</span>
+                      <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tk.cost}</span>
                     </div>
-                    <div className="flex space-x-2 text-[9px] text-forest-400 mt-0.5">
+                    <div className="flex space-x-2 text-[9px] text-orange-400 mt-0.5">
                       <span>🔧 {tk.weapon}</span>
                       <span>•</span>
                       <span>⭐ {tk.rank}</span>
                     </div>
-                    <p className="text-forest-300 text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
+                    <p className="text-orange-300 text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
                   </div>
                 ))
               )}
@@ -2229,10 +2287,10 @@ export default function App() {
                   st.name.includes(appendixSearchQuery) || 
                   st.effect.includes(appendixSearchQuery)
                 ).map(st => (
-                  <div key={st.name} className="bg-forest-900 border border-forest-850 p-2.5 rounded hover:border-forest-700">
+                  <div key={st.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
                     <div className="font-serif font-bold text-parchment-200">{st.name}</div>
-                    <p className="text-forest-300 text-[11px] mt-1 leading-tight"><span className="font-bold text-earth-400">效果:</span> {st.effect}</p>
-                    <p className="text-[10px] text-forest-400 mt-1"><span className="font-bold text-parchment-300">结束条件:</span> {st.endCondition}</p>
+                    <p className="text-orange-300 text-[11px] mt-1 leading-tight"><span className="font-bold text-earth-400">效果:</span> {st.effect}</p>
+                    <p className="text-[10px] text-orange-400 mt-1"><span className="font-bold text-parchment-300">结束条件:</span> {st.endCondition}</p>
                   </div>
                 ))
               )}
@@ -2243,14 +2301,14 @@ export default function App() {
                   {/* Combat */}
                   {(!appendixSearchQuery || '战斗狩猎行动'.includes(appendixSearchQuery)) && (
                     <div className="space-y-1.5">
-                      <div className="text-[10px] bg-forest-850 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">⚔️ 狩猎回合行动 (Combat Actions)</div>
+                      <div className="text-[10px] bg-amber-950 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">⚔️ 狩猎回合行动 (Combat Actions)</div>
                       {APPENDIX_ACTIONS.filter(act => act.type === 'combat' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                        <div key={act.name} className="bg-forest-900/50 p-2 rounded border border-forest-850">
+                        <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
                           <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
                             <span>{act.name}</span>
-                            <span className="text-[9px] text-forest-400 font-mono">{act.cost}</span>
+                            <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
                           </div>
-                          <p className="text-forest-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                          <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
                         </div>
                       ))}
                     </div>
@@ -2259,9 +2317,9 @@ export default function App() {
                   {/* Feast */}
                   {(!appendixSearchQuery || '盛宴共餐问题'.includes(appendixSearchQuery)) && (
                     <div className="space-y-1.5">
-                      <div className="text-[10px] bg-forest-850 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🍲 盛宴共享探讨 (Feast Questions)</div>
+                      <div className="text-[10px] bg-amber-950 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🍲 盛宴共享探讨 (Feast Questions)</div>
                       {APPENDIX_ACTIONS.filter(act => act.type === 'feast' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                        <div key={act.name} className="bg-forest-900/50 p-2 rounded border border-forest-850">
+                        <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
                           <p className="text-parchment-200 text-[11px] leading-tight font-serif">{act.effect}</p>
                         </div>
                       ))}
@@ -2271,14 +2329,14 @@ export default function App() {
                   {/* Rest */}
                   {(!appendixSearchQuery || '休整营地行动'.includes(appendixSearchQuery)) && (
                     <div className="space-y-1.5">
-                      <div className="text-[10px] bg-forest-850 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🏕️ 休整营地行动 (Rest Actions)</div>
+                      <div className="text-[10px] bg-amber-950 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🏕️ 休整营地行动 (Rest Actions)</div>
                       {APPENDIX_ACTIONS.filter(act => act.type === 'rest' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                        <div key={act.name} className="bg-forest-900/50 p-2 rounded border border-forest-850">
+                        <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
                           <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
                             <span>{act.name}</span>
-                            <span className="text-[9px] text-forest-400 font-mono">{act.cost}</span>
+                            <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
                           </div>
-                          <p className="text-forest-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                          <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
                         </div>
                       ))}
                     </div>
@@ -2293,7 +2351,7 @@ export default function App() {
       </main>
 
       {/* FOOTER */}
-      <footer className="text-center py-8 mt-12 border-t border-forest-900 text-xs text-forest-400">
+      <footer className="text-center py-8 mt-12 border-t border-orange-950 text-xs text-orange-400">
         <p>© 2026 荒野盛宴 TTRPG 电子人物卡辅助工具. All Rules and Concepts belong to KC Shi and respective authors.</p>
         <p className="mt-1">Based on "Wilderfeast" core rules. Craft with Love & Wilderness.</p>
       </footer>

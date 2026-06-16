@@ -310,6 +310,23 @@ export const DefaultPortrait: React.FC<IconProps> = ({ size = 200, className = '
 );
 
 export const getCharacterPortrait = (name: string, size = 200, className = ''): React.ReactNode => {
+  // Try loading real extracted PNG portrait first if name matches preloaded characters
+  const preGens = ['普莱兹', '巴格', '娜特·辛', '泰伦', '莲恩', '诺特'];
+  if (preGens.includes(name)) {
+    return (
+      <img 
+        src={`/portraits/${name}.png`} 
+        alt={name} 
+        className={`object-contain max-h-[190px] w-auto ${className}`} 
+        style={{ width: size, height: size }}
+        onError={(e) => {
+          // Fallback to vector outline drawings if file fails to load
+          e.currentTarget.style.display = 'none';
+        }}
+      />
+    );
+  }
+
   switch (name) {
     case '普莱兹': return <PrisePortrait size={size} className={className} />;
     case '巴格': return <BagPortrait size={size} className={className} />;
