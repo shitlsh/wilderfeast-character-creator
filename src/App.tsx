@@ -319,6 +319,60 @@ export default function App() {
     setCharacters(prev => prev.map(c => c.id === selectedCharId || c.id === activeChar.id ? updated : c));
   };
 
+  const updateActiveCharStyle = (styleKey: string, val: number) => {
+    if (!activeChar) return;
+    const updated = { 
+      ...activeChar, 
+      styleValues: { 
+        ...activeChar.styleValues, 
+        [styleKey]: val 
+      } 
+    };
+
+    if (activeChar.isCustom) {
+      const customs = characters.filter(c => c.isCustom);
+      const index = customs.findIndex(c => c.id === activeChar.id);
+      if (index !== -1) {
+        customs[index] = updated;
+        saveCustomCharacters(customs);
+      }
+    } else {
+      const customs = characters.filter(c => c.isCustom);
+      const cloned = { ...updated, id: `${activeChar.id}_session`, isCustom: true };
+      saveCustomCharacters([...customs, cloned]);
+      setSelectedCharId(cloned.id);
+    }
+    setCharacters(prev => prev.map(c => c.id === selectedCharId || c.id === activeChar.id ? updated : c));
+    showNotification(`已更新 ${activeChar.name} 的风格：${styleKey === 'power' ? '力量' : styleKey === 'precision' ? '精准' : styleKey === 'swiftness' ? '迅捷' : '技巧'} 为 ${val} 级`, 'success');
+  };
+
+  const updateActiveCharSkill = (skillKey: string, val: number) => {
+    if (!activeChar) return;
+    const updated = { 
+      ...activeChar, 
+      skills: { 
+        ...activeChar.skills, 
+        [skillKey]: val 
+      } 
+    };
+
+    if (activeChar.isCustom) {
+      const customs = characters.filter(c => c.isCustom);
+      const index = customs.findIndex(c => c.id === activeChar.id);
+      if (index !== -1) {
+        customs[index] = updated;
+        saveCustomCharacters(customs);
+      }
+    } else {
+      const customs = characters.filter(c => c.isCustom);
+      const cloned = { ...updated, id: `${activeChar.id}_session`, isCustom: true };
+      saveCustomCharacters([...customs, cloned]);
+      setSelectedCharId(cloned.id);
+    }
+    setCharacters(prev => prev.map(c => c.id === selectedCharId || c.id === activeChar.id ? updated : c));
+    showNotification(`已更新 ${activeChar.name} 的技能：${skillKey} 为 +${val}`, 'success');
+  };
+
   const updateActiveCharStates = (stateKey: keyof Character['states']) => {
     if (!activeChar) return;
     const updatedStates = { ...activeChar.states, [stateKey]: !activeChar.states[stateKey] };
@@ -1608,9 +1662,14 @@ export default function App() {
                     
                     {/* Left: Styles Column (Col Span 4) */}
                     <div className="lg:col-span-4 border-2 border-orange-500 rounded p-4 bg-orange-50/50 space-y-3">
-                      <h3 className="text-center font-serif font-black text-md text-orange-850 tracking-wider flex items-center justify-center gap-1">
-                        ❖❖❖ 风格 ❖❖❖
-                      </h3>
+                      {/* Decorative SVG Style Title Banner */}
+                      <div className="flex items-center justify-center select-none mt-[-5px]">
+                        <svg className="w-full h-8 max-w-[150px] text-orange-850" viewBox="0 0 160 30" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 15l4-4 4 4-4 4zM24 15l3-3 3 3-3 3z" strokeWidth="1.5" />
+                          <path d="M136 15l3-3 3 3-3 3zM148 15l4-4 4 4-4 4z" strokeWidth="1.5" />
+                          <text x="80" y="19" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" stroke="none" fill="currentColor">风 格</text>
+                        </svg>
+                      </div>
                       <p className="text-[9px] text-orange-700 text-center leading-none mt-[-4px]">点击属性，在右侧骰池中快速装填风格骰</p>
 
                       <div className="space-y-2.5">
@@ -1620,7 +1679,7 @@ export default function App() {
                           { key: 'swiftness', label: '迅捷', desc: '迅速、活力、警觉或灵巧' },
                           { key: 'technique', label: '技巧', desc: '巧妙、狡诈、技术性或精明' }
                         ].map(st => {
-                          const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues];
+                          const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues] || 1;
                           const isSelected = selectedRollStyle === st.label;
                           return (
                             <div 
@@ -1632,9 +1691,30 @@ export default function App() {
                                   : 'bg-white hover:bg-orange-100 text-stone-900'
                               }`}
                             >
-                              <div>
-                                <span className="font-serif font-extrabold text-sm block">{st.label}</span>
-                                <span className={`text-[8px] block ${isSelected ? 'text-orange-100' : 'text-stone-500'}`}>{st.desc}</span>
+                              <div className="min-w-0 flex-1">
+                                <span className="font-serif font-extrabold text-sm block truncate">{st.label}</span>
+                                <span className={`text-[8px] block truncate ${isSelected ? 'text-orange-100' : 'text-stone-500'}`}>{st.desc}</span>
+                              </div>
+                              
+                              {/* Sturdy Interactive Styles Adjuster */}
+                              <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                                <button 
+                                  onClick={() => updateActiveCharStyle(st.key, Math.max(1, val - 1))}
+                                  className="w-5 h-5 bg-stone-100 hover:bg-stone-200 border border-stone-800 flex items-center justify-center font-bold text-stone-900 rounded-sm text-[10px]"
+                                  title="减少风格值"
+                                >
+                                  -
+                                </button>
+                                <div className="border border-stone-800 px-2 py-0.5 bg-stone-50 font-mono font-black text-xs text-stone-900 rounded-sm min-w-[22px] text-center">
+                                  {val}
+                                </div>
+                                <button 
+                                  onClick={() => updateActiveCharStyle(st.key, Math.min(5, val + 1))}
+                                  className="w-5 h-5 bg-stone-100 hover:bg-stone-200 border border-stone-800 flex items-center justify-center font-bold text-stone-900 rounded-sm text-[10px]"
+                                  title="增加风格值"
+                                >
+                                  +
+                                </button>
                               </div>
                               <div className="border-2 border-stone-900 px-3 py-1 bg-stone-100 font-mono font-black text-lg text-stone-900 rounded shadow-sm">
                                 {val}
@@ -1687,11 +1767,19 @@ export default function App() {
 
                     {/* Right: Skills Grid (Col Span 8) - ALWAYS SHOWING ALL 12 SKILLS */}
                     <div className="lg:col-span-8 border-2 border-sky-950 rounded p-4 bg-sky-50/20 space-y-3">
-                      <h3 className="text-center font-serif font-black text-md text-sky-950 tracking-wider flex items-center justify-center gap-1.5">
-                        {getInkIcon(activeChar.specialty, 20, 'text-sky-900')}
-                        ================== 技能 ==================
-                      </h3>
-                      <p className="text-[9px] text-sky-800 text-center leading-none mt-[-4px]">点击对应技能，在右侧骰池中装填加值技能（斜杠 / 代表已获背景 +1 修正）</p>
+                      {/* Gorgeous SVG Skill Title Banner matching official card exactly */}
+                      <div className="flex items-center justify-center select-none mt-[-5px]">
+                        <svg className="w-full h-8 max-w-lg text-sky-950" viewBox="0 0 320 30" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          {/* Fish outline on the left */}
+                          <path d="M5 15c4-2.5 12-3.5 17-1.5c2.5.8 4 2.5 4 4.2s-1.5 3.3-4 4.2c-5 2-13 1-17-1.5l-2.5 3.5V11.5l2.5 3.5z" strokeWidth="1.5" />
+                          <circle cx="18" cy="14" r="0.8" fill="currentColor" stroke="none" />
+                          {/* Symmetrical ink parallel lines */}
+                          <path d="M28 12h84M28 18h84" strokeWidth="1.5" />
+                          <path d="M208 12h106M208 18h106" strokeWidth="1.5" />
+                          <text x="160" y="19" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" stroke="none" fill="currentColor">技  能</text>
+                        </svg>
+                      </div>
+                      <p className="text-[9px] text-sky-800 text-center leading-none mt-[-4px]">点击对应技能，在右侧骰池中快速装填（使用小箭头直接修改属性增长）</p>
 
                       {/* 12-cell skill layout styled exactly like physical card */}
                       <div className="grid grid-cols-3 border-2 border-stone-900 divide-x-2 divide-stone-900 bg-white text-xs font-serif shadow-sm">
@@ -1705,14 +1793,39 @@ export default function App() {
                               <div 
                                 key={sk}
                                 onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
-                                className={`p-2.5 flex items-center justify-between cursor-pointer transition-all ${
-                                  isSelected ? 'bg-sky-100 font-extrabold' : 'hover:bg-stone-50'
+                                className={`p-2 flex items-center justify-between cursor-pointer transition-all ${
+                                  isSelected ? 'bg-sky-50 font-extrabold text-sky-950' : 'hover:bg-stone-50 text-stone-900'
                                 }`}
                               >
                                 <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
-                                <div className="flex items-center space-x-1">
-                                  <span className="font-mono text-sm">⊕</span>
-                                  {val > 0 && <span className="font-mono text-md font-bold text-sky-900">/</span>}
+                                
+                                {/* Skill Value & Slashes checkbox rendering */}
+                                <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center space-x-0.5 text-stone-700 bg-stone-50 border border-stone-300 px-1 rounded-sm">
+                                    <span className="font-bold text-[9px] text-sky-900 pr-0.5">+{val}</span>
+                                    <span className="font-mono text-xs select-none">⊕</span>
+                                    {val >= 1 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                    {val >= 2 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                    {val >= 3 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                  </div>
+                                  
+                                  {/* Small adjustable buttons */}
+                                  <div className="flex flex-col -space-y-0.5">
+                                    <button 
+                                      onClick={() => updateActiveCharSkill(sk, Math.min(3, val + 1))}
+                                      className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                      title="增加技能值"
+                                    >
+                                      ▲
+                                    </button>
+                                    <button 
+                                      onClick={() => updateActiveCharSkill(sk, Math.max(0, val - 1))}
+                                      className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                      title="减少技能值"
+                                    >
+                                      ▼
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -1728,14 +1841,37 @@ export default function App() {
                               <div 
                                 key={sk}
                                 onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
-                                className={`p-2.5 flex items-center justify-between cursor-pointer transition-all ${
-                                  isSelected ? 'bg-sky-100 font-extrabold' : 'hover:bg-stone-50'
+                                className={`p-2 flex items-center justify-between cursor-pointer transition-all ${
+                                  isSelected ? 'bg-sky-50 font-extrabold text-sky-950' : 'hover:bg-stone-50 text-stone-900'
                                 }`}
                               >
                                 <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
-                                <div className="flex items-center space-x-1">
-                                  <span className="font-mono text-sm">⊕</span>
-                                  {val > 0 && <span className="font-mono text-md font-bold text-sky-900">/</span>}
+                                
+                                <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center space-x-0.5 text-stone-700 bg-stone-50 border border-stone-300 px-1 rounded-sm">
+                                    <span className="font-bold text-[9px] text-sky-900 pr-0.5">+{val}</span>
+                                    <span className="font-mono text-xs select-none">⊕</span>
+                                    {val >= 1 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                    {val >= 2 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                    {val >= 3 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                  </div>
+                                  
+                                  <div className="flex flex-col -space-y-0.5">
+                                    <button 
+                                      onClick={() => updateActiveCharSkill(sk, Math.min(3, val + 1))}
+                                      className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                      title="增加技能值"
+                                    >
+                                      ▲
+                                    </button>
+                                    <button 
+                                      onClick={() => updateActiveCharSkill(sk, Math.max(0, val - 1))}
+                                      className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                      title="减少技能值"
+                                    >
+                                      ▼
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -1751,14 +1887,37 @@ export default function App() {
                               <div 
                                 key={sk}
                                 onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
-                                className={`p-2.5 flex items-center justify-between cursor-pointer transition-all ${
-                                  isSelected ? 'bg-sky-100 font-extrabold' : 'hover:bg-stone-50'
+                                className={`p-2 flex items-center justify-between cursor-pointer transition-all ${
+                                  isSelected ? 'bg-sky-50 font-extrabold text-sky-950' : 'hover:bg-stone-50 text-stone-900'
                                 }`}
                               >
                                 <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
-                                <div className="flex items-center space-x-1">
-                                  <span className="font-mono text-sm">⊕</span>
-                                  {val > 0 && <span className="font-mono text-md font-bold text-sky-900">/</span>}
+                                
+                                <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
+                                  <div className="flex items-center space-x-0.5 text-stone-700 bg-stone-50 border border-stone-300 px-1 rounded-sm">
+                                    <span className="font-bold text-[9px] text-sky-900 pr-0.5">+{val}</span>
+                                    <span className="font-mono text-xs select-none">⊕</span>
+                                    {val >= 1 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                    {val >= 2 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                    {val >= 3 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                  </div>
+                                  
+                                  <div className="flex flex-col -space-y-0.5">
+                                    <button 
+                                      onClick={() => updateActiveCharSkill(sk, Math.min(3, val + 1))}
+                                      className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                      title="增加技能值"
+                                    >
+                                      ▲
+                                    </button>
+                                    <button 
+                                      onClick={() => updateActiveCharSkill(sk, Math.max(0, val - 1))}
+                                      className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                      title="减少技能值"
+                                    >
+                                      ▼
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -1996,7 +2155,8 @@ export default function App() {
                 '技巧': 'technique' 
               };
               const currentStyleKey = styleKeyMap[selectedRollStyle] || 'power';
-              const styleDiceCount = activeChar.styleValues[currentStyleKey] || 1;
+              const rawStyleDiceCount = activeChar.styleValues[currentStyleKey] || 1;
+              const styleDiceCount = actionDieMode === 'wild' ? Math.max(1, rawStyleDiceCount - 1) : rawStyleDiceCount;
               const currentSkillVal = activeChar.skills[selectedRollSkill] || 0;
 
               return (
