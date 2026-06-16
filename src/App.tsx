@@ -1,15 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { 
-  RotateCcw, Dice5, Download, Upload, Plus, Trash2, 
+  Dice5, Download, Upload, Plus, Trash2, 
   Heart, Shield, Printer, ArrowLeft, Shuffle, 
   Users, Share2, Compass, Feather, BookOpen as BookIcon, Search
 } from 'lucide-react';
 import { 
-  TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, PRE_GENS, UNIVERSAL_TRAITS,
+  TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, PRE_GENS,
   Tool, Lineage, Trait, Technique
 } from './data';
-import { getInkIcon } from './icons';
+import { getInkIcon, getCharacterPortrait } from './icons';
 import { 
   APPENDIX_TRAITS, APPENDIX_TECHNIQUES, APPENDIX_STATES, APPENDIX_ACTIONS 
 } from './appendixData';
@@ -96,6 +96,9 @@ export default function App() {
     successes: number;
     actionRating: number;
   } | null>(null);
+
+  const [selectedRollStyle, setSelectedRollStyle] = useState<string>('力量');
+  const [selectedRollSkill, setSelectedRollSkill] = useState<string>('打击');
 
   // Character Wizard temporary state
   const [wizardStep, setWizardStep] = useState<number>(1);
@@ -1553,296 +1556,412 @@ export default function App() {
                 </div>
               </div>
 
-              {/* INTERACTIVE SHEET CONTAINER */}
+              {/* INTERACTIVE SHEET WRAPPED IN ORANGE DOTTED MAT BACKGROUND */}
               <div 
                 ref={cardPrintRef}
-                className="parchment-card p-6 md:p-8 rounded-lg space-y-6 text-earth-950 font-sans print:border-0 print:shadow-none"
+                className="wilder-dot-bg p-4 md:p-8 rounded-lg shadow-rough-lg border-3 border-stone-950 space-y-8 print:p-0 print:border-0 print:shadow-none"
               >
-                {/* Print layout header */}
-                <div className="flex flex-col md:flex-row justify-between items-start pb-4 border-b-2 border-earth-900">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-16 h-16 rounded-full border-2 border-earth-900 flex items-center justify-center bg-white/50 text-earth-900 overflow-hidden shadow-sm flex-shrink-0">
-                      {activeChar.avatarType === 'emoji' ? (
-                        getInkIcon(activeChar.avatarValue, 32)
-                      ) : (
-                        <img src={activeChar.avatarValue} alt="avatar" className="w-full h-full object-cover" />
-                      )}
-                    </div>
-                    <div>
-                      <h2 className="text-3xl font-bold font-serif leading-none">{activeChar.name}</h2>
-                      <p className="text-sm font-serif mt-1 font-bold text-earth-800 italic">
-                        {activeChar.adjectives.join(' / ')} • {activeChar.specialty}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right mt-3 md:mt-0 font-serif text-sm">
-                    <div className="border-2 border-earth-900 px-3 py-1 bg-white/40 font-bold">
-                      工具：{activeChar.tool}
-                    </div>
-                    <div className="text-[10px] text-earth-800 mt-1 font-mono">
-                      《荒野盛宴》 官方标准电子角色卡
-                    </div>
-                  </div>
-                </div>
-
-                {/* MIDDLE ROW: STYLES & SKILLS */}
-                <div className="grid grid-cols-1 md:grid-cols-12 gap-6">
+                
+                {/* ==================== PAGE 1 OF THE CHARACTER SHEET ==================== */}
+                <div className="bg-[#faf6ef] text-stone-950 p-6 rounded border-2 border-stone-900 shadow-rough space-y-6 relative overflow-hidden">
                   
-                  {/* Left Column: 4 Styles */}
-                  <div className="md:col-span-4 space-y-3">
-                    <h3 className="font-serif font-bold border-b border-earth-900 pb-1 flex items-center justify-between text-sm">
-                      <span>🎯 行动风格 (Styles)</span>
-                      <span className="text-[10px] text-earth-700 font-mono">点击进行检定</span>
-                    </h3>
+                  {/* Decorative Header Border Line */}
+                  <div className="flex justify-between items-center border-b-2 border-stone-900 pb-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-stone-900">{getInkIcon('屠夫', 32)}</span>
+                      <span className="font-serif font-black text-2xl tracking-wider text-sky-950">荒 野 盛 宴</span>
+                      <span className="text-stone-900 rotate-180">{getInkIcon('屠夫', 32)}</span>
+                    </div>
+                    <span className="text-xs font-serif font-bold text-stone-600 border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 1 / 2</span>
+                  </div>
+
+                  {/* Character Name / Player / Specialty Table */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 border-2 border-stone-900 divide-y-2 md:divide-y-0 md:divide-x-2 divide-stone-900 bg-white font-serif text-sm">
+                    <div className="p-2">
+                      <span className="block text-[10px] text-stone-500 font-bold uppercase">角色名</span>
+                      <span className="font-extrabold text-lg text-stone-900">{activeChar.name}</span>
+                    </div>
+                    <div className="p-2">
+                      <span className="block text-[10px] text-stone-500 font-bold uppercase">玩家名</span>
+                      <span className="font-extrabold text-lg text-stone-900">{activeChar.isCustom ? '自定义食客' : '官方预设'}</span>
+                    </div>
+                    <div className="p-2 bg-amber-50">
+                      <span className="block text-[10px] text-amber-700 font-bold uppercase">专长 (谱系)</span>
+                      <span className="font-extrabold text-lg text-amber-900 flex items-center gap-1.5">
+                        {getInkIcon(activeChar.specialty, 18, 'text-amber-800')}
+                        {activeChar.specialty}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* MAIN GRID: STYLES (LEFT) & ALL 12 SKILLS (RIGHT) */}
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                     
-                    <div className="grid grid-cols-2 gap-2">
-                      <div 
-                        onClick={() => handleRollDice('力量', activeChar.styleValues.power, '打击', activeChar.skills['打击'] || 0)}
-                        className="bg-white/40 hover:bg-earth-200 border-2 border-earth-900 p-2.5 rounded cursor-pointer transition-all text-center"
-                      >
-                        <span className="text-xs text-earth-800 font-serif">力量 (Power)</span>
-                        <div className="text-2xl font-extrabold font-serif mt-1">{activeChar.styleValues.power}d6</div>
+                    {/* Left: Styles Column (Col Span 4) */}
+                    <div className="lg:col-span-4 border-2 border-orange-500 rounded p-4 bg-orange-50/50 space-y-3">
+                      <h3 className="text-center font-serif font-black text-md text-orange-850 tracking-wider flex items-center justify-center gap-1">
+                        ❖❖❖ 风格 ❖❖❖
+                      </h3>
+                      <p className="text-[9px] text-orange-700 text-center leading-none mt-[-4px]">点击属性，在右侧骰池中快速装填风格骰</p>
+
+                      <div className="space-y-2.5">
+                        {[
+                          { key: 'power', label: '力量', desc: '强大、坚韧、坚定或直率' },
+                          { key: 'precision', label: '精准', desc: '冷静、条理、专注或准确' },
+                          { key: 'swiftness', label: '迅捷', desc: '迅速、活力、警觉或灵巧' },
+                          { key: 'technique', label: '技巧', desc: '巧妙、狡诈、技术性或精明' }
+                        ].map(st => {
+                          const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues];
+                          const isSelected = selectedRollStyle === st.label;
+                          return (
+                            <div 
+                              key={st.key}
+                              onClick={() => { setSelectedRollStyle(st.label); showNotification(`已选择风格骰：[${st.label}] (${val}d6)`, 'info'); }}
+                              className={`border-2 border-stone-900 rounded p-2 flex items-center justify-between cursor-pointer transition-all ${
+                                isSelected 
+                                  ? 'bg-[#fc8419] text-white shadow-rough border-stone-950 scale-[1.02]' 
+                                  : 'bg-white hover:bg-orange-100 text-stone-900'
+                              }`}
+                            >
+                              <div>
+                                <span className="font-serif font-extrabold text-sm block">{st.label}</span>
+                                <span className={`text-[8px] block ${isSelected ? 'text-orange-100' : 'text-stone-500'}`}>{st.desc}</span>
+                              </div>
+                              <div className="border-2 border-stone-900 px-3 py-1 bg-stone-100 font-mono font-black text-lg text-stone-900 rounded shadow-sm">
+                                {val}
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
 
-                      <div 
-                        onClick={() => handleRollDice('精准', activeChar.styleValues.precision, '射击', activeChar.skills['射击'] || 0)}
-                        className="bg-white/40 hover:bg-earth-200 border-2 border-earth-900 p-2.5 rounded cursor-pointer transition-all text-center"
-                      >
-                        <span className="text-xs text-earth-800 font-serif">精准 (Precision)</span>
-                        <div className="text-2xl font-extrabold font-serif mt-1">{activeChar.styleValues.precision}d6</div>
-                      </div>
+                      {/* States Tracker inside style box */}
+                      <div className="border-t border-dashed border-orange-300 pt-3 space-y-2">
+                        <span className="block text-[10px] font-black text-orange-900 uppercase">⚠️ 临时状态 / 异常标记</span>
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          {[
+                            { key: 'exposed', label: '暴露 (Exposed)' },
+                            { key: 'hidden', label: '隐藏 (Hidden)' },
+                            { key: 'disharmony', label: '不谐 (Disharmony)' }
+                          ].map(st => (
+                            <label key={st.key} className="flex items-center space-x-1.5 cursor-pointer bg-white/80 p-1 rounded border border-stone-300 text-stone-900">
+                              <input 
+                                type="checkbox" 
+                                checked={activeChar.states[st.key as keyof typeof activeChar.states]} 
+                                onChange={() => updateActiveCharStates(st.key as any)}
+                                className="accent-orange-600 rounded"
+                              />
+                              <span className="scale-90 origin-left text-[10px] truncate">{st.label}</span>
+                            </label>
+                          ))}
+                        </div>
 
-                      <div 
-                        onClick={() => handleRollDice('迅捷', activeChar.styleValues.swiftness, '穿越', activeChar.skills['穿越'] || 0)}
-                        className="bg-white/40 hover:bg-earth-200 border-2 border-earth-900 p-2.5 rounded cursor-pointer transition-all text-center"
-                      >
-                        <span className="text-xs text-earth-800 font-serif">迅捷 (Swiftness)</span>
-                        <div className="text-2xl font-extrabold font-serif mt-1">{activeChar.styleValues.swiftness}d6</div>
-                      </div>
-
-                      <div 
-                        onClick={() => handleRollDice('技巧', activeChar.styleValues.technique, '手艺', activeChar.skills['手艺'] || 0)}
-                        className="bg-white/40 hover:bg-earth-200 border-2 border-earth-900 p-2.5 rounded cursor-pointer transition-all text-center"
-                      >
-                        <span className="text-xs text-earth-800 font-serif">技巧 (Technique)</span>
-                        <div className="text-2xl font-extrabold font-serif mt-1">{activeChar.styleValues.technique}d6</div>
+                        {/* Injured trackers */}
+                        <div className="pt-1.5 border-t border-dashed border-orange-200">
+                          <span className="block text-[9px] font-black text-orange-900 mb-1">受伤等级 (Injured Ranks):</span>
+                          <div className="grid grid-cols-3 gap-1">
+                            {['injured1', 'injured2', 'injured3'].map((inj, index) => (
+                              <label key={inj} className="flex items-center justify-center space-x-1 py-1 rounded border border-stone-300 bg-white text-[9px] font-bold text-stone-800 cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={activeChar.states[inj as keyof typeof activeChar.states]} 
+                                  onChange={() => updateActiveCharStates(inj as any)}
+                                  className="accent-red-600 scale-90"
+                                />
+                                <span>受伤{index + 1}</span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Checkbox States */}
-                    <div className="border-2 border-earth-900 p-3 bg-white/30 space-y-2 mt-4 rounded">
-                      <span className="block text-xs font-bold font-serif border-b border-earth-800 pb-1">⚠️ 临时与不和谐状态 (States)</span>
-                      <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-xs">
-                        <label className="flex items-center space-x-1.5 cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={activeChar.states.exposed} 
-                            onChange={() => updateActiveCharStates('exposed')}
-                            className="accent-earth-700"
-                          />
-                          <span>暴露 (Exposed)</span>
-                        </label>
-                        <label className="flex items-center space-x-1.5 cursor-pointer">
-                          <input 
-                            type="checkbox" 
-                            checked={activeChar.states.hidden} 
-                            onChange={() => updateActiveCharStates('hidden')}
-                            className="accent-earth-700"
-                          />
-                          <span>隐藏 (Hidden)</span>
-                        </label>
-                        <label className="flex items-center space-x-1.5 cursor-pointer col-span-2">
-                          <input 
-                            type="checkbox" 
-                            checked={activeChar.states.disharmony} 
-                            onChange={() => updateActiveCharStates('disharmony')}
-                            className="accent-earth-700"
-                          />
-                          <span className="text-red-800 font-bold">不谐 (Disharmony)</span>
-                        </label>
+                    {/* Right: Skills Grid (Col Span 8) - ALWAYS SHOWING ALL 12 SKILLS */}
+                    <div className="lg:col-span-8 border-2 border-sky-950 rounded p-4 bg-sky-50/20 space-y-3">
+                      <h3 className="text-center font-serif font-black text-md text-sky-950 tracking-wider flex items-center justify-center gap-1.5">
+                        {getInkIcon(activeChar.specialty, 20, 'text-sky-900')}
+                        ================== 技能 ==================
+                      </h3>
+                      <p className="text-[9px] text-sky-800 text-center leading-none mt-[-4px]">点击对应技能，在右侧骰池中装填加值技能（斜杠 / 代表已获背景 +1 修正）</p>
+
+                      {/* 12-cell skill layout styled exactly like physical card */}
+                      <div className="grid grid-cols-3 border-2 border-stone-900 divide-x-2 divide-stone-900 bg-white text-xs font-serif shadow-sm">
+                        
+                        {/* Column 1: 激励, 发声, 手艺, 治愈 */}
+                        <div className="divide-y-2 divide-stone-900">
+                          {['激励', '发声', '手艺', '治愈'].map(sk => {
+                            const val = activeChar.skills[sk] || 0;
+                            const isSelected = selectedRollSkill === sk;
+                            return (
+                              <div 
+                                key={sk}
+                                onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
+                                className={`p-2.5 flex items-center justify-between cursor-pointer transition-all ${
+                                  isSelected ? 'bg-sky-100 font-extrabold' : 'hover:bg-stone-50'
+                                }`}
+                              >
+                                <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
+                                <div className="flex items-center space-x-1">
+                                  <span className="font-mono text-sm">⊕</span>
+                                  {val > 0 && <span className="font-mono text-md font-bold text-sky-900">/</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Column 2: 展示, 抓取, 储存, 搜索 */}
+                        <div className="divide-y-2 divide-stone-900">
+                          {['展示', '抓取', '储存', '搜索'].map(sk => {
+                            const val = activeChar.skills[sk] || 0;
+                            const isSelected = selectedRollSkill === sk;
+                            return (
+                              <div 
+                                key={sk}
+                                onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
+                                className={`p-2.5 flex items-center justify-between cursor-pointer transition-all ${
+                                  isSelected ? 'bg-sky-100 font-extrabold' : 'hover:bg-stone-50'
+                                }`}
+                              >
+                                <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
+                                <div className="flex items-center space-x-1">
+                                  <span className="font-mono text-sm">⊕</span>
+                                  {val > 0 && <span className="font-mono text-md font-bold text-sky-900">/</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Column 3: 射击, 打击, 学习, 穿越 */}
+                        <div className="divide-y-2 divide-stone-900">
+                          {['射击', '打击', '学习', '穿越'].map(sk => {
+                            const val = activeChar.skills[sk] || 0;
+                            const isSelected = selectedRollSkill === sk;
+                            return (
+                              <div 
+                                key={sk}
+                                onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
+                                className={`p-2.5 flex items-center justify-between cursor-pointer transition-all ${
+                                  isSelected ? 'bg-sky-100 font-extrabold' : 'hover:bg-stone-50'
+                                }`}
+                              >
+                                <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
+                                <div className="flex items-center space-x-1">
+                                  <span className="font-mono text-sm">⊕</span>
+                                  {val > 0 && <span className="font-mono text-md font-bold text-sky-900">/</span>}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* BOTTOM HALF OF PAGE 1: TOOL BOX & TRAITS BOX */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t-2 border-stone-900">
+                    
+                    {/* Left: Tool and Techniques Box */}
+                    <div className="border-3 border-stone-900 bg-white rounded p-4 space-y-3 relative shadow-sm">
+                      <div className="absolute top-1 right-2 flex space-x-1">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#fc8419]"></span>
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#fc8419]"></span>
                       </div>
                       
-                      <div className="border-t border-earth-800 pt-2 text-[10px] text-earth-800 leading-tight">
-                        <p className="font-bold">受伤等级 (Injured Rank):</p>
-                        <div className="flex space-x-3 mt-1.5">
-                          <label className="flex items-center space-x-1 cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              checked={activeChar.states.injured1} 
-                              onChange={() => updateActiveCharStates('injured1')}
-                              className="accent-earth-700"
-                            />
-                            <span>受伤1</span>
-                          </label>
-                          <label className="flex items-center space-x-1 cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              checked={activeChar.states.injured2} 
-                              onChange={() => updateActiveCharStates('injured2')}
-                              className="accent-earth-700"
-                            />
-                            <span>受伤2</span>
-                          </label>
-                          <label className="flex items-center space-x-1 cursor-pointer">
-                            <input 
-                              type="checkbox" 
-                              checked={activeChar.states.injured3} 
-                              onChange={() => updateActiveCharStates('injured3')}
-                              className="accent-earth-700"
-                            />
-                            <span>受伤3</span>
-                          </label>
+                      <h4 className="font-serif font-black text-md text-stone-900 border-b-2 border-stone-900 pb-1.5 flex items-center gap-1">
+                        ❖ 工具与战技 ❖
+                      </h4>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="bg-stone-50 p-2 border border-stone-300 rounded">
+                          <span className="block text-[9px] text-stone-500 font-bold uppercase">装备工具</span>
+                          <span className="font-bold text-stone-900 text-sm">{activeChar.tool}</span>
+                        </div>
+                        <div className="bg-stone-50 p-2 border border-stone-300 rounded flex justify-between items-center">
+                          <div>
+                            <span className="block text-[9px] text-stone-500 font-bold uppercase">当前耐久</span>
+                            <span className="font-bold text-stone-900 text-sm">{activeChar.durability}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="block text-[9px] text-stone-500 font-bold uppercase">最大耐久</span>
+                            <span className="font-bold text-stone-900 text-sm">{activeChar.durabilityMax}</span>
+                          </div>
+                        </div>
+                        <div className="col-span-2 bg-stone-50 p-2 border border-stone-300 rounded text-[11px]">
+                          <span className="font-bold text-stone-900">射程: </span>
+                          <span className="font-mono">1 (打击)</span> | 损坏时：射程:1(打击)。该身体部位造成伤害减半。
                         </div>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Middle Column: 12 Skills */}
-                  <div className="md:col-span-5 space-y-2">
-                    <h3 className="font-serif font-bold border-b border-earth-900 pb-1 flex justify-between text-sm">
-                      <span>荒野技能 (Skills)</span>
-                      <span className="text-[10px] text-earth-700 font-mono">点击掷骰组合</span>
-                    </h3>
-                    
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
-                      {Object.entries(activeChar.skills).map(([sk, val]) => (
-                        <div 
-                          key={sk}
-                          onClick={() => {
-                            // Automatically find high style pairing
-                            let style = '力量';
-                            let count = activeChar.styleValues.power;
-                            if (sk === '射击' || sk === '学习' || sk === '搜索') {
-                              style = '精准';
-                              count = activeChar.styleValues.precision;
-                            } else if (sk === '穿越' || sk === '展示') {
-                              style = '迅捷';
-                              count = activeChar.styleValues.swiftness;
-                            } else if (sk === '手艺' || sk === '储存') {
-                              style = '技巧';
-                              count = activeChar.styleValues.technique;
-                            }
-                            handleRollDice(style, count, sk, val);
-                          }}
-                          className="flex items-center justify-between p-1 hover:bg-white/40 cursor-pointer rounded transition-all"
-                        >
-                          <div className="flex items-center space-x-1">
-                            <span className={val > 0 ? 'text-earth-700 font-bold' : 'text-earth-950'}>{sk}</span>
-                          </div>
-                          <span className={`font-mono px-2 py-0.5 rounded text-[11px] ${val > 0 ? 'bg-earth-600 text-white font-bold' : 'bg-earth-300'}`}>
-                            +{val}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                    <p className="text-[9px] text-earth-800 leading-tight pt-2 border-t border-earth-800">
-                      * 点击技能会自动配合其对应最擅长的风格（例如【打击】配力量，【射击】配精准）生成快速骰。
-                    </p>
-                  </div>
-
-                  {/* Right Column: Techniques & Traits */}
-                  <div className="md:col-span-3 space-y-4">
-                    <div className="border-2 border-earth-900 p-3 bg-white/40 rounded">
-                      <h3 className="font-serif font-bold border-b border-earth-900 pb-1 text-xs mb-2">突变特性与战技 (Traits)</h3>
-                      <div className="space-y-2">
-                        {activeChar.traits.map(tName => {
-                          // Search for trait details
-                          let detail = '';
-                          let cost = '被动';
-                          
-                          // Search in tools
-                          TOOLS.forEach(tl => {
-                            const found = tl.techniques.find(tk => tk.name === tName);
-                            if (found) {
-                              detail = found.effect;
-                              cost = found.cost || '被动';
-                            }
-                          });
-
-                          // Search in lineages
-                          LINEAGES.forEach(ln => {
-                            const found = ln.traits.find(tr => tr.name === tName);
-                            if (found) {
-                              detail = found.effect;
-                              cost = found.cost || '被动';
-                            }
-                          });
-
-                          // Search in universal traits
-                          const foundUniv = UNIVERSAL_TRAITS.find(ut => ut.name === tName);
-                          if (foundUniv) {
-                            detail = foundUniv.effect;
-                            cost = foundUniv.cost || '被动';
-                          }
-
-                          if (!detail && (tName === '毅力' || tName === '洞察')) {
-                            detail = tName === '毅力' ? '（费用：1次成功。）将[A]增加1。' : '（费用：1次成功。）确立一个关于当前情境的细节。';
-                            cost = '1次成功';
-                          }
-
+                      {/* Tool specific Techniques */}
+                      <div className="pt-2 border-t border-stone-200 space-y-2">
+                        <span className="block text-[10px] font-bold text-stone-500 uppercase">武器流派特性:</span>
+                        {activeChar.traits.slice(0, 2).map(tName => {
+                          const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
                           return (
-                            <div key={tName} className="text-xs border-b border-dashed border-earth-300 pb-1.5 last:border-0 last:pb-0">
-                              <div className="flex justify-between items-center font-bold">
-                                <span className="text-earth-900">{tName}</span>
-                                <span className="text-[8px] bg-earth-800 text-white px-1.5 py-0.2 rounded font-mono">{cost}</span>
-                              </div>
-                              <p className="text-[10px] text-earth-800 mt-0.5 leading-tight">{detail || '特性代表你融入自身的突变生物血肉与绝技。'}</p>
+                            <div key={tName} className="text-xs">
+                              <span className="font-bold text-[#fc8419]">{tName}</span> <span className="text-[9px] bg-stone-100 border border-stone-300 px-1 rounded">{foundTech?.cost || '被动'}</span>
+                              <p className="text-[10px] text-stone-600 leading-tight mt-0.5">{foundTech?.effect}</p>
                             </div>
                           );
                         })}
                       </div>
                     </div>
+
+                    {/* Right: Green Traits Box */}
+                    <div className="border-3 border-emerald-800 bg-emerald-50/10 rounded p-4 space-y-3 shadow-sm">
+                      <h4 className="font-serif font-black text-md text-emerald-950 border-b-2 border-emerald-800 pb-1.5">
+                        ❖ 特性 (Traits) ❖
+                      </h4>
+
+                      <div className="space-y-3 text-xs leading-tight">
+                        <div className="border-b border-dashed border-emerald-300 pb-1.5">
+                          <span className="font-extrabold text-emerald-900">毅力。</span><span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
+                          <p className="text-[10px] text-stone-700 mt-0.5">将 行动评级 [A] 增加 1。</p>
+                        </div>
+                        <div className="border-b border-dashed border-emerald-300 pb-1.5">
+                          <span className="font-extrabold text-emerald-900">洞察。</span><span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
+                          <p className="text-[10px] text-stone-700 mt-0.5">确立一个关于当前情境的细节。</p>
+                        </div>
+
+                        {/* Linage starting traits */}
+                        {activeChar.traits.slice(2).map(tName => {
+                          // Search inside databases
+                          let trEffect = '融入你自身的野性肉体异能与突变绝技。';
+                          let trCost = '被动';
+                          const foundA = APPENDIX_TRAITS.find(at => at.name === tName);
+                          if (foundA) {
+                            trEffect = foundA.effect;
+                            trCost = foundA.cost;
+                          } else {
+                            const foundLineageTrait = LINEAGES.flatMap(l => l.traits).find(t => t.name === tName);
+                            if (foundLineageTrait) {
+                              trEffect = foundLineageTrait.effect;
+                              trCost = foundLineageTrait.cost || '被动';
+                            }
+                          }
+                          return (
+                            <div key={tName}>
+                              <span className="font-extrabold text-amber-900">{tName}。</span>
+                              <span className="text-[9px] bg-amber-900 text-white px-1 rounded font-mono">{trCost}</span>
+                              <p className="text-[10px] text-stone-700 mt-0.5">{trEffect}</p>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
-                {/* BACKGROUND COURSES & BOND INFO */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t-2 border-earth-900">
-                  <div className="space-y-3">
-                    <h3 className="font-serif font-bold text-sm border-b border-earth-900 pb-1">荒野食客背景三道菜</h3>
-                    <div className="space-y-2 text-xs">
-                      <div className="bg-white/40 p-2.5 rounded border border-earth-300">
-                        <span className="font-bold text-earth-800 block mb-0.5">第一道菜（成长背景） — {activeChar.backgroundMeals.upbringing.meal}</span>
-                        <p className="text-earth-950 text-[11px] leading-tight italic">"{activeChar.backgroundMeals.upbringing.text}"</p>
+                {/* ==================== PAGE 2 OF THE CHARACTER SHEET ==================== */}
+                <div className="bg-[#faf6ef] text-stone-950 p-6 rounded border-2 border-stone-900 shadow-rough space-y-6 relative overflow-hidden">
+                  
+                  {/* Decorative Page 2 Header */}
+                  <div className="flex justify-between items-center border-b-2 border-stone-900 pb-4">
+                    <div className="flex items-center space-x-2">
+                      <span className="text-stone-900">{getInkIcon('园丁', 32)}</span>
+                      <span className="font-serif font-black text-2xl tracking-wider text-sky-950">猎 群 契 约 · 背景与同伴</span>
+                      <span className="text-stone-900 rotate-180">{getInkIcon('园丁', 32)}</span>
+                    </div>
+                    <span className="text-xs font-serif font-bold text-stone-600 border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 2 / 2</span>
+                  </div>
+
+                  {/* Top half: Identity grid and Sketched portrait side by side */}
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+                    
+                    {/* Left details column (Col Span 7) */}
+                    <div className="md:col-span-7 space-y-4">
+                      {/* Identity boxes */}
+                      <div className="border-2 border-stone-900 bg-white rounded divide-y-2 divide-stone-900 text-xs">
+                        <div className="p-3">
+                          <span className="block text-[9px] text-stone-500 font-bold uppercase mb-1">你现在的样子</span>
+                          <span className="font-serif font-black text-lg text-stone-900">{activeChar.adjectives[0]}</span>
+                        </div>
+                        <div className="p-3">
+                          <span className="block text-[9px] text-stone-500 font-bold uppercase mb-1">你想要成为的样子</span>
+                          <span className="font-serif font-black text-lg text-sky-900">{activeChar.adjectives[1]}</span>
+                        </div>
+                        <div className="p-3 bg-amber-50/30">
+                          <span className="block text-[9px] text-amber-700 font-bold uppercase mb-1">密切关系怪物 (Companion)</span>
+                          <span className="font-serif font-black text-sm text-amber-950">{activeChar.companion.name}</span>
+                          <p className="text-[11px] text-stone-600 leading-snug mt-1 italic">"{activeChar.companion.description}"</p>
+                        </div>
                       </div>
-                      <div className="bg-white/40 p-2.5 rounded border border-earth-300">
-                        <span className="font-bold text-earth-800 block mb-0.5">第二道菜（求生动机） — {activeChar.backgroundMeals.motivation.meal}</span>
-                        <p className="text-earth-950 text-[11px] leading-tight italic">"{activeChar.backgroundMeals.motivation.text}"</p>
+
+                      {/* Local specialties & Spices */}
+                      <div className="grid grid-cols-2 border-2 border-stone-900 divide-x-2 divide-stone-900 bg-white text-xs">
+                        <div className="p-3">
+                          <span className="block text-[9px] text-stone-500 font-bold uppercase mb-1">家乡特产 (Specialty)</span>
+                          <span className="font-bold text-stone-900 text-sm">
+                            {activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包'}
+                          </span>
+                        </div>
+                        <div className="p-3 bg-orange-50/20">
+                          <span className="block text-[9px] text-orange-850 font-bold uppercase mb-1">家乡香料 (Spice)</span>
+                          <span className="font-bold text-orange-950 text-sm">
+                            {activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒'}
+                          </span>
+                        </div>
                       </div>
-                      <div className="bg-white/40 p-2.5 rounded border border-earth-300">
-                        <span className="font-bold text-earth-800 block mb-0.5">第三道菜（终生雄心） — {activeChar.backgroundMeals.ambition.meal}</span>
-                        <p className="text-earth-950 text-[11px] leading-tight italic">"{activeChar.backgroundMeals.ambition.text}"</p>
+                    </div>
+
+                    {/* Right Portrait Column (Col Span 5) */}
+                    <div className="md:col-span-5 border-2 border-stone-900 rounded bg-white p-4 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative">
+                      <div className="absolute top-2 left-2 text-[9px] font-bold text-stone-400 font-serif">SKETCH</div>
+                      {getCharacterPortrait(activeChar.name, 190, 'text-stone-900')}
+                      <span className="text-[10px] text-stone-400 font-serif mt-2 border-t border-stone-200 pt-1 w-full text-center">
+                        - 猎人 {activeChar.name} 炭笔墨线肖像 -
+                      </span>
+                    </div>
+
+                  </div>
+
+                  {/* BOTTOM HALF OF PAGE 2: BACKGROUND STORIES & LOGS */}
+                  <div className="border-t-2 border-stone-900 pt-4 space-y-4">
+                    <h3 className="text-center font-serif font-black text-md tracking-wider text-stone-900">
+                      ❖ “三道菜式”的背景故事 (The Three Courses Background) ❖
+                    </h3>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-serif leading-relaxed">
+                      <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
+                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🍰 第一道菜：成长背景 (Upbringing)</span>
+                        <span className="font-bold text-orange-900 block text-[11px] mb-1">童年餐食：{activeChar.backgroundMeals.upbringing.meal}</span>
+                        <p className="text-stone-700 italic">"{activeChar.backgroundMeals.upbringing.text}"</p>
+                      </div>
+
+                      <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
+                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥣 第二道菜：入伙动机 (Motivation)</span>
+                        <span className="font-bold text-sky-900 block text-[11px] mb-1">怪物之餐：{activeChar.backgroundMeals.motivation.meal}</span>
+                        <p className="text-stone-700 italic">"{activeChar.backgroundMeals.motivation.text}"</p>
+                      </div>
+
+                      <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
+                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥧 第三道菜：一生雄心 (Ambition)</span>
+                        <span className="font-bold text-amber-900 block text-[11px] mb-1">梦想终极：{activeChar.backgroundMeals.ambition.meal}</span>
+                        <p className="text-stone-700 italic">"{activeChar.backgroundMeals.ambition.text}"</p>
+                      </div>
+                    </div>
+
+                    {/* Bonds and notes log */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
+                      <div className="md:col-span-4 border border-stone-300 rounded p-3 bg-white text-xs">
+                        <span className="font-bold block border-b border-stone-200 pb-1 mb-1">🤝 盟约羁绊 (Bonds)</span>
+                        <p className="text-stone-600 leading-normal italic">"{activeChar.bond}"</p>
+                      </div>
+                      <div className="md:col-span-8">
+                        <textarea 
+                          value={activeChar.notes || ''}
+                          onChange={(e) => updateActiveCharStat('notes', e.target.value)}
+                          placeholder="在此记录你本次冒险中狩猎到的怪物身体部位、获取的食材、或是休整期间的烹饪灵感与笔记..."
+                          className="w-full bg-white border-2 border-stone-900 rounded p-3 text-xs text-stone-950 focus:outline-none focus:bg-stone-50 h-[84px] resize-none"
+                        />
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="bg-white/40 p-3 rounded border border-earth-300 h-full flex flex-col justify-between">
-                      <div>
-                        <h3 className="font-serif font-bold text-xs text-earth-800 flex items-center gap-1 border-b border-earth-900 pb-1 mb-2">
-                          <Users size={12} /> 猎群羁绊与盟约 (Bonds & Connections)
-                        </h3>
-                        <p className="text-xs text-earth-900 leading-relaxed italic">
-                          "{activeChar.bond}"
-                        </p>
-                      </div>
-                      <div className="mt-4 pt-3 border-t border-earth-300 text-xs">
-                        <span className="font-bold block text-earth-800 mb-1">契约怪物同伴 (Companion)</span>
-                        <p className="font-bold text-earth-950 text-sm">{activeChar.companion.name}</p>
-                        <p className="text-[10px] text-earth-800 mt-0.5 leading-tight">{activeChar.companion.description}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Interactive Player Notes */}
-                <div className="pt-4 border-t border-earth-900">
-                  <label className="block text-xs font-serif font-bold text-earth-800 mb-1">冒险笔记与食谱素材 (Adventure Log):</label>
-                  <textarea 
-                    value={activeChar.notes || ''}
-                    onChange={(e) => updateActiveCharStat('notes', e.target.value)}
-                    placeholder="在此记录你本次冒险中狩猎到的怪物身体部位、获取的食材、或是休整期间的烹饪灵感..."
-                    className="w-full bg-white/40 border-2 border-earth-900 rounded p-2 text-xs text-earth-950 focus:outline-none focus:bg-white/60 h-24 print:border-0 print:bg-transparent print:resize-none"
-                  />
                 </div>
               </div>
             </div>
@@ -1853,31 +1972,96 @@ export default function App() {
         <div className="lg:col-span-4 space-y-6">
           <div className="wood-panel p-5 rounded-lg text-parchment-100">
             <h3 className="font-serif font-bold text-lg mb-2 text-parchment-200 flex items-center gap-1.5">
-              <Dice5 className="text-earth-400" /> 荒野掷骰契约 (Dice Roller)
+              <Dice5 className="text-earth-400" /> 荒野投掷组合契约
             </h3>
             <p className="text-[11px] text-forest-300 leading-relaxed mb-4">
-              在《荒野盛宴》中，检定使用 <b>【风格等级数】的 d6</b>。
-              骰值 5、6 代表成功。你的 <b>【技能等级】</b> 允许你在掷骰后选择若干个骰子结果 <b>+1</b>，以此来提高成功几率！
+              你可以<b>任意组合</b> 1 种风格和 1 种技能进行检定（符合页码 42-44 规范）。在下方自由配置你的投掷池！
             </p>
 
-            {diceRoll ? (
-              <div className="space-y-4">
-                <div className="bg-forest-900 p-3 rounded border border-forest-800 text-xs flex justify-between items-center">
-                  <div>
-                    <span className="font-bold text-earth-400 text-sm block">组合检定：</span>
-                    <span className="font-serif font-bold text-parchment-100 text-md">
-                      {diceRoll.styleName} ({diceRoll.styleCount}d6) + {diceRoll.skillName} (+{diceRoll.skillBonus})
-                    </span>
-                  </div>
-                  <button 
-                    onClick={() => handleRollDice(diceRoll.styleName, diceRoll.styleCount, diceRoll.skillName, diceRoll.skillBonus)}
-                    className="p-1.5 bg-earth-700 hover:bg-earth-600 rounded text-white"
-                    title="重骰"
-                  >
-                    <RotateCcw size={16} />
-                  </button>
-                </div>
+            {/* FREE COMBINATION INTERACTIVE PANELS */}
+            {activeChar && (() => {
+              const styleKeyMap: { [key: string]: 'power' | 'precision' | 'swiftness' | 'technique' } = { 
+                '力量': 'power', 
+                '精准': 'precision', 
+                '迅捷': 'swiftness', 
+                '技巧': 'technique' 
+              };
+              const currentStyleKey = styleKeyMap[selectedRollStyle] || 'power';
+              const styleDiceCount = activeChar.styleValues[currentStyleKey] || 1;
+              const currentSkillVal = activeChar.skills[selectedRollSkill] || 0;
 
+              return (
+                <div className="space-y-4 bg-forest-900 p-4 rounded border border-forest-800 text-xs">
+                  
+                  {/* Style selection */}
+                  <div>
+                    <label className="block text-[10px] text-forest-300 font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 骰池数 ):</label>
+                    <div className="grid grid-cols-4 gap-1">
+                      {['力量', '精准', '迅捷', '技巧'].map(st => {
+                        const styleVal = activeChar.styleValues[styleKeyMap[st] || 'power'] || 1;
+                        const isSelected = selectedRollStyle === st;
+                        return (
+                          <button
+                            key={st}
+                            type="button"
+                            onClick={() => setSelectedRollStyle(st)}
+                            className={`py-1.5 rounded text-center border font-bold transition-all ${
+                              isSelected 
+                                ? 'bg-earth-600 border-earth-400 text-white shadow font-extrabold' 
+                                : 'bg-forest-950 border-forest-800 text-forest-300 hover:border-forest-700'
+                            }`}
+                          >
+                            <div>{st}</div>
+                            <div className="text-[10px] font-mono opacity-80">{styleVal}d6</div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Skill selection */}
+                  <div>
+                    <label className="block text-[10px] text-forest-300 font-bold mb-1.5 uppercase">2. 选择配套技能 ( 骰面等级加成 ):</label>
+                    <select
+                      value={selectedRollSkill}
+                      onChange={(e) => setSelectedRollSkill(e.target.value)}
+                      className="w-full bg-forest-950 border-2 border-forest-800 text-parchment-200 rounded px-2.5 py-2 text-xs focus:outline-none focus:border-earth-500"
+                    >
+                      {['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'].map(sk => {
+                        const skillVal = activeChar.skills[sk] || 0;
+                        return (
+                          <option key={sk} value={sk}>
+                            {sk} ( 加值: +{skillVal} )
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </div>
+
+                  {/* Confirm combination message */}
+                  <div className="border-t border-forest-850 pt-3 text-center">
+                    <div className="text-parchment-200 font-serif text-sm font-bold">
+                      当前备战组合：<span className="text-earth-400 font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
+                    </div>
+                    <div className="text-[10px] text-forest-400 mt-1">
+                      投掷：{styleDiceCount}d6 骰子 • 拥有 +{currentSkillVal} 加值
+                    </div>
+                    
+                    <button
+                      onClick={() => handleRollDice(selectedRollStyle, styleDiceCount, selectedRollSkill, currentSkillVal)}
+                      className="w-full btn-sketch rounded mt-3 py-2.5 bg-earth-600 border-earth-400 text-white font-serif font-black text-sm flex items-center justify-center gap-1.5"
+                    >
+                      投 掷 契 约
+                    </button>
+                  </div>
+
+                </div>
+              );
+            })()}
+
+            {/* RESULTS RENDERING */}
+            {diceRoll && (
+              <div className="mt-4 space-y-4 pt-4 border-t border-forest-800">
                 <div className="space-y-2">
                   <span className="block text-xs font-bold text-parchment-300">
                     投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
@@ -1930,14 +2114,6 @@ export default function App() {
                     )}
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="h-48 border-2 border-dashed border-forest-800 rounded-lg flex flex-col items-center justify-center text-center p-4 text-forest-400">
-                <Dice5 size={40} className="mb-2 text-forest-600 animate-pulse" />
-                <p className="text-xs">
-                  暂未进行检定投掷。<br />
-                  请在左侧电子卡面板中点击任何 <b>【属性风格】</b> 或是 <b>【技能组合】</b> 来直接发起投掷契约！
-                </p>
               </div>
             )}
           </div>

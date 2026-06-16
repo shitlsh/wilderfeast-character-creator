@@ -184,3 +184,139 @@ export const getInkIcon = (name: string, size = 24, className = ''): React.React
     default: return null;
   }
 };
+
+// 6 Full Character Ink Portrait Sketches for the Roster / Character Cards
+export const PrisePortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    {/* Head & Gills */}
+    <path d="M45 25c0-4 3-8 5-8s5 4 5 8c0 5-2 9-5 9s-5-4-5-9z" />
+    <path d="M42 22c-2 1-3 3-3 5m16-5c2 1 3 3 3 5" />
+    {/* Body / Coat */}
+    <path d="M35 34c5 1 25 1 30 0l5 30H30l5-30z" fill="none" />
+    <path d="M38 34c2 10 2 20 0 30m24-30c-2 10-2 20 0 30" />
+    <path d="M42 34l8 12 8-12" />
+    {/* Giant Machete */}
+    <path d="M68 28l18-18c2-2 4 0 3 2L75 26l-2-2z" fill="#f4f1ea" />
+    <path d="M65 42l10-14" strokeWidth="3" />
+    <path d="M72 18l3 3m2-12l3 3" />
+    {/* Left hand & Handle */}
+    <path d="M65 42l4 4-2 2-4-4z" />
+    {/* Right Hand & Fish */}
+    <path d="M32 50s-4 4-2 6 6-2 6-2" />
+    <path d="M22 55c2-2 4-2 5-1s2 3 0 5-5 2-6-1z" />
+    <path d="M27 58l4 2m-8-2l-3 1" />
+  </svg>
+);
+
+export const BagPortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    {/* Head & Cute face */}
+    <path d="M50 20c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z" />
+    <path d="M47 26h1m4 0h1m-5 4a3 3 0 004 0" />
+    {/* Left glove - huge forearm guard */}
+    <path d="M25 45h15v18H25z" fill="#f4f1ea" strokeWidth="2.5" />
+    <path d="M22 45l3-5h12l3 5" />
+    <path d="M32 50v8" />
+    {/* Right glove */}
+    <path d="M60 45h15v18H60z" fill="#f4f1ea" strokeWidth="2.5" />
+    <path d="M57 45l3-5h12l3 5" />
+    <path d="M67 50v8" />
+    {/* Little dragon on shoulder */}
+    <path d="M68 22c3-1 6-2 7 1s-1 5-4 6" />
+    <path d="M73 23c2-1 4-1 4 1" />
+    {/* Feet / Sturdy base */}
+    <path d="M38 63v12h6M62 63v12h-6" />
+  </svg>
+);
+
+export const NatShinPortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    {/* Friendly Round Head */}
+    <path d="M50 18c-6 0-11 4-11 10s5 10 11 10 11-4 11-10-5-10-11-10z" />
+    {/* Baker's Chef Hat outline */}
+    <path d="M43 18c-2-3-1-7 2-8s7 .5 7 3c1-2.5 4-4 7-3s4 5 2 8" />
+    <path d="M42 18h16" />
+    {/* Frying Pan Shield in Left Hand */}
+    <circle cx="28" cy="48" r="14" fill="#f4f1ea" strokeWidth="2.5" />
+    <path d="M28 62v14" strokeWidth="3" />
+    <path d="M20 48c2 4.5 5 7 8 7s6-2.5 8-7" />
+    {/* Gentle Mammoth silhouette background */}
+    <path d="M65 30c5-5 12-5 16-2s3 10-1 15-12 10-15 15l-1 8" strokeDasharray="3 3" />
+    <path d="M74 38c2-2 5-1 6 1s-1 5-3 6" />
+    {/* Baker apron */}
+    <path d="M44 38l-4 30h20l-4-30H44z" />
+  </svg>
+);
+
+export const TylonPortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    {/* Head & Long Bunny Ears */}
+    <path d="M50 25c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z" />
+    <path d="M43 26c-1-6-3-12-3-14s2-2 3 2l3 10M57 26c1-6 3-12 3-14s-2-2-3 2l-3 10" />
+    {/* Long Triple Pronged Fork Spear */}
+    <path d="M28 8v72" strokeWidth="2.5" />
+    <path d="M24 14V8a2 2 0 014 0m0 0a2 2 0 014 0v6" />
+    <path d="M20 14h16" />
+    {/* Sleek robe */}
+    <path d="M42 43c-2 10-4 22-6 32h28c-2-10-4-22-6-32" />
+    <path d="M47 43l3 8 3-8" />
+    {/* Cute onion rabbit companion */}
+    <path d="M72 65c2-2 5-2 6 0s1 4-2 6-6 1-6-1m1-3l2-4" />
+  </svg>
+);
+
+export const LanePortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    {/* Hooded head */}
+    <path d="M50 22c-6 0-11 5-11 11s5 11 11 11 11-5 11-11-5-11-11-11z" />
+    <path d="M37 32c0-8 6-12 13-12s13 4 13 12c0 10-6 14-13 14s-13-4-13-14z" fill="none" />
+    {/* Flamethrower brass tank on back */}
+    <path d="M30 40h12v25H30z" fill="#f4f1ea" />
+    {/* Nozzle burner in hand */}
+    <path d="M52 48l18 8" strokeWidth="2.5" />
+    <path d="M68 53l3 3" strokeWidth="3.5" />
+    {/* Flame blast */}
+    <path d="M72 56c4-2 8-1 10 3s0 7-5 8-8-2-10-5" strokeWidth="1.5" />
+    <path d="M75 58c2-1 4 0 5 2s0 3-2 3" strokeWidth="1" />
+    {/* Root Crab companion claw */}
+    <path d="M24 64c-3 1-5 4-5 6s4 3 6 1l1-5" />
+    <path d="M22 68l-3 3" />
+  </svg>
+);
+
+export const NottPortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    {/* Gymnastic Head & Feathers / Mask */}
+    <path d="M50 22c-5 0-9 4-9 9s4 9 9 9 9-4 9-9-4-9-9-9z" />
+    <path d="M41 26c-2 0-4-2-4-4s2-1 4 2m18 2c2 0 4-2 4-4s-2-1-4 2" />
+    {/* Flying emerald bird feathers on shoulder */}
+    <path d="M34 38c-3 1-7 4-10 8l3 2 7-6m32 2c3 1 7 4 10 8l-3 2-7-6" />
+    {/* Slender athletic body */}
+    <path d="M44 40l-2 32h16l-2-32H44z" />
+    {/* Steel wire loops / lasso */}
+    <path d="M42 55c-6 3-10 8-10 12s6 6 12 2 10-8 10-12" strokeWidth="1.5" />
+    <path d="M58 55c6 3 10 8 10 12s-6 6-12 2-10-8-10-12" strokeWidth="1.5" />
+  </svg>
+);
+
+// Companion custom drawing
+export const DefaultPortrait: React.FC<IconProps> = ({ size = 200, className = '', ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 100 100" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <rect x="25" y="25" width="50" height="50" rx="4" strokeDasharray="4 4" />
+    <path d="M35 55l10-10 12 12 8-8 10 10" />
+    <circle cx="45" cy="40" r="3" />
+    <text x="50" y="68" textAnchor="middle" fontSize="6" fontFamily="serif" stroke="none" fill="currentColor">H u n t e r</text>
+  </svg>
+);
+
+export const getCharacterPortrait = (name: string, size = 200, className = ''): React.ReactNode => {
+  switch (name) {
+    case '普莱兹': return <PrisePortrait size={size} className={className} />;
+    case '巴格': return <BagPortrait size={size} className={className} />;
+    case '娜特·辛': return <NatShinPortrait size={size} className={className} />;
+    case '泰伦': return <TylonPortrait size={size} className={className} />;
+    case '莲恩': return <LanePortrait size={size} className={className} />;
+    case '诺特': return <NottPortrait size={size} className={className} />;
+    default: return <DefaultPortrait size={size} className={className} />;
+  }
+};

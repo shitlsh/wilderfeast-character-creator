@@ -50,6 +50,12 @@
   background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
 }
 
+.wilder-dot-bg {
+  background-color: #fc8419;
+  background-image: radial-gradient(#ffd54f 20%, transparent 20%);
+  background-size: 8px 8px;
+}
+
 /* Custom scrollbars */
 ::-webkit-scrollbar {
   width: 8px;
