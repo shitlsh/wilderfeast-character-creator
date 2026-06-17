@@ -432,30 +432,6 @@ export default function App() {
     showNotification(`已更新 ${activeChar.name} 的技能：${skillKey} 为 +${val}`, 'success');
   };
 
-  const updateActiveCharStates = (stateKey: keyof Character['states']) => {
-    if (!activeChar) return;
-    const updatedStates = { ...activeChar.states, [stateKey]: !activeChar.states[stateKey] };
-    
-    // If Harmony falls and dishamony triggers
-    const updated = { ...activeChar, states: updatedStates };
-    
-    if (activeChar.isCustom) {
-      const customs = characters.filter(c => c.isCustom);
-      const index = customs.findIndex(c => c.id === activeChar.id);
-      if (index !== -1) {
-        customs[index] = updated;
-        saveCustomCharacters(customs);
-      }
-    } else {
-      const customs = characters.filter(c => c.isCustom);
-      const cloned = { ...updated, id: `${activeChar.id}_session`, isCustom: true };
-      saveCustomCharacters([...customs, cloned]);
-      setSelectedCharId(cloned.id);
-    }
-
-    setCharacters(prev => prev.map(c => c.id === selectedCharId || c.id === activeChar.id ? updated : c));
-  };
-
   // Delete custom character
   const deleteCharacter = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -2362,24 +2338,6 @@ export default function App() {
                               </div>
                             );
                         })}
-
-                        {/* Injured trackers */}
-                        <div className="pt-1.5 border-t border-dashed border-orange-200">
-                          <span className="block text-[9px] font-black text-ink-muted mb-1">受伤等级 (Injured Ranks):</span>
-                          <div className="grid grid-cols-3 gap-1">
-                            {['injured1', 'injured2', 'injured3'].map((inj, index) => (
-                              <label key={inj} className="flex items-center justify-center space-x-1 py-1 rounded border border-surface-border bg-white text-[9px] font-bold text-ink cursor-pointer">
-                                <input 
-                                  type="checkbox" 
-                                  checked={activeChar.states[inj as keyof typeof activeChar.states]} 
-                                  onChange={() => updateActiveCharStates(inj as any)}
-                                  className="accent-red-600 scale-90"
-                                />
-                                <span>受伤{index + 1}</span>
-                              </label>
-                            ))}
-                          </div>
-                        </div>
                       </div>
                     </div>
 
