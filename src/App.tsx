@@ -11,7 +11,7 @@ import {
 } from './data';
 import { getInkIcon, getCharacterPortrait } from './icons';
 import { 
-  APPENDIX_TRAITS, APPENDIX_TECHNIQUES, APPENDIX_STATES, APPENDIX_ACTIONS 
+  APPENDIX_TRAITS, APPENDIX_TECHNIQUES, APPENDIX_STATES, APPENDIX_REGIONS, APPENDIX_ACTIONS 
 } from './appendixData';
 
 // Definition for our dynamic character state
@@ -175,7 +175,7 @@ export default function App() {
   const ALL_SKILLS = ['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'];
 
   // Appendix State
-  const [activeAppendixTab, setActiveAppendixTab] = useState<'a' | 'b' | 'c' | 'd'>('d');
+  const [activeAppendixTab, setActiveAppendixTab] = useState<'a' | 'b' | 'c' | 'd' | 'e'>('d');
   const [appendixSearchQuery, setAppendixSearchQuery] = useState('');
   const [appendixFilterWeapon, setAppendixFilterWeapon] = useState('all');
 
@@ -3161,7 +3161,8 @@ export default function App() {
               { key: 'd', label: 'D：速查' },
               { key: 'a', label: 'A：特性' },
               { key: 'b', label: 'B：战技' },
-              { key: 'c', label: 'C：状态' }
+              { key: 'c', label: 'C：状态' },
+              { key: 'e', label: '区域' }
             ].map(tb => (
               <button
                 key={tb.key}
@@ -3266,52 +3267,78 @@ export default function App() {
               ))
             )}
 
-            {/* Appendix D: Quick Reference Actions */}
+            {/* Appendix Regions */}
+            {activeAppendixTab === 'e' && (
+              <div className="space-y-2">
+                <p className="text-[10px] text-ink-light italic mb-2">地区与区域特性影响猎群在特定地形中的行动。</p>
+                <div className="grid grid-cols-1 gap-1.5">
+                  {APPENDIX_REGIONS.filter(r => !appendixSearchQuery || r.name.includes(appendixSearchQuery) || r.effect.includes(appendixSearchQuery)).map(r => (
+                    <div key={r.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                      <span className="font-bold text-ink text-[11px]">{r.name}</span>
+                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{r.effect}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Appendix D: Quick Reference */}
             {activeAppendixTab === 'd' && (
               <div className="space-y-4">
-                {/* Combat */}
-                {(!appendixSearchQuery || '战斗行动'.includes(appendixSearchQuery)) && (
-                  <div className="space-y-1.5">
-                    <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">⚔️ 狩猎行动 (Combat Actions)</div>
-                    {APPENDIX_ACTIONS.filter(act => act.type === 'combat' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                      <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                        <div className="flex justify-between font-bold text-ink text-[11px]">
-                          <span>{act.name}</span>
-                          <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
-                        </div>
-                        <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                {/* 追踪 */}
+                <div className="space-y-1.5">
+                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🔄 追踪 (Tracking)</div>
+                  {APPENDIX_ACTIONS.filter(act => act.module === 'tracking' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                      <div className="flex justify-between font-bold text-ink text-[11px]">
+                        <span>{act.name}</span>
+                        <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                    </div>
+                  ))}
+                </div>
 
-                {/* Feast */}
-                {(!appendixSearchQuery || '盛宴问题'.includes(appendixSearchQuery)) && (
-                  <div className="space-y-1.5">
-                    <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🍲 盛宴问题 (Feast Questions)</div>
-                    {APPENDIX_ACTIONS.filter(act => act.type === 'feast' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                      <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                        <p className="text-ink text-[11px] leading-tight font-serif">{act.effect}</p>
+                {/* 狩猎 */}
+                <div className="space-y-1.5">
+                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">⚔️ 狩猎 (Hunting)</div>
+                  <p className="text-[9px] text-ink-light italic">你每回合有3点行动，可用于以下选项：</p>
+                  {APPENDIX_ACTIONS.filter(act => act.module === 'hunting' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                      <div className="flex justify-between font-bold text-ink text-[11px]">
+                        <span>{act.name}</span>
+                        <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                    </div>
+                  ))}
+                </div>
 
-                {/* Rest */}
-                {(!appendixSearchQuery || '休整行动'.includes(appendixSearchQuery)) && (
-                  <div className="space-y-1.5">
-                    <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🏕️ 休整行动 (Rest Actions)</div>
-                    {APPENDIX_ACTIONS.filter(act => act.type === 'rest' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                      <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                        <div className="flex justify-between font-bold text-ink text-[11px]">
-                          <span>{act.name}</span>
-                          <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
-                        </div>
-                        <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                {/* 盛宴 */}
+                <div className="space-y-1.5">
+                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🍲 盛宴 (Wild Feast)</div>
+                  <p className="text-[9px] text-ink-light italic">在荒野盛宴期间，你们可以回答以下问题：</p>
+                  {APPENDIX_ACTIONS.filter(act => act.module === 'feast' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                      <p className="text-ink text-[11px] leading-tight font-serif">{act.effect}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {/* 休整 */}
+                <div className="space-y-1.5">
+                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🏕️ 休整 (Rest)</div>
+                  <p className="text-[9px] text-ink-light italic">首先完成以下所有事项：回复所有体力、所有耐久度；移除1个等级的受伤状态；获得家乡特产和香料。然后获得2点行动：</p>
+                  {APPENDIX_ACTIONS.filter(act => act.module === 'rest' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                      <div className="flex justify-between font-bold text-ink text-[11px]">
+                        <span>{act.name}</span>
+                        <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
                       </div>
-                    ))}
-                  </div>
-                )}
+                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
