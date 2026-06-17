@@ -55,7 +55,7 @@ interface Character {
     hidden: boolean;
     disharmony: boolean;
   };
-  avatarType: 'emoji' | 'upload';
+  avatarType: 'emoji' | 'upload' | 'drawing';
   avatarValue: string; // emoji character or base64 data url
   notes?: string;
 }
@@ -142,8 +142,11 @@ export default function App() {
 
   const [wizBondIndex, setWizBondIndex] = useState<number>(0);
   const [wizBond, setWizBond] = useState('');
-  const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload'>('emoji');
+  const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload' | 'drawing'>('emoji');
   const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
+  const [isDrawingModalOpen, setIsDrawingModalOpen] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const drawingStateRef = useRef<{ isDrawing: boolean; lastX: number; lastY: number }>({ isDrawing: false, lastX: 0, lastY: 0 });
 
   const ALL_SKILLS = ['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'];
 
@@ -711,6 +714,139 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
+  // Drawing Canvas Handlers
+  const openDrawingModal = () => {
+    setIsDrawingModalOpen(true);
+    setTimeout(initCanvas, 100);
+  };
+
+  const initCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = rect.width * 2;
+    canvas.height = rect.height * 2;
+    ctx.scale(2, 2);
+
+    ctx.strokeStyle = '#2d100c';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+  };
+
+  const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement> | MouseEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  };
+
+  const getTouchCanvasPos = (touch: React.Touch | Touch) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return { x: 0, y: 0 };
+    const rect = canvas.getBoundingClientRect();
+    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top };
+  };
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const pos = getCanvasPos(e);
+    drawingStateRef.current.isDrawing = true;
+    drawingStateRef.current.lastX = pos.x;
+    drawingStateRef.current.lastY = pos.y;
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!drawingStateRef.current.isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const pos = getCanvasPos(e);
+
+    ctx.beginPath();
+    ctx.moveTo(drawingStateRef.current.lastX, drawingStateRef.current.lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    drawingStateRef.current.lastX = pos.x;
+    drawingStateRef.current.lastY = pos.y;
+  };
+
+  const stopDrawing = () => {
+    drawingStateRef.current.isDrawing = false;
+  };
+
+  const startTouchDrawing = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    const touch = e.touches[0];
+    const pos = getTouchCanvasPos(touch);
+    drawingStateRef.current.isDrawing = true;
+    drawingStateRef.current.lastX = pos.x;
+    drawingStateRef.current.lastY = pos.y;
+    e.preventDefault();
+  };
+
+  const drawTouch = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!drawingStateRef.current.isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const touch = e.touches[0];
+    const pos = getTouchCanvasPos(touch);
+
+    ctx.beginPath();
+    ctx.moveTo(drawingStateRef.current.lastX, drawingStateRef.current.lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.stroke();
+    drawingStateRef.current.lastX = pos.x;
+    drawingStateRef.current.lastY = pos.y;
+    e.preventDefault();
+  };
+
+  const stopTouchDrawing = () => {
+    drawingStateRef.current.isDrawing = false;
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
+  const saveDrawing = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL('image/png');
+    setWizAvatarType('drawing');
+    setWizAvatarValue(dataUrl);
+    setIsDrawingModalOpen(false);
+    showNotification('手绘头像保存成功！', 'success');
+  };
+
+  const uploadDrawingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const img = new Image();
+      img.onload = () => {
+        const w = canvas.width / 2;
+        const h = canvas.height / 2;
+        ctx.drawImage(img, 0, 0, w, h);
+      };
+      img.src = event.target?.result as string;
+    };
+    reader.readAsDataURL(file);
+  };
+
   // Dice Rolling Logic
   const handleRollDice = (styleName: string, styleCount: number, skillName: string, skillBonus: number, dieMode: 'focus' | 'wild') => {
     // Generate fresh d6 values
@@ -1078,10 +1214,71 @@ export default function App() {
                             选择文件
                             <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                           </label>
+                          <button
+                            type="button"
+                            onClick={openDrawingModal}
+                            className="btn-sketch rounded px-2.5 py-1 bg-orange-950 border-orange-700 cursor-pointer text-[11px] flex items-center gap-1"
+                          >
+                            ✏️ 手绘
+                          </button>
                         </div>
                       </div>
                     </div>
                   </div>
+
+                  {/* Drawing Canvas Modal */}
+                  {isDrawingModalOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
+                      <div className="bg-[#2d100c] border-3 border-earth-500 rounded-xl p-5 max-w-lg w-full shadow-rough-lg">
+                        <h3 className="text-lg font-bold font-serif text-earth-400 mb-1">✏️ 手绘角色肖像</h3>
+                        <p className="text-xs text-orange-400 mb-3">在下方区域自由绘制你的角色头像</p>
+                        <div className="drawing-grid rounded-lg overflow-hidden border-2 border-earth-600" style={{ width: '100%', height: 280 }}>
+                          <canvas
+                            ref={canvasRef}
+                            className="w-full h-full cursor-crosshair"
+                            onMouseDown={startDrawing}
+                            onMouseMove={draw}
+                            onMouseUp={stopDrawing}
+                            onMouseLeave={stopDrawing}
+                            onTouchStart={startTouchDrawing}
+                            onTouchMove={drawTouch}
+                            onTouchEnd={stopTouchDrawing}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={clearCanvas}
+                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2.5 py-1 rounded hover:bg-amber-900"
+                            >
+                              🗑️ 清除
+                            </button>
+                            <label className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2.5 py-1 rounded cursor-pointer hover:bg-amber-900">
+                              🖼️ 上传底图
+                              <input type="file" accept="image/*" onChange={uploadDrawingPhoto} className="hidden" />
+                            </label>
+                          </div>
+                          <div className="flex space-x-2">
+                            <button
+                              type="button"
+                              onClick={() => setIsDrawingModalOpen(false)}
+                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-3 py-1 rounded hover:bg-amber-900"
+                            >
+                              取消
+                            </button>
+                            <button
+                              type="button"
+                              onClick={saveDrawing}
+                              className="text-xs bg-earth-700 border border-earth-500 text-white px-3 py-1 rounded font-bold hover:bg-earth-600"
+                            >
+                              💾 保存头像
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="flex justify-end pt-4">
                     <button 

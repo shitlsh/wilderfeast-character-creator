@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>荒野盛宴 - 电子人物卡</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Elegant Serif for titles -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;800&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Serif SC', serif;
+            background-color: #f4efe6;
+            background-image: radial-gradient(#e4dac6 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .serif-title {
+            font-family: 'Cinzel', 'Noto Serif SC', serif;
+        }
+        /* Custom parchment look */
+        .parchment {
+            background-color: #faf6ee;
+            border: 2px solid #3d2f1d;
+            box-shadow: 0 10px 25px -5px rgba(61, 47, 29, 0.15), 0 8px 10px -6px rgba(61, 47, 29, 0.15);
+        }
+        /* Input styling with custom bottom-only border to mimic paper form */
+        .paper-input {
+            border-bottom: 1px dashed #a18262;
+            background: transparent;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .paper-input:focus {
+            border-bottom-color: #513d28;
+            background-color: rgba(245, 230, 205, 0.2);
+        }
+        /* Styled textarea for notes */
+        .paper-textarea {
+            background-image: linear-gradient(transparent, transparent 27px, #d8cbba 27px);
+            background-size: 100% 28px;
+            line-height: 28px;
+            background-color: transparent;
+            border: none;
+            resize: none;
+            outline: none;
+            width: 100%;
+        }
+        /* Grid paper styling for drawing */
+        .drawing-grid {
+            background-color: #faf6ee;
+            background-image: linear-gradient(#e6dfd3 1px, transparent 1px),
+                              linear-gradient(90deg, #e6dfd3 1px, transparent 1px);
+            background-size: 15px 15px;
+        }
+        /* Print rules */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-page {
+                page-break-after: always;
+                box-shadow: none !important;
+                border: 2px solid black !important;
+                margin: 0 !important;
+                padding: 1.5rem !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                background: white !important;
+            }
+            .print-layout {
+                display: block !important;
+            }
+            .tab-content {
+                display: block !important;
+            }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f4efe6;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8b6c4c;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-[#3d2f1d] pb-20 select-none">
+
+    <!-- Top Navigation Bar (Hidden in Print) -->
+    <header class="no-print bg-[#2e3b2b] text-[#f7f4eb] shadow-md sticky top-0 z-50 px-4 py-3">
+        <div class="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-[#d2691e] text-white p-1.5 rounded-full">
+                    <i data-lucide="cooking-pot" class="w-6 h-6"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold serif-title tracking-wider">荒野盛宴</h1>
+                    <p class="text-xs text-[#a3b899]">THE WILD FEAST • CHARACTER SHEET</p>
+                </div>
+            </div>
+
+            <!-- View Switchers -->
+            <div class="flex items-center bg-[#1d271c] rounded-lg p-1 text-sm border border-[#40533c]">
+                <button onclick="switchTab('page1')" id="btn-page1" class="px-4 py-1.5 rounded-md transition font-semibold bg-[#8b6c4c] text-white">
+                    <i data-lucide="sword" class="inline w-4 h-4 mr-1"></i> 第一页：属性与战技
+                </button>
+                <button onclick="switchTab('page2')" id="btn-page2" class="px-4 py-1.5 rounded-md transition font-semibold text-[#a3b899] hover:text-[#f7f4eb]">
+                    <i data-lucide="chef-hat" class="inline w-4 h-4 mr-1"></i> 第二页：背景与餐食
+                </button>
+                <button onclick="switchTab('both')" id="btn-both" class="hidden md:flex px-4 py-1.5 rounded-md transition font-semibold text-[#a3b899] hover:text-[#f7f4eb] items-center">
+                    <i data-lucide="book-open" class="inline w-4 h-4 mr-1"></i> 双页并排
+                </button>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex items-center space-x-2">
+                <button onclick="printSheet()" class="bg-[#556b2f] hover:bg-[#6b8e23] text-white px-3 py-1.5 rounded-md text-sm font-semibold flex items-center shadow transition">
+                    <i data-lucide="printer" class="w-4 h-4 mr-1"></i> 打印 / 导出PDF
+                </button>
+                <button onclick="exportCharacter()" class="bg-[#8b6c4c] hover:bg-[#a07c5a] text-white px-3 py-1.5 rounded-md text-sm font-semibold flex items-center shadow transition" title="保存至本地文件">
+                    <i data-lucide="download" class="w-4 h-4 mr-1"></i> 导出卡片
+                </button>
+                <button onclick="triggerImport()" class="bg-[#5f5043] hover:bg-[#726254] text-white px-3 py-1.5 rounded-md text-sm font-semibold flex items-center shadow transition" title="加载本地人物卡文件">
+                    <i data-lucide="upload" class="w-4 h-4 mr-1"></i> 导入
+                </button>
+                <input type="file" id="import-file" class="hidden" accept=".json" onchange="importCharacter(event)">
+                <button onclick="showResetConfirm()" class="bg-red-800 hover:bg-red-700 text-white p-2 rounded-md shadow transition" title="重置空白人物卡">
+                    <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Character Sheet Container -->
+    <main class="max-w-7xl mx-auto px-4 mt-6 md:mt-10">
+        <div id="sheets-container" class="grid grid-cols-1 gap-8 justify-center items-start">
+            
+            <!-- ================= PAGE 1 ================= -->
+            <div id="page1-card" class="tab-content parchment print-page rounded-xl p-6 md:p-8 relative overflow-hidden w-full max-w-4xl mx-auto border-t-8 border-t-[#556b2f]">
+                <!-- Decorative elements -->
+                <div class="absolute top-0 right-0 w-24 h-24 bg-[#556b2f]/5 rounded-bl-full pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-[#8b6c4c]/5 rounded-tr-full pointer-events-none"></div>
+
+                <!-- Page Header Info -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 pb-6 border-b-2 border-double border-[#8b6c4c]/40 items-end">
+                    <!-- Title Banner -->
+                    <div class="md:col-span-4 flex flex-col justify-center border-r-0 md:border-r border-[#a18262]/30 pr-0 md:pr-4">
+                        <div class="serif-title text-[#556b2f] font-extrabold text-2xl tracking-widest text-center md:text-left">荒野盛宴</div>
+                        <div class="text-[10px] tracking-wider text-[#a18262] font-semibold text-center md:text-left">WILD SURVIVAL & FEASTING CARDS</div>
+                    </div>
+
+                    <!-- Header Inputs -->
+                    <div class="md:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">角色名 (Character)</label>
+                            <input type="text" id="p1-charName" class="paper-input font-bold text-lg text-[#3d2f1d]" placeholder="输入角色姓名">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">玩家名 (Player)</label>
+                            <input type="text" id="p1-playerName" class="paper-input" placeholder="写下你的名字">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">专长 (Specialty)</label>
+                            <input type="text" id="p1-specialty" class="paper-input" placeholder="如：资深主厨">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">风格 (Style)</label>
+                            <input type="text" id="p1-style" class="paper-input" placeholder="如：狂野粗犷">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Attributes and Combat parameters -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                    
+                    <!-- Left: 4 core attributes (力量、精准、迅捷、技巧) -->
+                    <div class="lg:col-span-4 flex flex-col space-y-4">
+                        <h3 class="serif-title text-sm font-bold text-white bg-[#556b2f] py-1 px-3 rounded-md flex items-center justify-between">
+                            <span>基础属性</span>
+                            <i data-lucide="shield" class="w-4 h-4"></i>
+                        </h3>
+                        
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- 力量 -->
+                            <div class="border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col items-center justify-center relative shadow-sm">
+                                <div class="text-xs font-bold text-red-800">力量 (Strength)</div>
+                                <input type="number" id="attr-str" class="w-16 text-center text-2xl font-bold bg-transparent border-b border-dashed border-[#8b6c4c]/50 focus:outline-none focus:border-[#3d2f1d] mt-2" placeholder="0">
+                            </div>
+                            <!-- 精准 -->
+                            <div class="border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col items-center justify-center relative shadow-sm">
+                                <div class="text-xs font-bold text-blue-800">精准 (Precision)</div>
+                                <input type="number" id="attr-pre" class="w-16 text-center text-2xl font-bold bg-transparent border-b border-dashed border-[#8b6c4c]/50 focus:outline-none focus:border-[#3d2f1d] mt-2" placeholder="0">
+                            </div>
+                            <!-- 迅捷 -->
+                            <div class="border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col items-center justify-center relative shadow-sm">
+                                <div class="text-xs font-bold text-amber-800">迅捷 (Swiftness)</div>
+                                <input type="number" id="attr-swi" class="w-16 text-center text-2xl font-bold bg-transparent border-b border-dashed border-[#8b6c4c]/50 focus:outline-none focus:border-[#3d2f1d] mt-2" placeholder="0">
+                            </div>
+                            <!-- 技巧 -->
+                            <div class="border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col items-center justify-center relative shadow-sm">
+                                <div class="text-xs font-bold text-emerald-800">技巧 (Technique)</div>
+                                <input type="number" id="attr-tec" class="w-16 text-center text-2xl font-bold bg-transparent border-b border-dashed border-[#8b6c4c]/50 focus:outline-none focus:border-[#3d2f1d] mt-2" placeholder="0">
+                            </div>
+                        </div>
+
+                        <!-- Combat detail inputs -->
+                        <div class="border border-[#a18262]/40 rounded-lg p-3 bg-[#fbf8f0] space-y-3">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="wrench" class="w-4 h-4 text-[#8b6c4c]"></i>
+                                <span class="text-xs font-bold text-[#8b6c4c]">装备工具:</span>
+                                <input type="text" id="combat-tool" class="paper-input text-xs flex-1" placeholder="例如：斩骨菜刀、捕兽夹">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="navigation-2" class="w-4 h-4 text-[#8b6c4c]"></i>
+                                <span class="text-xs font-bold text-[#8b6c4c]">有效射程:</span>
+                                <input type="text" id="combat-range" class="paper-input text-xs flex-1" placeholder="近战 / 15米远攻">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Skills (技能) -->
+                    <div class="lg:col-span-8 flex flex-col">
+                        <h3 class="serif-title text-sm font-bold text-white bg-[#8b6c4c] py-1 px-3 rounded-md flex items-center justify-between mb-4">
+                            <span>专长技能 (Skills)</span>
+                            <span class="text-[10px] italic">勾选 [+] 代表掌握或进阶</span>
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 bg-[#fbf9f3] p-4 rounded-lg border border-[#a18262]/30">
+                            <!-- Skill Items -->
+                            <!-- Item: 展示 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-show-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">展示 <span class="text-xs text-stone-500">(Exhibit)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-show" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 储存 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-store-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">储存 <span class="text-xs text-stone-500">(Store)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-store" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 发声 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-vocal-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">发声 <span class="text-xs text-stone-500">(Vocalize)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-vocal" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 射击 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2 pl-6">
+                                    <span class="text-sm font-semibold">射击 <span class="text-xs text-stone-500">(Shoot)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-shoot" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 抓取 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-grab-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">抓取 <span class="text-xs text-stone-500">(Grab)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-grab" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 打击 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2 pl-6">
+                                    <span class="text-sm font-semibold">打击 <span class="text-xs text-stone-500">(Strike)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-strike" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 手艺 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-craft-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">手艺 <span class="text-xs text-stone-500">(Craft)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-craft" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 学习 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2 pl-6">
+                                    <span class="text-sm font-semibold">学习 <span class="text-xs text-stone-500">(Learn)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-learn" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 治愈 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-heal-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">治愈 <span class="text-xs text-stone-500">(Heal)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-heal" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 搜索 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-search-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">搜索 <span class="text-xs text-stone-500">(Search)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-search" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 穿越 -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <input type="checkbox" id="skill-cross-plus" class="w-4 h-4 text-[#8b6c4c] focus:ring-[#8b6c4c] rounded cursor-pointer">
+                                    <span class="text-sm font-semibold">穿越 <span class="text-xs text-stone-500">(Traverse)</span></span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-xs font-bold text-[#a18262] mr-1">加值:</span>
+                                    <input type="number" id="skill-cross" class="w-10 text-center text-sm font-bold bg-transparent border-b border-[#a18262]/40" placeholder="0">
+                                </div>
+                            </div>
+                            <!-- Item: 激励 (Inspiration) -->
+                            <div class="flex items-center justify-between py-1 border-b border-[#a18262]/10">
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-sm font-bold text-[#8b6c4c]">激励 (Inspiration)</span>
+                                </div>
+                                <div class="flex items-center space-x-1">
+                                    <!-- 3 dots/stars to click -->
+                                    <button onclick="toggleInspiration(1)" id="star-1" class="text-stone-300 hover:text-amber-500"><i data-lucide="star" class="w-4 h-4 fill-current"></i></button>
+                                    <button onclick="toggleInspiration(2)" id="star-2" class="text-stone-300 hover:text-amber-500"><i data-lucide="star" class="w-4 h-4 fill-current"></i></button>
+                                    <button onclick="toggleInspiration(3)" id="star-3" class="text-stone-300 hover:text-amber-500"><i data-lucide="star" class="w-4 h-4 fill-current"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tools & Combat Techniques, Features -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <!-- Column: 工具与战技 -->
+                    <div class="border border-[#a18262]/40 rounded-lg p-4 bg-[#fdfbf7] shadow-sm">
+                        <h4 class="serif-title text-xs font-extrabold text-[#556b2f] tracking-wider mb-2 flex items-center justify-between">
+                            <span>工具与战技 (Tools & Techniques)</span>
+                            <i data-lucide="swords" class="w-4 h-4"></i>
+                        </h4>
+                        <textarea id="combat-techniques" class="paper-textarea h-48 text-sm text-[#3d2f1d]" placeholder="在这记录你的生存工具属性、配方特效以及战斗招式..."></textarea>
+                    </div>
+
+                    <!-- Column: 特性 -->
+                    <div class="border border-[#a18262]/40 rounded-lg p-4 bg-[#fdfbf7] shadow-sm">
+                        <h4 class="serif-title text-xs font-extrabold text-[#556b2f] tracking-wider mb-2 flex items-center justify-between">
+                            <span>特性 (Traits & Special Talents)</span>
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                        </h4>
+                        <textarea id="traits" class="paper-textarea h-48 text-sm text-[#3d2f1d]" placeholder="在这里记录你的特殊能力、被动技能或荒野常识..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Footer Stats & Status -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6 pt-6 border-t-2 border-double border-[#8b6c4c]/40">
+                    <!-- 耐久度 -->
+                    <div class="lg:col-span-3 border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-stone-700 flex items-center">
+                                <i data-lucide="shield-alert" class="w-4 h-4 mr-1 text-[#8b6c4c]"></i> 耐久度 (Durability)
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <div class="text-center">
+                                <label class="text-[10px] text-stone-500">当前</label>
+                                <input type="number" id="dur-cur" class="w-full text-center text-xl font-bold bg-transparent border-b border-[#a18262]/50" placeholder="0">
+                            </div>
+                            <div class="text-center">
+                                <label class="text-[10px] text-stone-500">最大</label>
+                                <input type="number" id="dur-max" class="w-full text-center text-xl font-bold bg-transparent border-b border-[#a18262]/50" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 体力 -->
+                    <div class="lg:col-span-3 border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-stone-700 flex items-center">
+                                <i data-lucide="heart" class="w-4 h-4 mr-1 text-[#d2691e]"></i> 体力 (Stamina / HP)
+                            </span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 mt-2">
+                            <div class="text-center">
+                                <label class="text-[10px] text-stone-500">当前</label>
+                                <input type="number" id="stam-cur" class="w-full text-center text-xl font-bold bg-transparent border-b border-[#a18262]/50" placeholder="0">
+                            </div>
+                            <div class="text-center">
+                                <label class="text-[10px] text-stone-500">最大</label>
+                                <input type="number" id="stam-max" class="w-full text-center text-xl font-bold bg-transparent border-b border-[#a18262]/50" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 毅力 & 洞察 -->
+                    <div class="lg:col-span-3 flex flex-col justify-between space-y-2 border border-[#a18262]/40 rounded-lg p-3 bg-[#fbf9f3]">
+                        <div class="text-xs">
+                            <span class="font-bold text-[#8b6c4c]">毅力 (Resolve)</span>
+                            <span class="text-[10px] text-stone-500 block">费用: 1次成功。将 [A] 增加 1。</span>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="text-xs text-stone-500">追踪:</span>
+                                <input type="number" id="resolve-tracker" class="w-12 text-center text-sm font-bold border-b border-[#a18262]" placeholder="0">
+                            </div>
+                        </div>
+                        <div class="text-xs pt-2 border-t border-[#a18262]/20">
+                            <span class="font-bold text-[#8b6c4c]">洞察 (Insight)</span>
+                            <span class="text-[10px] text-stone-500 block">费用: 1次成功。确立一个关于当前情境的细节。</span>
+                            <div class="flex items-center space-x-2 mt-1">
+                                <span class="text-xs text-stone-500">追踪:</span>
+                                <input type="number" id="insight-tracker" class="w-12 text-center text-sm font-bold border-b border-[#a18262]" placeholder="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 状态 -->
+                    <div class="lg:col-span-3 border border-[#a18262]/40 rounded-lg p-3 bg-[#fdfaf5] flex flex-col justify-between">
+                        <div>
+                            <span class="text-xs font-bold text-stone-700 flex items-center">
+                                <i data-lucide="skull" class="w-4 h-4 mr-1 text-[#8b6c4c]"></i> 状态 (Status/Conditions)
+                            </span>
+                        </div>
+                        <textarea id="status-desc" class="w-full h-16 text-xs bg-transparent border-none resize-none mt-2 outline-none" placeholder="记录负面效果、饱腹感、伤势等..."></textarea>
+                    </div>
+                </div>
+
+                <!-- Page Number -->
+                <div class="text-center text-xs text-[#a18262] mt-6 serif-title">- PAGE 1 -</div>
+            </div>
+
+            <!-- ================= PAGE 2 ================= -->
+            <div id="page2-card" class="tab-content parchment print-page rounded-xl p-6 md:p-8 relative overflow-hidden w-full max-w-4xl mx-auto border-t-8 border-t-[#8b6c4c] hidden">
+                <!-- Decorative elements -->
+                <div class="absolute top-0 right-0 w-24 h-24 bg-[#8b6c4c]/5 rounded-bl-full pointer-events-none"></div>
+                <div class="absolute bottom-0 left-0 w-32 h-32 bg-[#556b2f]/5 rounded-tr-full pointer-events-none"></div>
+
+                <!-- Page Header Info -->
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 pb-6 border-b-2 border-double border-[#8b6c4c]/40 items-end">
+                    <!-- Title Banner -->
+                    <div class="md:col-span-4 flex flex-col justify-center border-r-0 md:border-r border-[#a18262]/30 pr-0 md:pr-4">
+                        <div class="serif-title text-[#8b6c4c] font-extrabold text-2xl tracking-widest text-center md:text-left">荒野盛宴</div>
+                        <div class="text-[10px] tracking-wider text-[#a18262] font-semibold text-center md:text-left">THE FEAST & LORE RECORD</div>
+                    </div>
+
+                    <!-- Header Inputs (Linked automatically) -->
+                    <div class="md:col-span-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">角色名 (Character)</label>
+                            <input type="text" id="p2-charName" class="paper-input font-bold text-lg text-[#3d2f1d]" readonly placeholder="同步自第一页">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">玩家名 (Player)</label>
+                            <input type="text" id="p2-playerName" class="paper-input" readonly placeholder="同步自第一页">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">专长 (Specialty)</label>
+                            <input type="text" id="p2-specialty" class="paper-input" readonly placeholder="同步自第一页">
+                        </div>
+                        <div class="flex flex-col">
+                            <label class="text-xs font-bold text-[#8b6c4c] mb-1">主要特产 (Local Spec.)</label>
+                            <input type="text" id="p2-localProduct" class="paper-input" placeholder="如：极寒雪鳕鱼">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Story background and culinary blocks -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+                    
+                    <!-- Left: Avatar and Identity Background (你现在的样子、你想要成为的样子等) -->
+                    <div class="lg:col-span-6 space-y-4">
+                        
+                        <!-- Portrait Area -->
+                        <div class="border-2 border-dashed border-[#a18262]/60 rounded-xl p-4 bg-[#fbf9f3] flex flex-col justify-between relative min-h-[300px]">
+                            <h4 class="serif-title text-xs font-bold text-[#8b6c4c] mb-2 flex items-center justify-between">
+                                <span>你现在的样子 (Your Current Appearance)</span>
+                                <div class="flex space-x-1 no-print">
+                                    <button onclick="clearCanvas()" class="text-xs bg-red-100 hover:bg-red-200 text-red-800 px-2 py-0.5 rounded transition">清除手绘</button>
+                                    <label class="text-xs bg-[#556b2f] hover:bg-[#6b8e23] text-white px-2 py-0.5 rounded cursor-pointer transition">
+                                        上传照片 <input type="file" id="portrait-upload" class="hidden" accept="image/*" onchange="uploadPortrait(event)">
+                                    </label>
+                                </div>
+                            </h4>
+
+                            <!-- Drag & Drop / Drawing Area Container -->
+                            <div class="flex-1 relative w-full h-full rounded-lg overflow-hidden border border-[#a18262]/20 drawing-grid min-h-[220px]">
+                                <!-- Uploaded image display -->
+                                <img id="portrait-image" class="absolute inset-0 w-full h-full object-contain z-10 hidden pointer-events-none">
+                                
+                                <!-- Free-hand Drawing Canvas -->
+                                <canvas id="portrait-canvas" class="absolute inset-0 w-full h-full z-20 cursor-crosshair"></canvas>
+                                
+                                <div id="canvas-placeholder" class="absolute inset-0 flex flex-col items-center justify-center text-stone-400 p-4 pointer-events-none z-0">
+                                    <i data-lucide="image-plus" class="w-10 h-10 mb-2"></i>
+                                    <p class="text-xs text-center">在此区域拖拽手绘肖像</p>
+                                    <p class="text-[10px] text-stone-400 mt-1">或点击右上方“上传照片”</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Role Details Box -->
+                        <div class="border border-[#a18262]/40 rounded-lg p-4 bg-[#fdfbf7] space-y-3 shadow-sm">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-[#8b6c4c] mb-1 flex items-center">
+                                    <i data-lucide="crown" class="w-4 h-4 mr-1"></i> 你想要成为的样子 (Your Ambition/Future Self)
+                                </span>
+                                <input type="text" id="bg-future" class="paper-input text-sm" placeholder="你梦想中达到的终极名誉或厨艺高度...">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-[#8b6c4c] mb-1 flex items-center">
+                                    <i data-lucide="bug" class="w-4 h-4 mr-1"></i> 关键怪物 (Key Monsters Encountered)
+                                </span>
+                                <input type="text" id="bg-monster" class="paper-input text-sm" placeholder="你捕猎过、或渴望将其烹饪成大餐的怪兽...">
+                            </div>
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold text-[#8b6c4c] mb-1 flex items-center">
+                                    <i data-lucide="user-check" class="w-4 h-4 mr-1"></i> 成长背景 (Origins & Background)
+                                </span>
+                                <input type="text" id="bg-origin" class="paper-input text-sm" placeholder="你从何处来，曾学过怎样的烹制或狩猎本领...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Story Questions & Backstories ("三道菜式"的背景、动机、香料) -->
+                    <div class="lg:col-span-6 space-y-4">
+                        
+                        <!-- Core Motivations & Ambitions -->
+                        <div class="border border-[#a18262]/40 rounded-lg p-4 bg-[#fdfbf7] space-y-3 shadow-sm">
+                            <h4 class="serif-title text-xs font-extrabold text-[#556b2f] tracking-wider mb-2 flex items-center justify-between">
+                                <span>人生信条与羁绊 (Beliefs & Bonds)</span>
+                                <i data-lucide="heart-handshake" class="w-4 h-4"></i>
+                            </h4>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-bold text-[#8b6c4c]">动机 (Motivation)</label>
+                                    <input type="text" id="p2-motivation" class="paper-input text-sm mt-1" placeholder="促使你踏上旅程的原因">
+                                </div>
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-bold text-[#8b6c4c]">雄心 (Ambitions)</label>
+                                    <input type="text" id="p2-ambition" class="paper-input text-sm mt-1" placeholder="在盛宴中想要夺取的地位">
+                                </div>
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="text-xs font-bold text-[#8b6c4c]">联结 (Bonds & Connections)</label>
+                                <input type="text" id="p2-links" class="paper-input text-sm mt-1" placeholder="你与队友、导师或野兽的命运交缠">
+                            </div>
+                        </div>
+
+                        <!-- "三道菜式" 的背景 -->
+                        <div class="border-2 border-[#556b2f]/40 rounded-xl p-4 bg-[#f8f6ed] relative shadow">
+                            <!-- Golden Badge Header -->
+                            <div class="absolute -top-3 left-4 bg-[#556b2f] text-white text-xs font-bold px-3 py-0.5 rounded-full serif-title flex items-center">
+                                <i data-lucide="soup" class="w-3.5 h-3.5 mr-1"></i> “三道菜式”的背景 (Three-Course History)
+                            </div>
+                            
+                            <div class="space-y-4 mt-2">
+                                <div class="flex flex-col">
+                                    <label class="text-xs font-extrabold text-[#556b2f] flex items-center">
+                                        <span class="bg-[#556b2f] text-white text-[10px] rounded-full w-4.5 h-4.5 inline-flex items-center justify-center mr-1.5 font-sans">1</span>
+                                        哪一道餐食定义了你的童年? (Childhood Meal)
+                                    </label>
+                                    <textarea id="meal-childhood" class="paper-textarea h-16 text-xs text-stone-700 mt-1" placeholder="比如：母亲在冰河解冻时，用干巴菌吊的高汤面..."></textarea>
+                                </div>
+                                <div class="flex flex-col border-t border-[#a18262]/20 pt-3">
+                                    <label class="text-xs font-extrabold text-[#556b2f] flex items-center">
+                                        <span class="bg-[#556b2f] text-white text-[10px] rounded-full w-4.5 h-4.5 inline-flex items-center justify-center mr-1.5 font-sans">2</span>
+                                        哪一道餐食让你成为了一名荒野食客? (Becoming a Wild Eater)
+                                    </label>
+                                    <textarea id="meal-wild" class="paper-textarea h-16 text-xs text-stone-700 mt-1" placeholder="比如：那场突如其来的暴风雨中，烤焦但美味的龙尾肉..."></textarea>
+                                </div>
+                                <div class="flex flex-col border-t border-[#a18262]/20 pt-3">
+                                    <label class="text-xs font-extrabold text-[#556b2f] flex items-center">
+                                        <span class="bg-[#556b2f] text-white text-[10px] rounded-full w-4.5 h-4.5 inline-flex items-center justify-center mr-1.5 font-sans">3</span>
+                                        你最想吃哪一道餐食? (The Ultimate Feast)
+                                    </label>
+                                    <textarea id="meal-dream" class="paper-textarea h-16 text-xs text-stone-700 mt-1" placeholder="比如：传说中，用活体火山龙舌炖出的岩浆布丁..."></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Spices Inventory (香料收藏) -->
+                        <div class="border border-[#a18262]/40 rounded-lg p-4 bg-[#fdfbf7] shadow-sm">
+                            <h4 class="serif-title text-xs font-extrabold text-[#8b6c4c] tracking-wider mb-2 flex items-center justify-between">
+                                <span>背包里的独特香料 (Your Spices)</span>
+                                <i data-lucide="leaf" class="w-4 h-4 text-[#556b2f]"></i>
+                            </h4>
+                            <input type="text" id="bg-spices" class="paper-input text-sm w-full" placeholder="输入拥有的调味配方或荒野中采撷的魔法草药...">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Page Number -->
+                <div class="text-center text-xs text-[#a18262] mt-6 serif-title">- PAGE 2 -</div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- Floating Interactive Dice Roller (Hidden in Print) -->
+    <div class="no-print fixed bottom-4 right-4 z-40 bg-[#3d2f1d]/95 text-[#f4efe6] rounded-xl p-4 shadow-2xl border border-[#a18262]/40 max-w-xs transition-transform duration-300 w-80">
+        <div class="flex items-center justify-between pb-2 border-b border-[#a18262]/30 mb-2">
+            <span class="text-xs font-bold serif-title tracking-wider flex items-center">
+                <i data-lucide="dice-5" class="w-4 h-4 mr-1 text-[#d2691e]"></i> 荒野盛宴掷骰器
+            </span>
+            <button onclick="clearDiceLog()" class="text-[10px] text-stone-400 hover:text-white underline transition">清空日志</button>
+        </div>
+        
+        <!-- Dice Tray Options -->
+        <div class="grid grid-cols-4 gap-1.5 text-center text-xs font-bold mb-3">
+            <button onclick="rollDice(4)" class="bg-[#556b2f] hover:bg-[#6b8e23] text-white p-1.5 rounded transition">d4</button>
+            <button onclick="rollDice(6)" class="bg-[#556b2f] hover:bg-[#6b8e23] text-white p-1.5 rounded transition">d6</button>
+            <button onclick="rollDice(8)" class="bg-[#556b2f] hover:bg-[#6b8e23] text-white p-1.5 rounded transition">d8</button>
+            <button onclick="rollDice(10)" class="bg-[#556b2f] hover:bg-[#6b8e23] text-white p-1.5 rounded transition">d10</button>
+            <button onclick="rollDice(12)" class="bg-[#8b6c4c] hover:bg-[#a07c5a] text-white p-1.5 rounded transition">d12</button>
+            <button onclick="rollDice(20)" class="bg-[#d2691e] hover:bg-[#e47a2e] text-white p-1.5 rounded transition col-span-2">d20 (属性判定)</button>
+            <button onclick="rollDice(100)" class="bg-[#8b6c4c] hover:bg-[#a07c5a] text-white p-1.5 rounded transition">d100</button>
+        </div>
+
+        <!-- Dice Results Screen -->
+        <div id="dice-log" class="bg-black/40 rounded p-2 h-20 overflow-y-auto text-left space-y-1 font-mono text-[10px]">
+            <div class="text-stone-400 italic text-center pt-3">等待掷骰子...</div>
+        </div>
+    </div>
+
+    <!-- Custom Modal for Confirmation (Alternative to alert) -->
+    <div id="custom-modal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <div class="bg-[#faf6ee] border-2 border-[#8b6c4c] rounded-xl p-6 max-w-md w-full shadow-2xl relative">
+            <h3 class="serif-title text-lg font-bold text-red-800 flex items-center">
+                <i data-lucide="alert-triangle" class="w-6 h-6 mr-2 text-[#d2691e]"></i> 警告：确认此操作？
+            </h3>
+            <p id="modal-text" class="text-sm text-stone-700 mt-3 leading-relaxed">这是关于清除数据的警告。</p>
+            
+            <div class="flex justify-end space-x-3 mt-6">
+                <button onclick="closeModal()" class="bg-stone-200 hover:bg-stone-300 text-stone-800 font-semibold px-4 py-2 rounded-lg text-xs transition">
+                    取消
+                </button>
+                <button id="modal-confirm-btn" class="bg-red-800 hover:bg-red-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition">
+                    确 认
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // Data State Management
+        let sheetState = {
+            p1: {},
+            p2: {},
+            drawingData: null,
+            inspiration: 0
+        };
+
+        // DOM elements
+        const page1Card = document.getElementById('page1-card');
+        const page2Card = document.getElementById('page2-card');
+        const sheetsContainer = document.getElementById('sheets-container');
+        
+        // Portrait Setup
+        const canvas = document.getElementById('portrait-canvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        // Life cycle init
+        window.onload = function() {
+            lucide.createIcons();
+            
+            // Sync Portrait Canvas Dimensions
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            // Set up drawing event listeners
+            setupCanvasDrawing();
+
+            // Intercept all inputs to trigger autosave
+            setupAutoSave();
+
+            // Load from localStorage if present
+            loadLocalState();
+
+            // Handle name/specialty syncing from page 1 to page 2 automatically
+            setupPageHeaderSyncing();
+        }
+
+        // Tab Switching Logic
+        function switchTab(mode) {
+            // Reset active classes on tabs
+            document.getElementById('btn-page1').className = "px-4 py-1.5 rounded-md transition font-semibold text-[#a3b899] hover:text-[#f7f4eb]";
+            document.getElementById('btn-page2').className = "px-4 py-1.5 rounded-md transition font-semibold text-[#a3b899] hover:text-[#f7f4eb]";
+            document.getElementById('btn-both').className = "px-4 py-1.5 rounded-md transition font-semibold text-[#a3b899] hover:text-[#f7f4eb]";
+
+            if (mode === 'page1') {
+                document.getElementById('btn-page1').className = "px-4 py-1.5 rounded-md transition font-semibold bg-[#8b6c4c] text-white";
+                page1Card.classList.remove('hidden');
+                page2Card.classList.add('hidden');
+                sheetsContainer.className = "grid grid-cols-1 gap-8 justify-center items-start";
+            } else if (mode === 'page2') {
+                document.getElementById('btn-page2').className = "px-4 py-1.5 rounded-md transition font-semibold bg-[#8b6c4c] text-white";
+                page2Card.classList.remove('hidden');
+                page1Card.classList.add('hidden');
+                sheetsContainer.className = "grid grid-cols-1 gap-8 justify-center items-start";
+                // Redraw canvas state upon showing
+                setTimeout(() => {
+                    resizeCanvas();
+                    restoreCanvasState();
+                }, 50);
+            } else if (mode === 'both') {
+                document.getElementById('btn-both').className = "px-4 py-1.5 rounded-md transition font-semibold bg-[#8b6c4c] text-white";
+                page1Card.classList.remove('hidden');
+                page2Card.classList.remove('hidden');
+                sheetsContainer.className = "grid grid-cols-1 xl:grid-cols-2 gap-8 justify-center items-start";
+                setTimeout(() => {
+                    resizeCanvas();
+                    restoreCanvasState();
+                }, 50);
+            }
+        }
+
+        // Automatic Head syncing from P1 to P2
+        function setupPageHeaderSyncing() {
+            const syncFields = [
+                { src: 'p1-charName', dest: 'p2-charName' },
+                { src: 'p1-playerName', dest: 'p2-playerName' },
+                { src: 'p1-specialty', dest: 'p2-specialty' }
+            ];
+            syncFields.forEach(pair => {
+                document.getElementById(pair.src).addEventListener('input', (e) => {
+                    document.getElementById(pair.dest).value = e.target.value;
+                    saveState();
+                });
+            });
+        }
+
+        // --- Canvas Portrait Drawing Logic ---
+        function resizeCanvas() {
+            const rect = canvas.getBoundingClientRect();
+            // Store dynamic content temporarily before resizing
+            const tempImg = canvas.toDataURL();
+            
+            canvas.width = rect.width || 300;
+            canvas.height = rect.height || 220;
+
+            // Restore canvas
+            const img = new Image();
+            img.src = tempImg;
+            img.onload = () => {
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                ctx.strokeStyle = '#3d2f1d';
+                ctx.lineWidth = 2.5;
+                ctx.lineCap = 'round';
+            };
+        }
+
+        function setupCanvasDrawing() {
+            ctx.strokeStyle = '#3d2f1d';
+            ctx.lineWidth = 2.5;
+            ctx.lineCap = 'round';
+
+            // Mouse Events
+            canvas.addEventListener('mousedown', (e) => {
+                isDrawing = true;
+                [lastX, lastY] = getMousePos(e);
+                hidePlaceholder();
+            });
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', () => { isDrawing = false; saveCanvasState(); });
+            canvas.addEventListener('mouseout', () => isDrawing = false);
+
+            // Touch Events (For mobile devices)
+            canvas.addEventListener('touchstart', (e) => {
+                isDrawing = true;
+                const touch = e.touches[0];
+                [lastX, lastY] = getTouchPos(touch);
+                hidePlaceholder();
+                e.preventDefault();
+            });
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDrawing) return;
+                const touch = e.touches[0];
+                const [x, y] = getTouchPos(touch);
+                
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(x, y);
+                ctx.stroke();
+                [lastX, lastY] = [x, y];
+                e.preventDefault();
+            });
+            canvas.addEventListener('touchend', () => { isDrawing = false; saveCanvasState(); });
+        }
+
+        function getMousePos(e) {
+            const rect = canvas.getBoundingClientRect();
+            return [e.clientX - rect.left, e.clientY - rect.top];
+        }
+
+        function getTouchPos(touch) {
+            const rect = canvas.getBoundingClientRect();
+            return [touch.clientX - rect.left, touch.clientY - rect.top];
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const [x, y] = getMousePos(e);
+
+            ctx.beginPath();
+            ctx.moveTo(lastX, lastY);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            [lastX, lastY] = [x, y];
+        }
+
+        function hidePlaceholder() {
+            document.getElementById('canvas-placeholder').classList.add('hidden');
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            document.getElementById('portrait-image').src = "";
+            document.getElementById('portrait-image').classList.add('hidden');
+            document.getElementById('canvas-placeholder').classList.remove('hidden');
+            sheetState.drawingData = null;
+            sheetState.portraitImage = null;
+            saveState();
+        }
+
+        function saveCanvasState() {
+            sheetState.drawingData = canvas.toDataURL();
+            saveState();
+        }
+
+        function restoreCanvasState() {
+            if (sheetState.drawingData) {
+                const img = new Image();
+                img.onload = function() {
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                };
+                img.src = sheetState.drawingData;
+                hidePlaceholder();
+            }
+        }
+
+        // Portrait photo upload
+        function uploadPortrait(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const imgEl = document.getElementById('portrait-image');
+                imgEl.src = event.target.result;
+                imgEl.classList.remove('hidden');
+                hidePlaceholder();
+                sheetState.portraitImage = event.target.result;
+                saveState();
+            }
+            reader.readAsDataURL(file);
+        }
+
+
+        // --- Inspiration Star Control ---
+        function toggleInspiration(starNum) {
+            if (sheetState.inspiration === starNum) {
+                sheetState.inspiration = starNum - 1; // Uncheck
+            } else {
+                sheetState.inspiration = starNum;
+            }
+            updateInspirationUI();
+            saveState();
+        }
+
+        function updateInspirationUI() {
+            for (let i = 1; i <= 3; i++) {
+                const star = document.getElementById(`star-${i}`);
+                if (i <= sheetState.inspiration) {
+                    star.className = "text-amber-500 hover:text-amber-600 transition";
+                } else {
+                    star.className = "text-stone-300 hover:text-amber-500 transition";
+                }
+            }
+        }
+
+        // --- Active States Saving ---
+        function setupAutoSave() {
+            const inputs = document.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.addEventListener('change', saveState);
+                input.addEventListener('input', saveState);
+            });
+        }
+
+        function collectFormData() {
+            // Page 1 fields
+            const data = {
+                charName: document.getElementById('p1-charName').value,
+                playerName: document.getElementById('p1-playerName').value,
+                specialty: document.getElementById('p1-specialty').value,
+                style: document.getElementById('p1-style').value,
+                
+                attrStr: document.getElementById('attr-str').value,
+                attrPre: document.getElementById('attr-pre').value,
+                attrSwi: document.getElementById('attr-swi').value,
+                attrTec: document.getElementById('attr-tec').value,
+                
+                combatTool: document.getElementById('combat-tool').value,
+                combatRange: document.getElementById('combat-range').value,
+                
+                skillShowPlus: document.getElementById('skill-show-plus').checked,
+                skillShow: document.getElementById('skill-show').value,
+                skillStorePlus: document.getElementById('skill-store-plus').checked,
+                skillStore: document.getElementById('skill-store').value,
+                skillVocalPlus: document.getElementById('skill-vocal-plus').checked,
+                skillVocal: document.getElementById('skill-vocal').value,
+                skillShoot: document.getElementById('skill-shoot').value,
+                skillGrabPlus: document.getElementById('skill-grab-plus').checked,
+                skillGrab: document.getElementById('skill-grab').value,
+                skillStrike: document.getElementById('skill-strike').value,
+                skillCraftPlus: document.getElementById('skill-craft-plus').checked,
+                skillCraft: document.getElementById('skill-craft').value,
+                skillLearn: document.getElementById('skill-learn').value,
+                skillHealPlus: document.getElementById('skill-heal-plus').checked,
+                skillHeal: document.getElementById('skill-heal').value,
+                skillSearchPlus: document.getElementById('skill-search-plus').checked,
+                skillSearch: document.getElementById('skill-search').value,
+                skillCrossPlus: document.getElementById('skill-cross-plus').checked,
+                skillCross: document.getElementById('skill-cross').value,
+                
+                combatTechniques: document.getElementById('combat-techniques').value,
+                traits: document.getElementById('traits').value,
+                
+                durCur: document.getElementById('dur-cur').value,
+                durMax: document.getElementById('dur-max').value,
+                stamCur: document.getElementById('stam-cur').value,
+                stamMax: document.getElementById('stam-max').value,
+                resolveTracker: document.getElementById('resolve-tracker').value,
+                insightTracker: document.getElementById('insight-tracker').value,
+                statusDesc: document.getElementById('status-desc').value,
+
+                // Page 2 fields
+                localProduct: document.getElementById('p2-localProduct').value,
+                bgFuture: document.getElementById('bg-future').value,
+                bgMonster: document.getElementById('bg-monster').value,
+                bgOrigin: document.getElementById('bg-origin').value,
+                bgMotivation: document.getElementById('p2-motivation').value,
+                bgAmbition: document.getElementById('p2-ambition').value,
+                bgLinks: document.getElementById('p2-links').value,
+                bgSpices: document.getElementById('bg-spices').value,
+                
+                mealChildhood: document.getElementById('meal-childhood').value,
+                mealWild: document.getElementById('meal-wild').value,
+                mealDream: document.getElementById('meal-dream').value,
+                
+                inspiration: sheetState.inspiration,
+                drawingData: sheetState.drawingData,
+                portraitImage: sheetState.portraitImage
+            };
+            return data;
+        }
+
+        function saveState() {
+            const data = collectFormData();
+            localStorage.setItem('wild_feast_character_data', JSON.stringify(data));
+        }
+
+        function loadLocalState() {
+            const localData = localStorage.getItem('wild_feast_character_data');
+            if (localData) {
+                try {
+                    const parsed = JSON.parse(localData);
+                    applyStateToDOM(parsed);
+                } catch (e) {
+                    console.error("无法载入本地缓存数据：", e);
+                }
+            }
+        }
+
+        function applyStateToDOM(data) {
+            if (!data) return;
+            
+            // Populating Page 1 values
+            document.getElementById('p1-charName').value = data.charName || "";
+            document.getElementById('p2-charName').value = data.charName || "";
+            document.getElementById('p1-playerName').value = data.playerName || "";
+            document.getElementById('p2-playerName').value = data.playerName || "";
+            document.getElementById('p1-specialty').value = data.specialty || "";
+            document.getElementById('p2-specialty').value = data.specialty || "";
+            document.getElementById('p1-style').value = data.style || "";
+            
+            document.getElementById('attr-str').value = data.attrStr || "";
+            document.getElementById('attr-pre').value = data.attrPre || "";
+            document.getElementById('attr-swi').value = data.attrSwi || "";
+            document.getElementById('attr-tec').value = data.attrTec || "";
+            
+            document.getElementById('combat-tool').value = data.combatTool || "";
+            document.getElementById('combat-range').value = data.combatRange || "";
+            
+            document.getElementById('skill-show-plus').checked = !!data.skillShowPlus;
+            document.getElementById('skill-show').value = data.skillShow || "";
+            document.getElementById('skill-store-plus').checked = !!data.skillStorePlus;
+            document.getElementById('skill-store').value = data.skillStore || "";
+            document.getElementById('skill-vocal-plus').checked = !!data.skillVocalPlus;
+            document.getElementById('skill-vocal').value = data.skillVocal || "";
+            document.getElementById('skill-shoot').value = data.skillShoot || "";
+            document.getElementById('skill-grab-plus').checked = !!data.skillGrabPlus;
+            document.getElementById('skill-grab').value = data.skillGrab || "";
+            document.getElementById('skill-strike').value = data.skillStrike || "";
+            document.getElementById('skill-craft-plus').checked = !!data.skillCraftPlus;
+            document.getElementById('skill-craft').value = data.skillCraft || "";
+            document.getElementById('skill-learn').value = data.skillLearn || "";
+            document.getElementById('skill-heal-plus').checked = !!data.skillHealPlus;
+            document.getElementById('skill-heal').value = data.skillHeal || "";
+            document.getElementById('skill-search-plus').checked = !!data.skillSearchPlus;
+            document.getElementById('skill-search').value = data.skillSearch || "";
+            document.getElementById('skill-cross-plus').checked = !!data.skillCrossPlus;
+            document.getElementById('skill-cross').value = data.skillCross || "";
+            
+            document.getElementById('combat-techniques').value = data.combatTechniques || "";
+            document.getElementById('traits').value = data.traits || "";
+            
+            document.getElementById('dur-cur').value = data.durCur || "";
+            document.getElementById('dur-max').value = data.durMax || "";
+            document.getElementById('stam-cur').value = data.stamCur || "";
+            document.getElementById('stam-max').value = data.stamMax || "";
+            document.getElementById('resolve-tracker').value = data.resolveTracker || "";
+            document.getElementById('insight-tracker').value = data.insightTracker || "";
+            document.getElementById('status-desc').value = data.statusDesc || "";
+
+            // Page 2 values
+            document.getElementById('p2-localProduct').value = data.localProduct || "";
+            document.getElementById('bg-future').value = data.bgFuture || "";
+            document.getElementById('bg-monster').value = data.bgMonster || "";
+            document.getElementById('bg-origin').value = data.bgOrigin || "";
+            document.getElementById('p2-motivation').value = data.bgMotivation || "";
+            document.getElementById('p2-ambition').value = data.bgAmbition || "";
+            document.getElementById('p2-links').value = data.bgLinks || "";
+            document.getElementById('bg-spices').value = data.bgSpices || "";
+            
+            document.getElementById('meal-childhood').value = data.mealChildhood || "";
+            document.getElementById('meal-wild').value = data.mealWild || "";
+            document.getElementById('meal-dream').value = data.mealDream || "";
+
+            // Inspiration & Canvas Portrait restoration
+            sheetState.inspiration = data.inspiration || 0;
+            updateInspirationUI();
+
+            sheetState.drawingData = data.drawingData || null;
+            sheetState.portraitImage = data.portraitImage || null;
+
+            if (sheetState.portraitImage) {
+                const imgEl = document.getElementById('portrait-image');
+                imgEl.src = sheetState.portraitImage;
+                imgEl.classList.remove('hidden');
+                hidePlaceholder();
+            }
+
+            if (sheetState.drawingData) {
+                setTimeout(restoreCanvasState, 150);
+            }
+        }
+
+        // --- Custom Dialog Box System ---
+        let onConfirmCallback = null;
+
+        function showConfirm(text, onConfirm) {
+            document.getElementById('modal-text').innerText = text;
+            document.getElementById('custom-modal').classList.remove('hidden');
+            onConfirmCallback = onConfirm;
+        }
+
+        function closeModal() {
+            document.getElementById('custom-modal').classList.add('hidden');
+            onConfirmCallback = null;
+        }
+
+        // Wire confirmation button
+        document.getElementById('modal-confirm-btn').onclick = function() {
+            if (onConfirmCallback) {
+                onConfirmCallback();
+            }
+            closeModal();
+        };
+
+        function showResetConfirm() {
+            showConfirm(
+                "确定要重置当前人物卡吗？所有的填写记录、照片和手绘信息都将被清空，且不可恢复。",
+                function() {
+                    localStorage.removeItem('wild_feast_character_data');
+                    clearCanvas();
+                    const inputs = document.querySelectorAll('input, textarea');
+                    inputs.forEach(input => {
+                        if (input.type === 'checkbox') {
+                            input.checked = false;
+                        } else {
+                            input.value = "";
+                        }
+                    });
+                    sheetState.inspiration = 0;
+                    updateInspirationUI();
+                    saveState();
+                    // Reload page 
+                    window.location.reload();
+                }
+            );
+        }
+
+        // --- Import/Export Card Functions ---
+        function exportCharacter() {
+            const data = collectFormData();
+            const charName = data.charName || "未知食客";
+            const jsonStr = JSON.stringify(data, null, 2);
+            
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `荒野盛宴_人物卡_${charName}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function triggerImport() {
+            document.getElementById('import-file').click();
+        }
+
+        function importCharacter(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const parsed = JSON.parse(event.target.result);
+                    showConfirm(
+                        "你确定要载入该人物卡文件吗？这将覆盖你当前编辑的人物卡内容。",
+                        function() {
+                            applyStateToDOM(parsed);
+                            saveState();
+                        }
+                    );
+                } catch (err) {
+                    showConfirm("解析文件失败，请确保您导入了正确的《荒野盛宴》JSON人物卡配置文件。", () => {});
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- Print/PDF Layout Switch ---
+        function printSheet() {
+            // Force rendering of both pages in correct order
+            const originalTab = document.getElementById('btn-page1').className;
+            
+            // Switch tabs visually to force canvas to fully draw and render
+            page1Card.classList.remove('hidden');
+            page2Card.classList.remove('hidden');
+            sheetsContainer.className = "grid grid-cols-1 gap-8 justify-center items-start";
+            
+            setTimeout(() => {
+                window.print();
+                // Revert to original user selection tab state after calling standard print window
+                switchTab('page1');
+            }, 300);
+        }
+
+
+        // --- Rolling Dices Module ---
+        function rollDice(faces) {
+            const result = Math.floor(Math.random() * faces) + 1;
+            const diceLog = document.getElementById('dice-log');
+            
+            // Generate timestamp
+            const now = new Date();
+            const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+            
+            // Clear placeholder text if first roll
+            if (diceLog.innerHTML.includes('等待掷骰子')) {
+                diceLog.innerHTML = '';
+            }
+
+            // Create log record
+            const newRecord = document.createElement('div');
+            newRecord.className = 'border-l-2 border-[#d2691e] pl-2 py-0.5 animate-pulse text-stone-300';
+            
+            let flavorText = '';
+            if (faces === 20) {
+                if (result === 20) flavorText = ' <span class="text-green-400 font-bold">大成功！</span>';
+                else if (result === 1) flavorText = ' <span class="text-red-400 font-bold">大失败！</span>';
+                else if (result >= 15) flavorText = ' <span class="text-emerald-300 font-semibold">(优秀成功)</span>';
+                else if (result >= 10) flavorText = ' <span class="text-[#f7f4eb]/90">(通过)</span>';
+                else flavorText = ' <span class="text-stone-400">(勉强/未过)</span>';
+            }
+
+            newRecord.innerHTML = `<span class="text-stone-500">[${timeStr}]</span> 投掷 <span class="text-amber-500 font-bold">d${faces}</span> ➜ 结果为 <strong class="text-white text-xs">${result}</strong>${flavorText}`;
+            diceLog.insertBefore(newRecord, diceLog.firstChild);
+        }
+
+        function clearDiceLog() {
+            document.getElementById('dice-log').innerHTML = '<div class="text-stone-400 italic text-center pt-3">等待掷骰子...</div>';
+        }
+    </script>
+</body>
+</html>

@@ -50,6 +50,14 @@
   background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px);
 }
 
+/* Grid paper background for drawing canvas */
+.drawing-grid {
+  background-color: #faf6ee;
+  background-image: linear-gradient(#e6dfd3 1px, transparent 1px),
+                    linear-gradient(90deg, #e6dfd3 1px, transparent 1px);
+  background-size: 15px 15px;
+}
+
 .wilder-dot-bg {
   background-color: #fc8419;
   background-image: radial-gradient(#ffd54f 20%, transparent 20%);
