@@ -126,20 +126,25 @@ export default function App() {
   const [wizUpbringingText, setWizUpbringingText] = useState('');
   const [wizUpbringingSpecialty, setWizUpbringingSpecialty] = useState('');
   const [wizUpbringingSpice, setWizUpbringingSpice] = useState('');
+  const [wizUpbringingCustomSkill, setWizUpbringingCustomSkill] = useState('搜索');
 
   // Background Course 2 (Motivation)
   const [wizMotivationIndex, setWizMotivationIndex] = useState<number>(0);
   const [wizMotivationMeal, setWizMotivationMeal] = useState('');
   const [wizMotivationText, setWizMotivationText] = useState('');
+  const [wizMotivationCustomSkill, setWizMotivationCustomSkill] = useState('搜索');
 
   // Background Course 3 (Ambition)
   const [wizAmbitionIndex, setWizAmbitionIndex] = useState<number>(0);
   const [wizAmbitionMeal, setWizAmbitionMeal] = useState('');
   const [wizAmbitionText, setWizAmbitionText] = useState('');
+  const [wizAmbitionCustomSkill, setWizAmbitionCustomSkill] = useState('搜索');
 
   const [wizBond, setWizBond] = useState('');
   const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload'>('emoji');
   const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
+
+  const ALL_SKILLS = ['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'];
 
   // Appendix State
   const [activeAppendixTab, setActiveAppendixTab] = useState<'a' | 'b' | 'c' | 'd'>('d');
@@ -593,9 +598,9 @@ export default function App() {
   // Create character on wizard completion
   const handleCreateCharacter = () => {
     // Skills checklist based on backgrounds
-    const upbringingSkill = UPBRINGINGS[wizUpbringingIndex].skill;
-    const motivationSkill = MOTIVATIONS[wizMotivationIndex].skill;
-    const ambitionSkill = AMBITIONS[wizAmbitionIndex].skill;
+    const upbringingSkill = wizUpbringingIndex === -1 ? wizUpbringingCustomSkill : UPBRINGINGS[wizUpbringingIndex].skill;
+    const motivationSkill = wizMotivationIndex === -1 ? wizMotivationCustomSkill : MOTIVATIONS[wizMotivationIndex].skill;
+    const ambitionSkill = wizAmbitionIndex === -1 ? wizAmbitionCustomSkill : AMBITIONS[wizAmbitionIndex].skill;
 
     // Calculate skills (+1 for the three different background skills, +0 for rest)
     const skills: { [key: string]: number } = {
@@ -1014,7 +1019,7 @@ export default function App() {
                               onClick={() => setWizSecondaryTech(tk)}
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizSecondaryTech?.name === tk.name 
-                                  ? 'bg-earth-950 border-earth-600 text-white' 
+                                  ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
                                   : 'bg-amber-950 border-orange-900 text-parchment-300'
                               }`}
                             >
@@ -1123,7 +1128,7 @@ export default function App() {
                               onClick={() => setWizTraitPrimary(tr)}
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizTraitPrimary?.name === tr.name 
-                                  ? 'bg-earth-950 border-earth-600 text-white' 
+                                  ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
                                   : 'bg-amber-950 border-orange-900 text-parchment-300'
                               }`}
                             >
@@ -1247,8 +1252,8 @@ export default function App() {
                           onClick={() => setWizCompanionIndex(i)}
                           className={`border-2 p-2.5 rounded cursor-pointer text-xs transition-all ${
                             wizCompanionIndex === i 
-                              ? 'bg-earth-900 border-earth-600 text-white' 
-                              : 'bg-[#241103] border-orange-900 text-parchment-400 hover:border-orange-800'
+                                  ? 'bg-earth-900 border-earth-600 text-white shadow-rough' 
+                                  : 'bg-[#241103] border-orange-900 text-parchment-400 hover:border-orange-800'
                           }`}
                         >
                           <div className="font-bold font-serif">{comp.name}</div>
@@ -1313,13 +1318,32 @@ export default function App() {
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
                             <label className="block text-[10px] text-orange-400 mb-1">童年美食名称</label>
-                            <input 
-                              type="text" 
-                              value={wizUpbringingMeal} 
-                              onChange={(e) => setWizUpbringingMeal(e.target.value)}
-                              placeholder="例如: 黑麦酸面包配咸鱼"
+                            <select
+                              value={wizUpbringingIndex}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                setWizUpbringingIndex(val);
+                                if (val !== -1) {
+                                  setWizUpbringingMeal(UPBRINGINGS[val].description.split('，')[0] || '特色乱炖');
+                                  setWizUpbringingText(UPBRINGINGS[val].description);
+                                }
+                              }}
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
-                            />
+                            >
+                              {UPBRINGINGS.map((u, i) => (
+                                <option key={i} value={i}>{i+1}. {u.description.split('，')[0]}</option>
+                              ))}
+                              <option value={-1}>自定义 ✏️</option>
+                            </select>
+                            {wizUpbringingIndex === -1 && (
+                              <input
+                                type="text"
+                                value={wizUpbringingMeal}
+                                onChange={(e) => setWizUpbringingMeal(e.target.value)}
+                                placeholder="输入自定义美食名称..."
+                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
+                              />
+                            )}
                           </div>
                           <div className="md:col-span-6">
                             <label className="block text-[10px] text-orange-400 mb-1">童年成长细节</label>
@@ -1333,9 +1357,21 @@ export default function App() {
                           </div>
                           <div className="md:col-span-2">
                             <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
-                            <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
-                              +1 {UPBRINGINGS[wizUpbringingIndex].skill}
-                            </div>
+                            {wizUpbringingIndex === -1 ? (
+                              <select
+                                value={wizUpbringingCustomSkill}
+                                onChange={(e) => setWizUpbringingCustomSkill(e.target.value)}
+                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white text-center font-bold"
+                              >
+                                {ALL_SKILLS.map(s => (
+                                  <option key={s} value={s}>+1 {s}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                                +1 {UPBRINGINGS[wizUpbringingIndex].skill}
+                              </div>
+                            )}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3 pt-1 border-t border-orange-950">
@@ -1378,13 +1414,32 @@ export default function App() {
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
                             <label className="block text-[10px] text-orange-400 mb-1">怪物之餐名称</label>
-                            <input 
-                              type="text" 
-                              value={wizMotivationMeal} 
-                              onChange={(e) => setWizMotivationMeal(e.target.value)}
-                              placeholder="例如: 类似鲨鱼肉的稠粥"
+                            <select
+                              value={wizMotivationIndex}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                setWizMotivationIndex(val);
+                                if (val !== -1) {
+                                  setWizMotivationMeal(MOTIVATIONS[val].description.split('。')[0] || '怪物牛排');
+                                  setWizMotivationText(MOTIVATIONS[val].description);
+                                }
+                              }}
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
-                            />
+                            >
+                              {MOTIVATIONS.map((m, i) => (
+                                <option key={i} value={i}>{i+1}. {m.description.split('。')[0]}</option>
+                              ))}
+                              <option value={-1}>自定义 ✏️</option>
+                            </select>
+                            {wizMotivationIndex === -1 && (
+                              <input
+                                type="text"
+                                value={wizMotivationMeal}
+                                onChange={(e) => setWizMotivationMeal(e.target.value)}
+                                placeholder="输入自定义怪物之餐名称..."
+                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
+                              />
+                            )}
                           </div>
                           <div className="md:col-span-6">
                             <label className="block text-[10px] text-orange-400 mb-1">入伙故事与野性觉醒</label>
@@ -1398,9 +1453,21 @@ export default function App() {
                           </div>
                           <div className="md:col-span-2">
                             <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
-                            <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
-                              +1 {MOTIVATIONS[wizMotivationIndex].skill}
-                            </div>
+                            {wizMotivationIndex === -1 ? (
+                              <select
+                                value={wizMotivationCustomSkill}
+                                onChange={(e) => setWizMotivationCustomSkill(e.target.value)}
+                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white text-center font-bold"
+                              >
+                                {ALL_SKILLS.map(s => (
+                                  <option key={s} value={s}>+1 {s}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                                +1 {MOTIVATIONS[wizMotivationIndex].skill}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1421,13 +1488,32 @@ export default function App() {
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
                             <label className="block text-[10px] text-orange-400 mb-1">梦想终极料理名称</label>
-                            <input 
-                              type="text" 
-                              value={wizAmbitionMeal} 
-                              onChange={(e) => setWizAmbitionMeal(e.target.value)}
-                              placeholder="例如: 巨人之心, 传奇盛宴"
+                            <select
+                              value={wizAmbitionIndex}
+                              onChange={(e) => {
+                                const val = parseInt(e.target.value);
+                                setWizAmbitionIndex(val);
+                                if (val !== -1) {
+                                  setWizAmbitionMeal(AMBITIONS[val].description.split('。')[0] || '巨人之心');
+                                  setWizAmbitionText(AMBITIONS[val].description);
+                                }
+                              }}
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
-                            />
+                            >
+                              {AMBITIONS.map((a, i) => (
+                                <option key={i} value={i}>{i+1}. {a.description.split('。')[0]}</option>
+                              ))}
+                              <option value={-1}>自定义 ✏️</option>
+                            </select>
+                            {wizAmbitionIndex === -1 && (
+                              <input
+                                type="text"
+                                value={wizAmbitionMeal}
+                                onChange={(e) => setWizAmbitionMeal(e.target.value)}
+                                placeholder="输入自定义梦想料理名称..."
+                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
+                              />
+                            )}
                           </div>
                           <div className="md:col-span-6">
                             <label className="block text-[10px] text-orange-400 mb-1">渴望达成的成就</label>
@@ -1441,9 +1527,21 @@ export default function App() {
                           </div>
                           <div className="md:col-span-2">
                             <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
-                            <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
-                              +1 {AMBITIONS[wizAmbitionIndex].skill}
-                            </div>
+                            {wizAmbitionIndex === -1 ? (
+                              <select
+                                value={wizAmbitionCustomSkill}
+                                onChange={(e) => setWizAmbitionCustomSkill(e.target.value)}
+                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white text-center font-bold"
+                              >
+                                {ALL_SKILLS.map(s => (
+                                  <option key={s} value={s}>+1 {s}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                                +1 {AMBITIONS[wizAmbitionIndex].skill}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
