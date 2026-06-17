@@ -60,6 +60,8 @@ interface Character {
   statesActive: { name: string; level: number }[]; // Active conditions with levels
   avatarType: 'emoji' | 'upload' | 'drawing';
   avatarValue: string; // emoji character or base64 data url
+  backgroundType: 'portrait' | 'upload' | 'drawing';
+  backgroundValue: string; // character name (portrait) or base64 data url
   notes?: string;
 }
 
@@ -191,6 +193,8 @@ export default function App() {
   const [wizBond, setWizBond] = useState('');
   const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload' | 'drawing'>('emoji');
   const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
+  const [wizBackgroundType, setWizBackgroundType] = useState<'portrait' | 'upload' | 'drawing'>('portrait');
+  const [wizBackgroundValue, setWizBackgroundValue] = useState('');
   const [isDrawingModalOpen, setIsDrawingModalOpen] = useState(false);
   const [drawPenColor, setDrawPenColor] = useState('#2d100c');
   const [drawPenSize, setDrawPenSize] = useState(3);
@@ -244,6 +248,8 @@ export default function App() {
       techniques: c.techniques || c.traits.slice(0, 2),
       statesActive: c.statesActive || [],
       playerName: c.playerName || '',
+      backgroundType: c.backgroundType || 'portrait',
+      backgroundValue: c.backgroundValue || '',
     });
 
     const loadedCustoms = localStorage.getItem('wilder_customs');
@@ -299,7 +305,8 @@ export default function App() {
                      pg.name === '娜特·辛' ? '面包师' : 
                      pg.name === '泰伦' ? '屠夫' : 
                      pg.name === '莲恩' ? '调味者' : '变形者',
-        notes: `预设角色 ${pg.name} (${pg.specialty})`
+        backgroundType: 'portrait',
+        backgroundValue: ''
       });
     });
 
@@ -360,7 +367,9 @@ export default function App() {
                      pg.name === '巴格' ? '储藏者' : 
                      pg.name === '娜特·辛' ? '面包师' : 
                      pg.name === '泰伦' ? '屠夫' : 
-                     pg.name === '莲恩' ? '调味者' : '变形者'
+                     pg.name === '莲恩' ? '调味者' : '变形者',
+        backgroundType: 'portrait',
+        backgroundValue: ''
       };
     });
 
@@ -751,7 +760,9 @@ export default function App() {
       },
       statesActive: [],
       avatarType: wizAvatarType,
-      avatarValue: wizAvatarValue
+      avatarValue: wizAvatarValue,
+      backgroundType: wizBackgroundType,
+      backgroundValue: wizBackgroundValue
     };
 
     // Save
@@ -769,27 +780,27 @@ export default function App() {
     setWizardStep(1);
   };
 
-  // Avatar Upload Handler
-  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Background Image Upload Handler
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
-      setWizAvatarType('upload');
-      setWizAvatarValue(event.target?.result as string);
-      showNotification('自定义头像上传成功！', 'success');
+      setWizBackgroundType('upload');
+      setWizBackgroundValue(event.target?.result as string);
+      showNotification('自定义背景图上传成功！', 'success');
     };
     reader.readAsDataURL(file);
   };
 
-  // Drawing Canvas Handlers
-  const openDrawingModal = () => {
+  // Drawing Canvas Handlers (for background image)
+  const openBackgroundDrawingModal = () => {
     setIsDrawingModalOpen(true);
     setTimeout(() => {
       initCanvas();
       // Load existing drawing onto canvas for re-editing
-      if (wizAvatarType === 'drawing' && wizAvatarValue) {
+      if (wizBackgroundType === 'drawing' && wizBackgroundValue) {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -807,7 +818,7 @@ export default function App() {
           // Save initial state for undo
           saveHistoryState();
         };
-        img.src = wizAvatarValue;
+        img.src = wizBackgroundValue;
       } else {
         initCanvas();
       }
@@ -997,14 +1008,14 @@ export default function App() {
     historyIndexRef.current = -1;
   };
 
-  const saveDrawing = () => {
+  const saveBackgroundDrawing = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
-    setWizAvatarType('drawing');
-    setWizAvatarValue(dataUrl);
+    setWizBackgroundType('drawing');
+    setWizBackgroundValue(dataUrl);
     setIsDrawingModalOpen(false);
-    showNotification('手绘头像保存成功！', 'success');
+    showNotification('手绘背景图保存成功！', 'success');
   };
 
   const uploadDrawingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1130,7 +1141,7 @@ export default function App() {
 
       {/* NOTIFICATIONS */}
       {notification && (
-        <div className="fixed top-4 right-4 z-50 px-5 py-3 rounded-md shadow-rough border-l-3 text-sm flex items-center gap-2 bg-surface text-ink ${
+        <div className="fixed top-4 left-4 z-[60] px-5 py-3 rounded-md shadow-rough border-l-3 text-sm flex items-center gap-2 bg-surface text-ink ${
           notification.type === 'success' ? 'border-l-wilder-amber' : 
           notification.type === 'error' ? 'border-l-wilder-blue' : 
           'border-l-surface-border'
@@ -1378,18 +1389,14 @@ export default function App() {
                     </div>
                   </div>
 
-                  {/* Avatar Picker */}
+                  {/* Avatar Picker - emoji only */}
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">选择人物卡头像</h3>
                     <div className="flex items-center space-x-6">
                       <div className="w-20 h-20 rounded-full border-3 border-dashed border-wilder-blue bg-surface flex items-center justify-center text-ink overflow-hidden flex-shrink-0">
-                        {wizAvatarType === 'emoji' ? (
-                          getInkIcon(wizAvatarValue, 40)
-                        ) : (
-                          <img src={wizAvatarValue} alt="avatar" className="w-full h-full object-cover" />
-                        )}
+                        {getInkIcon(wizAvatarValue, 40)}
                       </div>
-                      <div className="flex-1 space-y-3">
+                      <div className="flex-1">
                         <div className="flex flex-wrap gap-2">
                           {BUILTIN_AVATARS.map(av => (
                             <button
@@ -1406,20 +1413,6 @@ export default function App() {
                               {getInkIcon(av.value, 20, wizAvatarType === 'emoji' && wizAvatarValue === av.value ? 'text-white' : 'text-ink')}
                             </button>
                           ))}
-                        </div>
-                        <div className="flex items-center space-x-2 text-xs">
-                          <span className="text-wilder-amber">或者自己上传图片：</span>
-                          <label className="btn-sketch rounded px-2.5 py-1 bg-surface-border border-orange-700 cursor-pointer text-[11px]">
-                            选择文件
-                            <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-                          </label>
-                          <button
-                            type="button"
-                            onClick={openDrawingModal}
-                            className="btn-sketch rounded px-2.5 py-1 bg-surface-border border-orange-700 cursor-pointer text-[11px] flex items-center gap-1"
-                          >
-                            ✏️ 手绘
-                          </button>
                         </div>
                       </div>
                     </div>
@@ -1516,10 +1509,10 @@ export default function App() {
                             </button>
                             <button
                               type="button"
-                              onClick={saveDrawing}
+                              onClick={saveBackgroundDrawing}
                               className="text-xs bg-wilder-blue border border-wilder-blue text-white px-3 py-1 rounded font-bold hover:bg-wilder-blue"
                             >
-                              💾 保存头像
+                              💾 保存背景图
                             </button>
                           </div>
                         </div>
@@ -2069,6 +2062,47 @@ export default function App() {
                     </div>
                   </div>
 
+                  {/* Background Image Picker */}
+                  <div>
+                    <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">选择背景页插图</h3>
+                    <div className="flex items-center space-x-6">
+                      <div className="w-24 h-32 border-3 border-dashed border-wilder-blue bg-surface rounded flex items-center justify-center text-ink overflow-hidden flex-shrink-0">
+                        {wizBackgroundType === 'portrait' ? (
+                          <span className="text-[10px] text-ink-light text-center px-1">使用角色肖像</span>
+                        ) : wizBackgroundType === 'upload' || wizBackgroundType === 'drawing' ? (
+                          <img src={wizBackgroundValue} alt="background" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-[10px] text-ink-light text-center px-1">使用角色肖像</span>
+                        )}
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <div className="flex items-center space-x-2 text-xs">
+                          <label className="btn-sketch rounded px-2.5 py-1 bg-surface-border border-orange-700 cursor-pointer text-[11px]">
+                            上传图片
+                            <input type="file" accept="image/*" onChange={handleBackgroundUpload} className="hidden" />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={openBackgroundDrawingModal}
+                            className="btn-sketch rounded px-2.5 py-1 bg-surface-border border-orange-700 cursor-pointer text-[11px] flex items-center gap-1"
+                          >
+                            ✏️ 手绘
+                          </button>
+                          {wizBackgroundType !== 'portrait' && (
+                            <button
+                              type="button"
+                              onClick={() => { setWizBackgroundType('portrait'); setWizBackgroundValue(''); }}
+                              className="text-[11px] text-ink-light hover:text-red-600 underline"
+                            >
+                              清除
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-ink-muted">上传或手绘一张属于你角色背景故事的插图，将显示在人物卡第二页。</p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Navigation and validate skill selection */}
                   <div className="flex justify-between pt-4">
                     <button 
@@ -2097,35 +2131,32 @@ export default function App() {
 
 
               {/* ACTION SHEET PREVIEW CARD */}
-              <div className="flex justify-between items-center bg-surface p-3 rounded border border-wilder-amber">
-                <div className="flex space-x-2">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 bg-surface p-3 rounded border border-wilder-amber">
+                <div className="flex flex-wrap gap-2">
                   <button 
                     onClick={() => setActiveTab('roster')} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1 whitespace-nowrap"
                   >
                     <ArrowLeft size={14} /> 返回列表
                   </button>
                   <button 
                     onClick={() => handleJsonExport(activeChar)} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1 whitespace-nowrap"
                   >
                     <Download size={14} /> 导出 JSON
                   </button>
                   <button 
                     onClick={exportToPng} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1 whitespace-nowrap"
                   >
                     <Share2 size={14} /> 导出 PNG
                   </button>
                   <button 
                     onClick={handlePrint} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1 whitespace-nowrap"
                   >
                     <Printer size={14} /> 打印本卡
                   </button>
-                </div>
-                <div className="text-xs text-ink-muted font-bold italic">
-                  点击任意【属性风格】即可快捷模拟掷骰
                 </div>
               </div>
 
@@ -2142,7 +2173,7 @@ export default function App() {
                   <div className="flex justify-between items-center border-b-2 border-surface-border pb-4">
                     <div className="flex items-center space-x-2">
                       <span className="text-ink">{getInkIcon('屠夫', 32)}</span>
-                      <span className="font-serif font-black text-2xl tracking-wider text-sky-950">荒 野 盛 宴</span>
+                      <span className="font-serif font-black text-2xl tracking-wider text-sky-950">属性</span>
                       <span className="text-ink rotate-180">{getInkIcon('屠夫', 32)}</span>
                     </div>
                     <span className="text-xs font-serif font-bold text-ink-muted border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 1 / 2</span>
@@ -2558,7 +2589,7 @@ export default function App() {
                   <div className="flex justify-between items-center border-b-2 border-surface-border pb-4">
                     <div className="flex items-center space-x-2">
                       <span className="text-ink">{getInkIcon('园丁', 32)}</span>
-                      <span className="font-serif font-black text-2xl tracking-wider text-sky-950">猎 群 契 约 · 背景与同伴</span>
+                      <span className="font-serif font-black text-2xl tracking-wider text-sky-950">背景</span>
                       <span className="text-ink rotate-180">{getInkIcon('园丁', 32)}</span>
                     </div>
                     <span className="text-xs font-serif font-bold text-ink-muted border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 2 / 2</span>
@@ -2603,12 +2634,18 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Right Portrait Column (Col Span 5) */}
+                    {/* Right Portrait/Background Column (Col Span 5) */}
                     <div className="md:col-span-5 border-2 border-surface-border rounded bg-white p-4 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative">
-                      <div className="absolute top-2 left-2 text-[9px] font-bold text-ink-light font-serif">SKETCH</div>
-                      {getCharacterPortrait(activeChar.name, 190, 'text-ink')}
+                      <div className="absolute top-2 left-2 text-[9px] font-bold text-ink-light font-serif">
+                        {activeChar.backgroundType === 'upload' || activeChar.backgroundType === 'drawing' ? '插图' : 'SKETCH'}
+                      </div>
+                      {activeChar.backgroundType === 'upload' || activeChar.backgroundType === 'drawing' ? (
+                        <img src={activeChar.backgroundValue} alt="background" className="w-full h-full object-contain max-h-[190px]" />
+                      ) : (
+                        getCharacterPortrait(activeChar.name, 190, 'text-ink')
+                      )}
                       <span className="text-[10px] text-ink-light font-serif mt-2 border-t border-stone-200 pt-1 w-full text-center">
-                        - 猎人 {activeChar.name} 炭笔墨线肖像 -
+                        {activeChar.backgroundType === 'upload' || activeChar.backgroundType === 'drawing' ? '- 角色背景插图 -' : `- 猎人 ${activeChar.name} 炭笔墨线肖像 -`}
                       </span>
                     </div>
 
