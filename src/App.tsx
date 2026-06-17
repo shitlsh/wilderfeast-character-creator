@@ -883,6 +883,17 @@ export default function App() {
       page1El.style.boxSizing = 'border-box';
       page2El.style.boxSizing = 'border-box';
 
+      // Clear style selection highlight for clean export
+      const styleCards = page1El.querySelectorAll('[class*="cursor-pointer"]');
+      const restoredStyles: { el: HTMLElement; origClass: string }[] = [];
+      styleCards.forEach((el) => {
+        const htmlEl = el as HTMLElement;
+        if (htmlEl.className.includes('bg-[#fc8419]')) {
+          restoredStyles.push({ el: htmlEl, origClass: htmlEl.className });
+          htmlEl.className = 'border-2 border-surface-border rounded p-2 flex items-center justify-between cursor-pointer transition-all bg-white hover:bg-orange-100 text-ink';
+        }
+      });
+
       // Small delay to let CSS settle
       await new Promise(r => setTimeout(r, 100));
 
@@ -890,6 +901,9 @@ export default function App() {
         html2canvas(page1El, { useCORS: true, scale: 2, backgroundColor: '#faf6ef', logging: false }),
         html2canvas(page2El, { useCORS: true, scale: 2, backgroundColor: '#faf6ef', logging: false }),
       ]);
+
+      // Restore style selection highlight
+      restoredStyles.forEach(({ el, origClass }) => { el.className = origClass; });
 
       // Restore
       page1El.style.width = origWidth1;
