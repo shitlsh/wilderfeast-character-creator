@@ -184,6 +184,7 @@ export default function App() {
   const [isManualDrawerOpen, setIsManualDrawerOpen] = useState<boolean>(false);
   const [pickerModal, setPickerModal] = useState<'none' | 'technique' | 'trait'>('none');
   const [pickerSearch, setPickerSearch] = useState('');
+  const [isStateModalOpen, setIsStateModalOpen] = useState(false);
   const [pendingState, setPendingState] = useState('');
   const [pendingStateLevel, setPendingStateLevel] = useState(1);
 
@@ -2310,53 +2311,12 @@ export default function App() {
                       <div className="border-t border-dashed border-wilder-amber pt-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="block text-[10px] font-black text-ink-muted uppercase">⚠️ 状态</span>
-                          <div className="flex items-center space-x-1">
-                            <select
-                              value={pendingState}
-                              onChange={(e) => {
-                                setPendingState(e.target.value);
-                                const found = APPENDIX_STATES.find(s => s.name.startsWith(e.target.value));
-                                setPendingStateLevel(found?.endCondition.includes('X') ? 1 : 1);
-                              }}
-                              className="text-[9px] bg-surface border border-surface-border rounded px-1.5 py-0.5 text-ink max-w-[110px]"
-                            >
-                              <option value="">+ 状态</option>
-                              {APPENDIX_STATES.map(s => (
-                                <option key={s.name} value={s.name.replace('X', '')}>{s.name.replace('X', '').trim()}</option>
-                              ))}
-                            </select>
-                            {pendingState && APPENDIX_STATES.find(s => s.name.startsWith(pendingState))?.endCondition.includes('X') && (
-                              <input
-                                type="number"
-                                min={1}
-                                max={20}
-                                value={pendingStateLevel}
-                                onChange={(e) => setPendingStateLevel(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="w-10 text-center text-[9px] bg-surface border border-surface-border rounded px-1 py-0.5 text-ink"
-                              />
-                            )}
-                            {pendingState && (
-                              <button
-                                onClick={() => {
-                                  if (!activeChar) return;
-                                  const baseName = pendingState;
-                                  const existing = activeChar.statesActive.find(s => s.name === baseName);
-                                  const newStates = existing
-                                    ? activeChar.statesActive.map(s => s.name === baseName ? { ...s, level: s.level + pendingStateLevel } : s)
-                                    : [...activeChar.statesActive, { name: baseName, level: pendingStateLevel }];
-                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
-                                  setCharacters(updated);
-                                  saveCustomCharacters(updated.filter(c => c.isCustom));
-                                  showNotification(`已添加状态：${baseName}`, 'success');
-                                  setPendingState('');
-                                  setPendingStateLevel(1);
-                                }}
-                                className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20 flex-shrink-0"
-                              >
-                                添加
-                              </button>
-                            )}
-                          </div>
+                          <button
+                            onClick={() => { setIsStateModalOpen(true); setPendingState(''); setPendingStateLevel(1); }}
+                            className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20"
+                          >
+                            + 添加状态
+                          </button>
                         </div>
                         {activeChar.statesActive.length > 0 ? (
                           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -2365,7 +2325,9 @@ export default function App() {
                               return (
                                 <div key={`${st.name}-${i}`} className="flex items-center justify-between bg-surface/80 p-1.5 rounded border border-surface-border group">
                                   <div className="flex items-center space-x-1.5">
-                                    <span className="font-bold text-[11px] text-ink">{st.name}</span>
+                                    <span className="font-bold text-[11px] text-ink">
+                                      {st.name}{found?.endCondition.includes('X') ? st.level : ''}
+                                    </span>
                                     {found?.endCondition.includes('X') && (
                                       <span className="text-[10px] font-mono text-wilder-amber">Lv.{st.level}</span>
                                     )}
@@ -2418,7 +2380,7 @@ export default function App() {
                           if (!found) return null;
                           return (
                             <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
-                              <span className="font-bold">{st.name}：</span>{found.effect}
+                              <span className="font-bold">{st.name}{found?.endCondition.includes('X') ? st.level : ''}：</span>{found.effect}
                               {found.endCondition.includes('X') && (
                                 <><br /><span className="italic">结束条件：{found.endCondition.replace(/X/g, String(st.level))}</span></>
                               )}
@@ -2928,6 +2890,70 @@ export default function App() {
           </div>
         )}
 
+        {/* State Picker Modal */}
+        {isStateModalOpen && activeChar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-6" onTouchMove={(e) => e.preventDefault()}>
+            <div className="bg-surface border-3 border-wilder-blue rounded-xl p-4 sm:p-6 max-w-md w-full max-h-[80vh] flex flex-col shadow-rough-lg">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-serif font-bold text-wilder-blue text-base">添加状态</h3>
+                <button onClick={() => setIsStateModalOpen(false)} className="text-ink-muted hover:text-ink text-lg leading-none">&times;</button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
+                {APPENDIX_STATES.filter(s => !appendixSearchQuery || s.name.includes(appendixSearchQuery) || s.effect.includes(appendixSearchQuery)).map(s => {
+                  const isX = s.endCondition.includes('X');
+                  const isSelected = pendingState === s.name.replace('X', '').trim();
+                  return (
+                    <div key={s.name} className="p-2 rounded border border-surface-border text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-ink">{s.name.replace('X', '').trim()}</span>
+                        <div className="flex items-center space-x-2">
+                          {isX && (
+                            <input
+                              type="number"
+                              min={1}
+                              max={20}
+                              value={isSelected ? pendingStateLevel : 1}
+                              onChange={(e) => {
+                                setPendingState(s.name.replace('X', '').trim());
+                                setPendingStateLevel(Math.max(1, parseInt(e.target.value) || 1));
+                              }}
+                              onClick={() => setPendingState(s.name.replace('X', '').trim())}
+                              className="w-12 text-center text-[10px] bg-surface-well border border-surface-border rounded px-1 py-0.5 text-ink"
+                              placeholder="等级"
+                            />
+                          )}
+                          <button
+                            onClick={() => {
+                              const baseName = s.name.replace('X', '').trim();
+                              const level = isX ? (isSelected && pendingState === baseName ? pendingStateLevel : 1) : 1;
+                              const existing = activeChar.statesActive.find(st => st.name === baseName);
+                              const newStates = existing
+                                ? activeChar.statesActive.map(st => st.name === baseName ? { ...st, level: st.level + level } : st)
+                                : [...activeChar.statesActive, { name: baseName, level }];
+                              const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                              setCharacters(updated);
+                              saveCustomCharacters(updated.filter(c => c.isCustom));
+                              showNotification(`已添加状态：${baseName}`, 'success');
+                              setIsStateModalOpen(false);
+                              setPendingState('');
+                              setPendingStateLevel(1);
+                            }}
+                            className="text-[10px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-2 py-0.5 rounded hover:bg-wilder-blue/20 flex-shrink-0"
+                          >
+                            + 添加
+                          </button>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-ink-muted mt-1">{s.effect}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
       </main>
 
       {/* Slide-out Dice Roller Drawer */}
@@ -3159,10 +3185,10 @@ export default function App() {
           <div className="grid grid-cols-4 gap-1">
             {[
               { key: 'd', label: 'D：速查' },
-              { key: 'a', label: 'A：特性' },
+              { key: 'a', label: 'A.1：特性' },
               { key: 'b', label: 'B：战技' },
               { key: 'c', label: 'C：状态' },
-              { key: 'e', label: '区域' }
+              { key: 'e', label: 'A.2 区域' }
             ].map(tb => (
               <button
                 key={tb.key}
