@@ -2328,33 +2328,8 @@ export default function App() {
                                     <span className="font-bold text-[11px] text-ink">
                                       {st.name}{found?.name.includes('X') ? st.level : ''}
                                     </span>
-                                    {found?.name.includes('X') && (
-                                      <span className="text-[10px] font-mono text-wilder-amber">Lv.{st.level}</span>
-                                    )}
                                   </div>
                                   <div className="flex items-center space-x-1">
-                                    {found?.name.includes('X') && (
-                                      <>
-                                        <button
-                                          onClick={() => {
-                                            const newStates = activeChar.statesActive.map(s => s.name === st.name ? { ...s, level: Math.max(1, s.level - 1) } : s);
-                                            const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
-                                            setCharacters(updated);
-                                            saveCustomCharacters(updated.filter(c => c.isCustom));
-                                          }}
-                                          className="text-ink-light hover:text-ink text-xs w-4 h-4 flex items-center justify-center"
-                                        >-</button>
-                                        <button
-                                          onClick={() => {
-                                            const newStates = activeChar.statesActive.map(s => s.name === st.name ? { ...s, level: s.level + 1 } : s);
-                                            const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
-                                            setCharacters(updated);
-                                            saveCustomCharacters(updated.filter(c => c.isCustom));
-                                          }}
-                                          className="text-ink-light hover:text-ink text-xs w-4 h-4 flex items-center justify-center"
-                                        >+</button>
-                                      </>
-                                    )}
                                     <button
                                       onClick={() => {
                                         const newStates = activeChar.statesActive.filter((_, idx) => idx !== i);
@@ -2378,10 +2353,11 @@ export default function App() {
                           {activeChar.statesActive.map(st => {
                             const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
                             if (!found) return null;
+                            const effect = found.name.includes('X') ? found.effect.replace(/X/g, String(st.level)) : found.effect;
                             const endCond = found.name.includes('X') ? found.endCondition.replace(/X/g, String(st.level)) : found.endCondition;
                             return (
                               <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
-                                <span className="font-bold">{st.name}{found.name.includes('X') ? st.level : ''}：</span>{found.effect}
+                                <span className="font-bold">{st.name}{found.name.includes('X') ? st.level : ''}：</span>{effect}
                                 <br /><span className="italic">结束条件：{endCond}</span>
                               </div>
                             );
