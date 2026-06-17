@@ -5,7 +5,7 @@ import {
   ArrowLeft, Shuffle, 
   Users, Compass, BookOpen as BookIcon, Search, FileDown
 } from 'lucide-react';
-import { PDFDocument, rgb } from 'pdf-lib';
+import { PDFDocument, rgb, PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { 
   TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, BONDS, PRE_GENS,
@@ -562,87 +562,250 @@ export default function App() {
       const pages = pdfDoc.getPages();
       const page1 = pages[0];
       const page2 = pages[1];
-      const gray = rgb(0.15, 0.1, 0.05);
-      const dark = rgb(0.05, 0.05, 0.05);
 
-      // Helper: draw text at position (x from left, y from bottom)
-      const draw = (page: typeof page1, text: string, x: number, y: number, size = 10, color = dark, maxWidth?: number) => {
-        if (maxWidth && customFont.widthOfTextAtSize(text, size) > maxWidth) {
-          while (customFont.widthOfTextAtSize(text + '…', size) > maxWidth && text.length > 1) {
-            text = text.slice(0, -1);
-          }
-          text += '…';
-        }
+      // Beautiful ink-pen colors
+      const darkInk = rgb(0.1, 0.18, 0.3); // #1a2e4c (Ink Blue)
+      const grayInk = rgb(0.25, 0.32, 0.4); // #3f5266 (Muted Slate Ink)
+
+      // Helper to draw text
+      const draw = (page: PDFPage, text: string, x: number, y: number, size = 10, color = darkInk) => {
         page.drawText(text, { x, y, size, font: customFont, color });
       };
 
-      // ========== PAGE 1 ==========
-      // Top identity
-      draw(page1, activeChar.name, 50, 740, 14, dark);
-      draw(page1, activeChar.playerName || activeChar.name, 50, 712, 11, dark);
-      draw(page1, activeChar.specialty, 300, 740, 11, dark);
+      // Helper to draw centered text
+      const drawCentered = (page: PDFPage, text: string, cx: number, y: number, size = 10, color = darkInk) => {
+        const width = customFont.widthOfTextAtSize(text, size);
+        page.drawText(text, { x: cx - width / 2, y, size, font: customFont, color });
+      };
 
-      // Styles (left column)
+      // Helper to wrap and draw text
+      const drawWrapped = (
+        page: PDFPage, 
+        text: string, 
+        x: number, 
+        startY: number, 
+        maxWidth: number, 
+        fontSize = 8, 
+        lineHeight = 12, 
+        color = grayInk
+      ): number => {
+        const chars = Array.from(text);
+        const lines: string[] = [];
+        let currentLine = '';
+        
+        for (const char of chars) {
+          const testLine = currentLine + char;
+          const width = customFont.widthOfTextAtSize(testLine, fontSize);
+          if (width <= maxWidth) {
+            currentLine = testLine;
+          } else {
+            lines.push(currentLine);
+            currentLine = char;
+          }
+        }
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        
+        let currY = startY;
+        for (const line of lines) {
+          page.drawText(line, { x, y: currY, size: fontSize, font: customFont, color });
+          currY -= lineHeight;
+        }
+        return currY;
+      };
+
+      // ========== PAGE 1 (属性) ==========
+      // Top identity headers (baseline 688)
+      draw(page1, activeChar.name, 55, 688, 13);
+      draw(page1, activeChar.playerName || activeChar.name, 252, 688, 11);
+      draw(page1, activeChar.specialty, 402, 688, 11);
+
+      // Styles (only draw values centered inside squares, center=252)
       const styles = [
-        { key: 'power', label: '力量' },
-        { key: 'precision', label: '精准' },
-        { key: 'swiftness', label: '迅捷' },
-        { key: 'technique', label: '技巧' },
+        { key: 'power', y: 619 },
+        { key: 'precision', y: 599 },
+        { key: 'swiftness', y: 579 },
+        { key: 'technique', y: 559 },
       ];
-      styles.forEach((st, i) => {
+      styles.forEach(st => {
         const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues] || 1;
-        draw(page1, `${st.label}: ${val}`, 50, 600 - i * 42, 11, dark);
+        drawCentered(page1, String(val), 252, st.y, 14);
       });
 
-      // Skills (right column, grid: 3 cols x 4 rows)
+      // Skills (3 cols x 4 rows)
+      // Circles centers: col 1 = 375, col 2 = 455, col 3 = 532
       const skillNames = ['激励', '展示', '射击', '发声', '抓取', '打击', '手艺', '储存', '学习', '治愈', '搜索', '穿越'];
       skillNames.forEach((sk, i) => {
         const col = i % 3;
         const row = Math.floor(i / 3);
         const val = activeChar.skills[sk] || 0;
-        draw(page1, `${sk}+${val}`, 280 + col * 90, 640 - row * 28, 9, dark);
+        const cx = col === 0 ? 375 : col === 1 ? 455 : 532;
+        const cy = 621 - row * 20; // Correct row spacing is 20 pt, baseline 621, 601, 581, 561
+        drawCentered(page1, `+${val}`, cx, cy, 9);
       });
 
-      // Tool & Durability
-      draw(page1, `工具: ${activeChar.tool}`, 50, 380, 11, dark);
-      draw(page1, `耐久: ${activeChar.durability}/${activeChar.durabilityMax}`, 300, 380, 11, dark);
+      // Tool Name & Range
+      draw(page1, activeChar.tool, 90, 472, 10);
+      draw(page1, "1 (打击)", 90, 452, 10);
 
-      // Techniques
-      const techText = (activeChar.techniques || []).slice(0, 4).join('、');
-      if (techText) draw(page1, `战技: ${techText}`, 50, 340, 9, dark, 250);
+      // Durability (Center "当前" at 230, "最大" at 270)
+      drawCentered(page1, String(activeChar.durability), 230, 452, 12);
+      drawCentered(page1, String(activeChar.durabilityMax), 270, 452, 12);
 
-      // Traits
-      const traitText = activeChar.traits.slice(2, 6).join('、');
-      if (traitText) draw(page1, `特性: ${traitText}`, 300, 340, 9, dark, 250);
+      // Techniques Layout (blank lines start at y=372, spacing=20)
+      let techY = 372;
+      (activeChar.techniques || []).forEach(tName => {
+        const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
+        const cost = foundTech?.cost || '被动';
+        const effect = foundTech?.effect || tName;
+        
+        if (techY >= 150) {
+          draw(page1, `【${tName}】 (${cost})`, 45, techY, 9, darkInk);
+          techY -= 20;
+          
+          // Draw wrapped effect on lines (spaced 20pt)
+          techY = drawWrapped(page1, effect, 45, techY, 235, 8, 20, grayInk);
+          techY -= 20; // blank line before next technique
+        }
+      });
 
-      // States
-      if (activeChar.statesActive.length > 0) {
-        const stateText = activeChar.statesActive.map(s => `${s.name}${s.level || ''}`).join(' ');
-        draw(page1, `状态: ${stateText}`, 50, 150, 9, gray, 230);
+      // Traits Layout (blank lines start at y=432, spacing=20)
+      const customTraits = activeChar.traits.slice(2);
+      let traitY = 432;
+      customTraits.forEach(tName => {
+        let trEffect = '融入你自身的野性肉体异能与突变绝技。';
+        let trCost = '被动';
+        
+        const foundA = APPENDIX_TRAITS.find(at => at.name === tName);
+        if (foundA) {
+          trEffect = foundA.effect;
+          trCost = foundA.cost;
+        } else {
+          const foundLineageTrait = LINEAGES.flatMap(l => l.traits).find(t => t.name === tName);
+          if (foundLineageTrait) {
+            trEffect = foundLineageTrait.effect;
+            trCost = foundLineageTrait.cost || '被动';
+          }
+        }
+        
+        if (traitY >= 150) {
+          draw(page1, `【${tName}】 (${trCost})`, 305, traitY, 9, darkInk);
+          traitY -= 20;
+          
+          const nextY = drawWrapped(page1, trEffect, 305, traitY, 220, 8, 20, grayInk);
+          traitY = nextY; // update traitY to track where we ended drawing
+          traitY -= 20; // blank line before next trait
+        }
+      });
+
+      // Stamina (Center "当前" at 92, "最大" at 192)
+      drawCentered(page1, String(activeChar.stamina), 92, 54, 14);
+      drawCentered(page1, "20", 192, 54, 14);
+
+      // States (Lines are at y=92, 72, 52)
+      if (activeChar.statesActive && activeChar.statesActive.length > 0) {
+        const stateText = activeChar.statesActive.map(s => `${s.name}${s.level ? ` ${s.level}` : ''}`).join('  ');
+        draw(page1, stateText, 305, 92, 10, darkInk);
+        
+        // Render up to 2 active state effects if space permits
+        let stateEffectY = 72;
+        activeChar.statesActive.slice(0, 2).forEach(st => {
+          const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
+          if (found && stateEffectY >= 52) {
+            const effect = found.name.includes('X') ? found.effect.replace(/X/g, String(st.level)) : found.effect;
+            const displayEffect = st.name === '受伤'
+              ? found.effect.split(/受伤\d[：:]/g).filter(Boolean)[st.level - 1] || found.effect
+              : effect;
+            draw(page1, `${st.name}: ${displayEffect}`, 305, stateEffectY, 8, grayInk);
+            stateEffectY -= 20;
+          }
+        });
+      } else {
+        draw(page1, "无活跃状态 (全部良好)", 305, 92, 10, grayInk);
       }
 
-      // Stamina
-      draw(page1, `体力: ${activeChar.stamina}/20`, 300, 150, 11, dark);
+      // ========== PAGE 2 (背景) ==========
+      // Top Identity
+      draw(page2, activeChar.name, 55, 688, 13);
+      draw(page2, activeChar.playerName || activeChar.name, 252, 688, 11);
+      draw(page2, activeChar.specialty, 402, 688, 11);
 
-      // ========== PAGE 2 ==========
-      // Adjectives
-      draw(page2, `${activeChar.adjectives[0]} → ${activeChar.adjectives[1]}`, 50, 730, 11, dark);
+      // Identity descriptors (现在的样子 / 想成为的样子)
+      draw(page2, activeChar.adjectives[0], 55, 625, 12);
+      draw(page2, activeChar.adjectives[1], 55, 585, 12);
+
       // Companion
-      draw(page2, `同伴: ${activeChar.companion.name}`, 50, 700, 11, dark);
-      draw(page2, `"${activeChar.companion.description}"`, 50, 680, 9, gray, 500);
+      draw(page2, activeChar.companion.name, 55, 535, 11);
+      drawWrapped(page2, `“${activeChar.companion.description}”`, 55, 515, 180, 8, 11, grayInk);
 
-      // Background meals
+      // Specialty & Spice (Center "特产" at 92, "香料" at 192)
+      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包', 92, 445, 11);
+      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒', 192, 445, 11);
+
+      // Embed Portrait / Background Image inside the SKETCH box
+      let imgBytes: ArrayBuffer | null = null;
+      let imgIsPng = true;
+
+      if (activeChar.backgroundType === 'upload' || activeChar.backgroundType === 'drawing') {
+        if (activeChar.backgroundValue && activeChar.backgroundValue.startsWith('data:image/')) {
+          imgIsPng = activeChar.backgroundValue.includes('png');
+          const base64Data = activeChar.backgroundValue.split(',')[1];
+          const binaryStr = atob(base64Data);
+          const bytes = new Uint8Array(binaryStr.length);
+          for (let i = 0; i < binaryStr.length; i++) {
+            bytes[i] = binaryStr.charCodeAt(i);
+          }
+          imgBytes = bytes.buffer;
+        }
+      } else {
+        const preGens = ['普莱兹', '巴格', '娜特·辛', '泰伦', '莲恩', '诺特'];
+        if (preGens.includes(activeChar.name)) {
+          try {
+            imgBytes = await fetch(`/portraits/${activeChar.name}.png`).then(r => r.arrayBuffer());
+            imgIsPng = true;
+          } catch (e) {
+            console.error('Failed to load pregen portrait for PDF', e);
+          }
+        }
+      }
+
+      if (imgBytes) {
+        try {
+          const img = imgIsPng ? await pdfDoc.embedPng(imgBytes) : await pdfDoc.embedJpg(imgBytes);
+          const imgDims = img.scaleToFit(260, 210);
+          page2.drawImage(img, {
+            x: 255 + (287 - imgDims.width) / 2,
+            y: 430 + (230 - imgDims.height) / 2,
+            width: imgDims.width,
+            height: imgDims.height,
+          });
+        } catch (imgErr) {
+          console.error('Error embedding image into PDF:', imgErr);
+        }
+      }
+
+      // Three-Course Backstory (Upbringing, Motivation, Ambition)
       const bg = activeChar.backgroundMeals;
-      draw(page2, `成长餐食: ${bg.upbringing.meal}`, 50, 620, 10, dark);
-      draw(page2, `动机餐食: ${bg.motivation.meal}`, 50, 580, 10, dark);
-      draw(page2, `雄心餐食: ${bg.ambition.meal}`, 50, 540, 10, dark);
+      
+      // Upbringing
+      draw(page2, `${bg.upbringing.meal} (+1 ${bg.upbringing.skill})`, 100, 350, 10, darkInk);
+      drawWrapped(page2, bg.upbringing.text, 100, 332, 425, 8, 13, grayInk);
+
+      // Motivation
+      draw(page2, `${bg.motivation.meal} (+1 ${bg.motivation.skill})`, 100, 285, 10, darkInk);
+      drawWrapped(page2, bg.motivation.text, 100, 267, 425, 8, 13, grayInk);
+
+      // Ambition
+      draw(page2, `${bg.ambition.meal} (+1 ${bg.ambition.skill})`, 100, 220, 10, darkInk);
+      drawWrapped(page2, bg.ambition.text, 100, 202, 425, 8, 13, grayInk);
 
       // Bond
-      draw(page2, `联结: ${activeChar.bond}`, 50, 470, 9, gray, 500);
+      drawWrapped(page2, activeChar.bond, 100, 110, 425, 8, 14, grayInk);
 
       // Notes
       if (activeChar.notes) {
-        draw(page2, `备注: ${activeChar.notes}`, 50, 400, 9, gray, 500);
+        drawWrapped(page2, `备注: ${activeChar.notes}`, 100, 56, 425, 8, 14, grayInk);
       }
 
       const pdfBytes = await pdfDoc.save();
@@ -2419,8 +2582,8 @@ export default function App() {
                               }`}
                             >
                               <div className="min-w-0 flex-1">
-                                <span className="font-serif font-extrabold text-sm block truncate">{st.label}</span>
-                                <span className={`text-[8px] block truncate ${isSelected ? 'text-wilder-amber' : 'text-ink-light'}`}>{st.desc}</span>
+                                <span className="font-serif font-extrabold text-sm block">{st.label}</span>
+                                <span className={`text-[8px] block leading-snug ${isSelected ? 'text-wilder-amber' : 'text-ink-light'}`}>{st.desc}</span>
                               </div>
                               
                               {/* Sturdy Interactive Styles Adjuster */}
