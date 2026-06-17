@@ -2782,7 +2782,7 @@ export default function App() {
                       >
                         <div className="flex-1 min-w-0">
                           <span className="font-bold text-ink">{t.name}</span>
-                          <span className="text-[9px] text-ink-light ml-1">[{t.weapon.includes('/') ? '通用' : t.weapon}]</span>
+                          <span className="text-[9px] text-ink-light ml-1">[{t.weapon.includes('/') ? `通用 (${t.weapon})` : t.weapon}]</span>
                           <span className="text-[9px] bg-surface-border px-1 rounded ml-1 text-ink-light">{t.cost}</span>
                           <p className="text-[10px] text-ink-muted mt-0.5 line-clamp-2">{t.effect}</p>
                         </div>
@@ -3293,7 +3293,7 @@ export default function App() {
                             <span className="text-[9px] bg-surface border border-surface-border text-wilder-amber px-1.5 py-0.5 rounded font-mono">{tk.cost}</span>
                           </div>
                           <div className="flex space-x-2 text-[9px] text-ink-light mt-0.5 font-mono">
-                            <span>🔧 {tk.weapon.includes('/') ? '通用' : tk.weapon}</span>
+                            <span>🔧 {tk.weapon.includes('/') ? `通用 (${tk.weapon})` : tk.weapon}</span>
                           </div>
                           <p className="text-ink-muted text-[11px] mt-1 font-serif leading-relaxed">{highlightKeywords(tk.effect)}</p>
                         </div>
