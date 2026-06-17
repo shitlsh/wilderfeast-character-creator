@@ -3172,10 +3172,9 @@ export default function App() {
       )}
 
       {/* Slide-out Reference Manual Drawer */}
-      {activeChar && (
-        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-surface border-l-3 border-surface-border p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
-          isManualDrawerOpen ? 'translate-x-0' : 'translate-x-full'
-        }`}>
+      <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-surface border-l-3 border-surface-border p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
+        isManualDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+      }`}>
           <div className="flex justify-between items-center border-b border-surface-border pb-3 mb-4">
             <h3 className="font-serif font-bold text-lg text-ink flex items-center gap-1.5">
               <BookIcon size={18} className="text-wilder-amber" /> 附录参考手册
@@ -3690,7 +3689,6 @@ export default function App() {
 
           </div>
           </div>
-        )}
 
       {/* FOOTER */}
       <footer className="text-center py-8 mt-12 border-t border-surface-border text-xs text-wilder-amber">
