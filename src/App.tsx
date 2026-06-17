@@ -2606,6 +2606,48 @@ export default function App() {
                       </div>
                     </div>
 
+                    {/* Bottom row: Stamina & States boxes exactly matching the book footer */}
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4 border-t-2 border-surface-border">
+                      {/* Left: Stamina box */}
+                      <div className="md:col-span-5 border-3 border-wilder-amber bg-white rounded p-3 relative shadow-sm">
+                        <h4 className="font-serif font-black text-xs text-wilder-amber border-b border-wilder-amber pb-1 mb-2 flex items-center justify-between select-none">
+                          <span>体力 ❤</span>
+                        </h4>
+                        <div className="grid grid-cols-2 text-center divide-x divide-surface-border">
+                          <div>
+                            <span className="text-[9px] text-ink-light block uppercase font-bold">当前</span>
+                            <span className="text-2xl font-black font-serif text-ink">{activeChar.stamina}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-ink-light block uppercase font-bold">最大</span>
+                            <span className="text-2xl font-black font-serif text-ink">20</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Right: States box */}
+                      <div className="md:col-span-7 border-3 border-red-600 bg-red-50/10 rounded p-3 relative shadow-sm">
+                        <h4 className="font-serif font-black text-xs text-red-700 border-b border-red-600 pb-1 mb-2 select-none">
+                          <span>状态</span>
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5 min-h-[36px] items-center">
+                          {activeChar.statesActive && activeChar.statesActive.length > 0 ? (
+                            activeChar.statesActive.map(st => {
+                              const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
+                              const hasX = found?.name.includes('X') || found?.name.includes('至');
+                              return (
+                                <span key={st.name} className="px-2.5 py-1 bg-red-600/10 text-red-700 border border-red-600/30 rounded text-xs font-bold font-serif shadow-sm">
+                                  {st.name}{hasX ? ` ${st.level}` : ''}
+                                </span>
+                              );
+                            })
+                          ) : (
+                            <span className="text-ink-light text-xs italic pl-1">无活跃状态 (全部良好)</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
@@ -2674,44 +2716,83 @@ export default function App() {
 
                   {/* BOTTOM HALF OF PAGE 2: BACKGROUND STORIES & LOGS */}
                   <div className="border-t-2 border-surface-border pt-4 space-y-4">
-                    <h3 className="text-center font-serif font-black text-md tracking-wider text-ink">
-                      ❖ “三道菜式”的背景故事 (The Three Courses Background) ❖
-                    </h3>
+                    <div className="flex items-center justify-center space-x-2 select-none">
+                      <span className="text-wilder-amber font-serif font-black">~❖~</span>
+                      <span className="font-serif font-black text-md text-ink tracking-wider">“三道菜式”的背景故事</span>
+                      <span className="text-wilder-amber font-serif font-black">~❖~</span>
+                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-serif leading-relaxed">
-                      <div className="border border-surface-border rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-ink block border-b border-surface-border pb-1 mb-1">🍰 第一道菜：成长背景 (Upbringing)</span>
-                        <span className="font-bold text-ink-muted block text-[11px] mb-1">童年餐食：{activeChar.backgroundMeals.upbringing.meal}</span>
-                        <p className="text-ink italic">"{activeChar.backgroundMeals.upbringing.text}"</p>
+                    <div className="space-y-3">
+                      {/* Row 1: Upbringing */}
+                      <div className="flex rounded-lg overflow-hidden border-2 border-surface-border shadow-sm">
+                        <div className="w-8 bg-[#1E4D8C] text-white flex flex-col items-center justify-center font-serif font-black text-[11px] py-4 select-none shrink-0">
+                          <div>成</div>
+                          <div className="mt-0.5">长</div>
+                          <div className="mt-0.5">背</div>
+                          <div className="mt-0.5">景</div>
+                        </div>
+                        <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
+                          <p className="font-extrabold text-[#1E4D8C] text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
+                            <span>哪一道餐食定义了你的童年？ (童年餐食: {activeChar.backgroundMeals.upbringing.meal})</span>
+                            <span className="font-mono text-[9px] bg-[#1E4D8C]/10 text-[#1E4D8C] px-1 rounded font-bold">+1 {activeChar.backgroundMeals.upbringing.skill}</span>
+                          </p>
+                          <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.upbringing.text)}</p>
+                        </div>
                       </div>
 
-                      <div className="border border-surface-border rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-ink block border-b border-surface-border pb-1 mb-1">🥣 第二道菜：动机 (Motivation)</span>
-                        <span className="font-bold text-sky-900 block text-[11px] mb-1">怪物之餐：{activeChar.backgroundMeals.motivation.meal}</span>
-                        <p className="text-ink italic">"{activeChar.backgroundMeals.motivation.text}"</p>
+                      {/* Row 2: Motivation */}
+                      <div className="flex rounded-lg overflow-hidden border-2 border-surface-border shadow-sm">
+                        <div className="w-8 bg-stone-700 text-white flex flex-col items-center justify-center font-serif font-black text-[11px] py-4 select-none shrink-0">
+                          <div>动</div>
+                          <div className="mt-0.5">机</div>
+                        </div>
+                        <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
+                          <p className="font-extrabold text-stone-700 text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
+                            <span>哪一道餐食让你成为了一名荒野食客？ (动机餐食: {activeChar.backgroundMeals.motivation.meal})</span>
+                            <span className="font-mono text-[9px] bg-stone-100 text-stone-700 px-1 rounded font-bold">+1 {activeChar.backgroundMeals.motivation.skill}</span>
+                          </p>
+                          <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.motivation.text)}</p>
+                        </div>
                       </div>
 
-                      <div className="border border-surface-border rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-ink block border-b border-surface-border pb-1 mb-1">🥧 第三道菜：雄心 (Ambition)</span>
-                        <span className="font-bold text-amber-900 block text-[11px] mb-1">梦想终极：{activeChar.backgroundMeals.ambition.meal}</span>
-                        <p className="text-ink italic">"{activeChar.backgroundMeals.ambition.text}"</p>
+                      {/* Row 3: Ambition */}
+                      <div className="flex rounded-lg overflow-hidden border-2 border-surface-border shadow-sm">
+                        <div className="w-8 bg-[#E07A2C] text-white flex flex-col items-center justify-center font-serif font-black text-[11px] py-4 select-none shrink-0">
+                          <div>雄</div>
+                          <div className="mt-0.5">心</div>
+                        </div>
+                        <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
+                          <p className="font-extrabold text-[#E07A2C] text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
+                            <span>你最想吃哪一道餐食？ (雄心餐食: {activeChar.backgroundMeals.ambition.meal})</span>
+                            <span className="font-mono text-[9px] bg-[#E07A2C]/10 text-[#E07A2C] px-1 rounded font-bold">+1 {activeChar.backgroundMeals.ambition.skill}</span>
+                          </p>
+                          <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.ambition.text)}</p>
+                        </div>
+                      </div>
+
+                      {/* Row 4: Connection Bond */}
+                      <div className="flex rounded-lg overflow-hidden border-2 border-surface-border shadow-sm">
+                        <div className="w-8 bg-red-800 text-white flex flex-col items-center justify-center font-serif font-black text-[11px] py-4 select-none shrink-0">
+                          <div>联</div>
+                          <div className="mt-0.5">结</div>
+                        </div>
+                        <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
+                          <p className="font-extrabold text-red-800 text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center gap-1">
+                            <span>🤝 盟约羁绊 (Bonds)</span>
+                          </p>
+                          <p className="text-ink leading-relaxed font-serif italic">"{activeChar.bond}"</p>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Bonds and notes log */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
-                      <div className="md:col-span-4 border border-surface-border rounded p-3 bg-white text-xs">
-                        <span className="font-bold block border-b border-stone-200 pb-1 mb-1">🤝 盟约羁绊 (Bonds)</span>
-                        <p className="text-ink-muted leading-normal italic">"{activeChar.bond}"</p>
-                      </div>
-                      <div className="md:col-span-8">
-                        <textarea 
-                          value={activeChar.notes || ''}
-                          onChange={(e) => updateActiveCharStat('notes', e.target.value)}
-                          placeholder="在此记录你本次冒险中狩猎到的怪物身体部位、获取的食材、或是休整期间的烹饪灵感与笔记..."
-                          className="w-full bg-white border-2 border-surface-border rounded p-3 text-xs text-ink focus:outline-none focus:bg-surface-border h-[84px] resize-none"
-                        />
-                      </div>
+                    {/* Notes log */}
+                    <div className="pt-2">
+                      <textarea 
+                        value={activeChar.notes || ''}
+                        onChange={(e) => updateActiveCharStat('notes', e.target.value)}
+                        placeholder="在此记录你本次冒险中狩猎到的怪物身体部位、获取的食材、或是休整期间的烹饪灵感与笔记..."
+                        className="w-full bg-white border-2 border-surface-border rounded p-3 text-xs text-ink focus:outline-none focus:bg-surface-border h-[84px] resize-none"
+                      />
                     </div>
                   </div>
 
