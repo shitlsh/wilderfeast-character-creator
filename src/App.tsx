@@ -618,36 +618,38 @@ export default function App() {
       // ========== PAGE 1 (属性) ==========
       // Top identity headers (baseline 688)
       draw(page1, activeChar.name, 55, 688, 13);
-      draw(page1, activeChar.playerName || activeChar.name, 252, 688, 11);
-      draw(page1, activeChar.specialty, 402, 688, 11);
+      draw(page1, activeChar.playerName || activeChar.name, 280, 688, 11);
+      draw(page1, activeChar.specialty, 440, 688, 11);
 
-      // Styles (only draw values centered inside squares, center=252)
+      // Styles (only draw values centered inside squares, center=200)
       const styles = [
-        { key: 'power', y: 619 },
-        { key: 'precision', y: 599 },
-        { key: 'swiftness', y: 579 },
-        { key: 'technique', y: 559 },
+        { key: 'power', y: 623 },
+        { key: 'precision', y: 603 },
+        { key: 'swiftness', y: 583 },
+        { key: 'technique', y: 563 },
       ];
       styles.forEach(st => {
         const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues] || 1;
-        drawCentered(page1, String(val), 252, st.y, 14);
+        if (val === 0) return;
+        drawCentered(page1, String(val), 200, st.y, 14);
       });
 
       // Skills (3 cols x 4 rows)
-      // Circles centers: col 1 = 375, col 2 = 455, col 3 = 532
+      // Circles centers: col 1 = 375, col 2 = 455, col 3 = 520
       const skillNames = ['激励', '展示', '射击', '发声', '抓取', '打击', '手艺', '储存', '学习', '治愈', '搜索', '穿越'];
       skillNames.forEach((sk, i) => {
         const col = i % 3;
         const row = Math.floor(i / 3);
         const val = activeChar.skills[sk] || 0;
-        const cx = col === 0 ? 375 : col === 1 ? 455 : 532;
-        const cy = 621 - row * 20; // Correct row spacing is 20 pt, baseline 621, 601, 581, 561
+        if (val === 0) return;
+        const cx = col === 0 ? 375 : col === 1 ? 455 : 520;
+        const cy = 621 - row * 20;
         drawCentered(page1, `+${val}`, cx, cy, 9);
       });
 
       // Tool Name & Range
       draw(page1, activeChar.tool, 90, 472, 10);
-      draw(page1, "1 (打击)", 90, 452, 10);
+      draw(page1, "1 (打击)", 95, 452, 10);
 
       // Durability (Center "当前" at 230, "最大" at 270)
       drawCentered(page1, String(activeChar.durability), 230, 452, 12);
@@ -708,7 +710,6 @@ export default function App() {
         const stateText = activeChar.statesActive.map(s => `${s.name}${s.level ? ` ${s.level}` : ''}`).join('  ');
         draw(page1, stateText, 305, 92, 10, darkInk);
         
-        // Render up to 2 active state effects if space permits
         let stateEffectY = 72;
         activeChar.statesActive.slice(0, 2).forEach(st => {
           const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
@@ -721,27 +722,25 @@ export default function App() {
             stateEffectY -= 20;
           }
         });
-      } else {
-        draw(page1, "无活跃状态 (全部良好)", 305, 92, 10, grayInk);
       }
 
       // ========== PAGE 2 (背景) ==========
       // Top Identity
       draw(page2, activeChar.name, 55, 688, 13);
-      draw(page2, activeChar.playerName || activeChar.name, 252, 688, 11);
-      draw(page2, activeChar.specialty, 402, 688, 11);
+      draw(page2, activeChar.playerName || activeChar.name, 280, 688, 11);
+      draw(page2, activeChar.specialty, 440, 688, 11);
 
       // Identity descriptors (现在的样子 / 想成为的样子)
-      draw(page2, activeChar.adjectives[0], 55, 625, 12);
-      draw(page2, activeChar.adjectives[1], 55, 585, 12);
+      draw(page2, activeChar.adjectives[0], 55, 618, 12);
+      draw(page2, activeChar.adjectives[1], 55, 580, 12);
 
       // Companion
       draw(page2, activeChar.companion.name, 55, 535, 11);
-      drawWrapped(page2, `“${activeChar.companion.description}”`, 55, 515, 180, 8, 11, grayInk);
+      drawWrapped(page2, `"${activeChar.companion.description}"`, 55, 515, 170, 8, 11, grayInk);
 
       // Specialty & Spice (Center "特产" at 92, "香料" at 192)
-      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包', 92, 445, 11);
-      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒', 192, 445, 11);
+      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包', 92, 450, 11);
+      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒', 192, 450, 11);
 
       // Embed Portrait / Background Image inside the SKETCH box
       let imgBytes: ArrayBuffer | null = null;
@@ -787,25 +786,27 @@ export default function App() {
 
       // Three-Course Backstory (Upbringing, Motivation, Ambition)
       const bg = activeChar.backgroundMeals;
+      const courseWidth = 420;
+      const courseLeading = 14;
       
-      // Upbringing
-      draw(page2, `${bg.upbringing.meal} (+1 ${bg.upbringing.skill})`, 100, 350, 10, darkInk);
-      drawWrapped(page2, bg.upbringing.text, 100, 332, 425, 8, 13, grayInk);
+      // Upbringing (printed lines at y=352, 334, 316)
+      draw(page2, `${bg.upbringing.meal} (+1 ${bg.upbringing.skill})`, 100, 352, 10, darkInk);
+      drawWrapped(page2, bg.upbringing.text, 100, 334, courseWidth, 8, courseLeading, grayInk);
 
-      // Motivation
-      draw(page2, `${bg.motivation.meal} (+1 ${bg.motivation.skill})`, 100, 285, 10, darkInk);
-      drawWrapped(page2, bg.motivation.text, 100, 267, 425, 8, 13, grayInk);
+      // Motivation (printed lines at y=286, 268, 250)
+      draw(page2, `${bg.motivation.meal} (+1 ${bg.motivation.skill})`, 100, 286, 10, darkInk);
+      drawWrapped(page2, bg.motivation.text, 100, 268, courseWidth, 8, courseLeading, grayInk);
 
-      // Ambition
+      // Ambition (printed lines at y=220, 202, 184)
       draw(page2, `${bg.ambition.meal} (+1 ${bg.ambition.skill})`, 100, 220, 10, darkInk);
-      drawWrapped(page2, bg.ambition.text, 100, 202, 425, 8, 13, grayInk);
+      drawWrapped(page2, bg.ambition.text, 100, 202, courseWidth, 8, courseLeading, grayInk);
 
-      // Bond
-      drawWrapped(page2, activeChar.bond, 100, 110, 425, 8, 14, grayInk);
+      // Bond (printed lines at y=110, 92, 74, 56)
+      drawWrapped(page2, activeChar.bond, 70, 112, courseWidth, 8, 14, grayInk);
 
       // Notes
       if (activeChar.notes) {
-        drawWrapped(page2, `备注: ${activeChar.notes}`, 100, 56, 425, 8, 14, grayInk);
+        drawWrapped(page2, `备注: ${activeChar.notes}`, 70, 56, courseWidth, 8, 14, grayInk);
       }
 
       const pdfBytes = await pdfDoc.save();
@@ -2742,10 +2743,10 @@ export default function App() {
                             const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
                             return (
                               <div key={tName} className="flex items-start justify-between group">
-                                <div className="text-xs flex-1">
-                                  <span className="font-bold text-ink">{tName}</span>
-                                  <span className="text-[9px] bg-surface-border border border-surface-border px-1 rounded ml-1 text-ink-light">{foundTech?.cost || '被动'}</span>
-                                  <p className="text-[10px] text-ink-muted leading-tight mt-0.5">{foundTech?.effect || tName}</p>
+                                  <div className="text-xs flex-1 min-w-0">
+                                    <span className="font-bold text-ink">{tName}</span>
+                                    <span className="text-[9px] bg-surface-border border border-surface-border px-1.5 rounded ml-1 text-ink-light">{foundTech?.cost || '被动'}</span>
+                                    <p className="text-[10px] text-ink-muted leading-snug mt-0.5 break-words">{foundTech?.effect || tName}</p>
                                 </div>
                                 <button
                                   onClick={() => {
@@ -2786,14 +2787,14 @@ export default function App() {
                         <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
                           <div>
                             <span className="font-extrabold text-emerald-900">毅力。</span>
-                            <span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
-                            <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
+                            <span className="text-[9px] bg-emerald-900 text-white px-1.5 rounded font-mono">1次成功</span>
                           </div>
+                          <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
                         </div>
                         <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
                           <div>
                             <span className="font-extrabold text-emerald-900">洞察。</span>
-                            <span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
+                            <span className="text-[9px] bg-emerald-900 text-white px-1.5 rounded font-mono">1次成功</span>
                             <p className="text-[10px] text-ink mt-0.5">确立一个关于当前情境的细节。</p>
                           </div>
                         </div>
@@ -2817,7 +2818,7 @@ export default function App() {
                             <div key={tName} className="flex items-start justify-between group">
                               <div>
                                 <span className="font-extrabold text-amber-900">{tName}。</span>
-                                <span className="text-[9px] bg-amber-900 text-white px-1 rounded font-mono">{trCost}</span>
+                                <span className="text-[9px] bg-amber-900 text-white px-1.5 rounded font-mono">{trCost}</span>
                                 <p className="text-[10px] text-ink mt-0.5">{trEffect}</p>
                               </div>
                               <button
@@ -2894,9 +2895,7 @@ export default function App() {
                           );
                         })}
                       </div>
-                    ) : (
-                      <p className="text-[10px] text-ink-light italic">无活跃状态 (全部良好)</p>
-                    )}
+                    ) : null}
                   </div>
 
                   {/* Stamina Box - standalone, with +/- buttons */}
@@ -3020,7 +3019,7 @@ export default function App() {
                         <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
                           <p className="font-extrabold text-[#1E4D8C] text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
                             <span>哪一道餐食定义了你的童年？ (童年餐食: {activeChar.backgroundMeals.upbringing.meal})</span>
-                            <span className="font-mono text-[9px] bg-[#1E4D8C]/10 text-[#1E4D8C] px-1 rounded font-bold">+1 {activeChar.backgroundMeals.upbringing.skill}</span>
+                            <span className="font-mono text-[9px] bg-[#1E4D8C]/10 text-[#1E4D8C] px-1.5 rounded font-bold">+1 {activeChar.backgroundMeals.upbringing.skill}</span>
                           </p>
                           <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.upbringing.text)}</p>
                         </div>
@@ -3035,7 +3034,7 @@ export default function App() {
                         <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
                           <p className="font-extrabold text-stone-700 text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
                             <span>哪一道餐食让你成为了一名荒野食客？ (动机餐食: {activeChar.backgroundMeals.motivation.meal})</span>
-                            <span className="font-mono text-[9px] bg-stone-100 text-stone-700 px-1 rounded font-bold">+1 {activeChar.backgroundMeals.motivation.skill}</span>
+                            <span className="font-mono text-[9px] bg-stone-100 text-stone-700 px-1.5 rounded font-bold">+1 {activeChar.backgroundMeals.motivation.skill}</span>
                           </p>
                           <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.motivation.text)}</p>
                         </div>
@@ -3050,7 +3049,7 @@ export default function App() {
                         <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
                           <p className="font-extrabold text-[#E07A2C] text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
                             <span>你最想吃哪一道餐食？ (雄心餐食: {activeChar.backgroundMeals.ambition.meal})</span>
-                            <span className="font-mono text-[9px] bg-[#E07A2C]/10 text-[#E07A2C] px-1 rounded font-bold">+1 {activeChar.backgroundMeals.ambition.skill}</span>
+                            <span className="font-mono text-[9px] bg-[#E07A2C]/10 text-[#E07A2C] px-1.5 rounded font-bold">+1 {activeChar.backgroundMeals.ambition.skill}</span>
                           </p>
                           <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.ambition.text)}</p>
                         </div>
