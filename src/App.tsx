@@ -6,7 +6,7 @@ import {
   Users, Share2, Compass, Feather, BookOpen as BookIcon, Search
 } from 'lucide-react';
 import { 
-  TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, PRE_GENS,
+  TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, BONDS, PRE_GENS,
   Tool, Lineage, Trait, Technique
 } from './data';
 import { getInkIcon, getCharacterPortrait } from './icons';
@@ -140,6 +140,7 @@ export default function App() {
   const [wizAmbitionText, setWizAmbitionText] = useState('');
   const [wizAmbitionCustomSkill, setWizAmbitionCustomSkill] = useState('搜索');
 
+  const [wizBondIndex, setWizBondIndex] = useState<number>(0);
   const [wizBond, setWizBond] = useState('');
   const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload'>('emoji');
   const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
@@ -511,19 +512,26 @@ export default function App() {
   }, [wizLineage]);
 
   // Handle wizard lists roll / randomize
+  const getBoldLabel = (desc: string) => {
+    const commaIdx = desc.indexOf('\uFF0C');
+    const periodIdx = desc.indexOf('\u3002');
+    const firstBreak = commaIdx === -1 ? periodIdx : (periodIdx === -1 ? commaIdx : Math.min(commaIdx, periodIdx));
+    return firstBreak === -1 ? desc : desc.substring(0, firstBreak);
+  };
+
   const rollBackgroundOption = (course: 'upbringing' | 'motivation' | 'ambition') => {
     const roll = Math.floor(Math.random() * 20);
     if (course === 'upbringing') {
       setWizUpbringingIndex(roll);
-      setWizUpbringingMeal(UPBRINGINGS[roll].description.split('，')[0] || '特色乱炖');
+      setWizUpbringingMeal(getBoldLabel(UPBRINGINGS[roll].description));
       setWizUpbringingText(UPBRINGINGS[roll].description);
     } else if (course === 'motivation') {
       setWizMotivationIndex(roll);
-      setWizMotivationMeal(MOTIVATIONS[roll].description.split('。')[0] || '怪物牛排');
+      setWizMotivationMeal(getBoldLabel(MOTIVATIONS[roll].description));
       setWizMotivationText(MOTIVATIONS[roll].description);
     } else if (course === 'ambition') {
       setWizAmbitionIndex(roll);
-      setWizAmbitionMeal(AMBITIONS[roll].description.split('。')[0] || '巨人之心');
+      setWizAmbitionMeal(getBoldLabel(AMBITIONS[roll].description));
       setWizAmbitionText(AMBITIONS[roll].description);
     }
     showNotification('掷骰选取背景成功！', 'success');
@@ -1020,7 +1028,7 @@ export default function App() {
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizSecondaryTech?.name === tk.name 
                                   ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                                  : 'bg-amber-950 border-orange-900 text-parchment-300'
+                                  : 'bg-[#241103] border-orange-900 text-parchment-300'
                               }`}
                             >
                               <div className="flex justify-between font-bold">
@@ -1129,7 +1137,7 @@ export default function App() {
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizTraitPrimary?.name === tr.name 
                                   ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                                  : 'bg-amber-950 border-orange-900 text-parchment-300'
+                                  : 'bg-[#241103] border-orange-900 text-parchment-300'
                               }`}
                             >
                               <div className="flex justify-between font-bold text-earth-400">
@@ -1297,7 +1305,7 @@ export default function App() {
                   <div>
                     <h3 className="text-lg font-bold font-serif mb-1 text-earth-400">第三步：设定“三道菜式”背景故事</h3>
                     <p className="text-xs text-orange-300 mb-4 leading-relaxed">
-                      荒野食客通过特定的食物铭记自己的过往。在下方设定你的童年餐食、入伙动机以及毕生雄心。
+                      在选择了一项工具和专长后，请按照以下步骤，为自己打造一份“三道菜式”的背景。通过食物来构建你的角色故事，通过你的背景，你将获得初始技能。
                       <span className="text-earth-400 font-bold block mt-1">💡 规则计算：每个背景对应的选择会给你提供一项唯一的 +1 初始技能加值，三种背景对应的初始技能必须各不相同！</span>
                     </p>
 
@@ -1330,9 +1338,13 @@ export default function App() {
                               }}
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             >
-                              {UPBRINGINGS.map((u, i) => (
-                                <option key={i} value={i}>{i+1}. {u.description.split('，')[0]}</option>
-                              ))}
+                              {UPBRINGINGS.map((u, i) => {
+                                const commaIdx = u.description.indexOf('，');
+                                const periodIdx = u.description.indexOf('。');
+                                const firstBreak = commaIdx === -1 ? periodIdx : (periodIdx === -1 ? commaIdx : Math.min(commaIdx, periodIdx));
+                                const boldLabel = firstBreak === -1 ? u.description : u.description.substring(0, firstBreak);
+                                return <option key={i} value={i}>{i+1}. {boldLabel}</option>;
+                              })}
                               <option value={-1}>自定义 ✏️</option>
                             </select>
                             {wizUpbringingIndex === -1 && (
@@ -1402,7 +1414,7 @@ export default function App() {
                       <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
-                            第二道菜：入伙动机 (Motivation) — 变异野兽餐
+                            第二道菜：动机 (Motivation) — 变异野兽餐
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('motivation')}
@@ -1413,7 +1425,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-orange-400 mb-1">怪物之餐名称</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">动机餐食名称</label>
                             <select
                               value={wizMotivationIndex}
                               onChange={(e) => {
@@ -1426,9 +1438,13 @@ export default function App() {
                               }}
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             >
-                              {MOTIVATIONS.map((m, i) => (
-                                <option key={i} value={i}>{i+1}. {m.description.split('。')[0]}</option>
-                              ))}
+                              {MOTIVATIONS.map((m, i) => {
+                                const commaIdx = m.description.indexOf('，');
+                                const periodIdx = m.description.indexOf('。');
+                                const firstBreak = commaIdx === -1 ? periodIdx : (periodIdx === -1 ? commaIdx : Math.min(commaIdx, periodIdx));
+                                const boldLabel = firstBreak === -1 ? m.description : m.description.substring(0, firstBreak);
+                                return <option key={i} value={i}>{i+1}. {boldLabel}</option>;
+                              })}
                               <option value={-1}>自定义 ✏️</option>
                             </select>
                             {wizMotivationIndex === -1 && (
@@ -1436,7 +1452,7 @@ export default function App() {
                                 type="text"
                                 value={wizMotivationMeal}
                                 onChange={(e) => setWizMotivationMeal(e.target.value)}
-                                placeholder="输入自定义怪物之餐名称..."
+                                placeholder="输入自定义动机餐食名称..."
                                 className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
                               />
                             )}
@@ -1447,7 +1463,7 @@ export default function App() {
                               rows={2}
                               value={wizMotivationText} 
                               onChange={(e) => setWizMotivationText(e.target.value)}
-                              placeholder="那是什么怪物？怎么死的？你为什么吃它？"
+                              placeholder="那是什么怪物？那只怪物是怎么死的？你为什么吃了它？是谁与你一同烹饪的？"
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
@@ -1476,7 +1492,7 @@ export default function App() {
                       <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
-                            第三道菜：一生雄心 (Ambition) — 梦想终极餐
+                            第三道菜：雄心 (Ambition) — 梦想终极餐
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('ambition')}
@@ -1487,7 +1503,7 @@ export default function App() {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-orange-400 mb-1">梦想终极料理名称</label>
+                            <label className="block text-[10px] text-orange-400 mb-1">雄心餐食名称</label>
                             <select
                               value={wizAmbitionIndex}
                               onChange={(e) => {
@@ -1500,9 +1516,13 @@ export default function App() {
                               }}
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             >
-                              {AMBITIONS.map((a, i) => (
-                                <option key={i} value={i}>{i+1}. {a.description.split('。')[0]}</option>
-                              ))}
+                              {AMBITIONS.map((a, i) => {
+                                const commaIdx = a.description.indexOf('，');
+                                const periodIdx = a.description.indexOf('。');
+                                const firstBreak = commaIdx === -1 ? periodIdx : (periodIdx === -1 ? commaIdx : Math.min(commaIdx, periodIdx));
+                                const boldLabel = firstBreak === -1 ? a.description : a.description.substring(0, firstBreak);
+                                return <option key={i} value={i}>{i+1}. {boldLabel}</option>;
+                              })}
                               <option value={-1}>自定义 ✏️</option>
                             </select>
                             {wizAmbitionIndex === -1 && (
@@ -1521,7 +1541,7 @@ export default function App() {
                               rows={2}
                               value={wizAmbitionText} 
                               onChange={(e) => setWizAmbitionText(e.target.value)}
-                              placeholder="这道餐代表什么？你为什么如此渴望？什么在阻碍你？"
+                              placeholder="这道餐食代表了什么？你为何渴望它？这种渴望有多强烈？是什么阻碍了你？你以前吃过吗？"
                               className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
                             />
                           </div>
@@ -1550,17 +1570,47 @@ export default function App() {
 
                   {/* Bond input */}
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">设立契约牵绊 (Connection Bond)</h3>
+                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">联结 (Connection Bond)</h3>
                     <p className="text-xs text-orange-300 mb-2">
-                      餐食很少独自享用。选择一道菜，指定你与猎群中另一名队友建立特定的情感羁绊（Connection）。
+                      从你的背景故事中选择一道菜，然后再选择另一位荒野食客。你们两人因这道菜而结下了牵绊。
                     </p>
-                    <textarea 
-                      rows={2}
-                      value={wizBond} 
-                      onChange={(e) => setWizBond(e.target.value)}
-                      placeholder="例如: 每次你吃黑麦咸鱼时，队友都在场，你们在生死关头曾互相帮扶过，你发誓守护他们..."
-                      className="w-full bg-[#241103] border-2 border-orange-800 rounded px-3 py-2 text-xs text-parchment-100"
-                    />
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
+                      <div>
+                        <label className="block text-[10px] text-orange-400 mb-1">联结选项</label>
+                        <select
+                          value={wizBondIndex}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value);
+                            setWizBondIndex(val);
+                            if (val !== -1) {
+                              setWizBond(BONDS[val].description);
+                            }
+                          }}
+                          className="w-full bg-[#241103] border-2 border-orange-800 rounded px-2.5 py-1.5 text-xs text-parchment-100"
+                        >
+                          {BONDS.map((b, i) => {
+                            const commaIdx = b.description.indexOf('，');
+                            const periodIdx = b.description.indexOf('。');
+                            const firstBreak = commaIdx === -1 ? periodIdx : (periodIdx === -1 ? commaIdx : Math.min(commaIdx, periodIdx));
+                            const label = firstBreak === -1 ? b.description : b.description.substring(0, firstBreak);
+                            return (
+                              <option key={i} value={i}>{i+1}. （{b.type}）{label}</option>
+                            );
+                          })}
+                          <option value={-1}>自定义 ✏️</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-3">
+                        <label className="block text-[10px] text-orange-400 mb-1">牵绊详情</label>
+                        <textarea 
+                          rows={2}
+                          value={wizBond} 
+                          onChange={(e) => setWizBond(e.target.value)}
+                          placeholder="描述你与队友之间的联结..."
+                          className="w-full bg-[#241103] border-2 border-orange-800 rounded px-3 py-2 text-xs text-parchment-100"
+                        />
+                      </div>
+                    </div>
                   </div>
 
                   {/* Navigation and validate skill selection */}
@@ -2109,13 +2159,13 @@ export default function App() {
                       </div>
 
                       <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥣 第二道菜：入伙动机 (Motivation)</span>
+                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥣 第二道菜：动机 (Motivation)</span>
                         <span className="font-bold text-sky-900 block text-[11px] mb-1">怪物之餐：{activeChar.backgroundMeals.motivation.meal}</span>
                         <p className="text-stone-700 italic">"{activeChar.backgroundMeals.motivation.text}"</p>
                       </div>
 
                       <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥧 第三道菜：一生雄心 (Ambition)</span>
+                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥧 第三道菜：雄心 (Ambition)</span>
                         <span className="font-bold text-amber-900 block text-[11px] mb-1">梦想终极：{activeChar.backgroundMeals.ambition.meal}</span>
                         <p className="text-stone-700 italic">"{activeChar.backgroundMeals.ambition.text}"</p>
                       </div>
