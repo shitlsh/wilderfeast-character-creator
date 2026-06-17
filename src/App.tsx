@@ -2,9 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { 
   Dice5, Download, Upload, Plus, Trash2, 
-  Printer, ArrowLeft, Shuffle, 
-  Users, Share2, Compass, BookOpen as BookIcon, Search
+  ArrowLeft, Shuffle, 
+  Users, Compass, BookOpen as BookIcon, Search, FileDown
 } from 'lucide-react';
+import { PDFDocument, rgb } from 'pdf-lib';
 import { 
   TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, BONDS, PRE_GENS,
   Tool, Lineage, Trait, Technique
@@ -195,6 +196,7 @@ export default function App() {
   const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
   const [wizBackgroundType, setWizBackgroundType] = useState<'portrait' | 'upload' | 'drawing'>('portrait');
   const [wizBackgroundValue, setWizBackgroundValue] = useState('');
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isDrawingModalOpen, setIsDrawingModalOpen] = useState(false);
   const [drawPenColor, setDrawPenColor] = useState('#2d100c');
   const [drawPenSize, setDrawPenSize] = useState(3);
@@ -541,35 +543,189 @@ export default function App() {
     showNotification('导出 JSON 成功', 'success');
   };
 
-  // Export to PNG Image using html2canvas
-  const exportToPng = async () => {
-    if (!cardPrintRef.current) return;
-    showNotification('正在生成高清人物卡图片，请稍候...', 'info');
-    
+  // Export: Blank Template PDF (Option A)
+  const exportBlankTemplatePdf = async () => {
+    if (!activeChar) return;
+    setIsExportModalOpen(false);
+    showNotification('正在生成空白卡PDF，请稍候...', 'info');
+
     try {
-      const canvas = await html2canvas(cardPrintRef.current, {
-        useCORS: true,
-        scale: 2, // High DPI
-        backgroundColor: '#150a02', // dark amber backdrop
+      const [templateBytes, fontBytes] = await Promise.all([
+        fetch('/空白人物卡.pdf').then(r => r.arrayBuffer()),
+        fetch('/fonts/NotoSansSC-Regular.ttf').then(r => r.arrayBuffer()),
+      ]);
+
+      const pdfDoc = await PDFDocument.load(templateBytes);
+      const customFont = await pdfDoc.embedFont(fontBytes);
+      const pages = pdfDoc.getPages();
+      const page1 = pages[0];
+      const page2 = pages[1];
+      const gray = rgb(0.15, 0.1, 0.05);
+      const dark = rgb(0.05, 0.05, 0.05);
+
+      // Helper: draw text at position (x from left, y from bottom)
+      const draw = (page: typeof page1, text: string, x: number, y: number, size = 10, color = dark, maxWidth?: number) => {
+        if (maxWidth && customFont.widthOfTextAtSize(text, size) > maxWidth) {
+          while (customFont.widthOfTextAtSize(text + '…', size) > maxWidth && text.length > 1) {
+            text = text.slice(0, -1);
+          }
+          text += '…';
+        }
+        page.drawText(text, { x, y, size, font: customFont, color });
+      };
+
+      // ========== PAGE 1 ==========
+      // Top identity
+      draw(page1, activeChar.name, 50, 740, 14, dark);
+      draw(page1, activeChar.playerName || activeChar.name, 50, 712, 11, dark);
+      draw(page1, activeChar.specialty, 300, 740, 11, dark);
+
+      // Styles (left column)
+      const styles = [
+        { key: 'power', label: '力量' },
+        { key: 'precision', label: '精准' },
+        { key: 'swiftness', label: '迅捷' },
+        { key: 'technique', label: '技巧' },
+      ];
+      styles.forEach((st, i) => {
+        const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues] || 1;
+        draw(page1, `${st.label}: ${val}`, 50, 600 - i * 42, 11, dark);
       });
-      
-      const imgData = canvas.toDataURL('image/png');
-      const downloadAnchor = document.createElement('a');
-      downloadAnchor.setAttribute("href", imgData);
-      downloadAnchor.setAttribute("download", `${activeChar?.name}_电子人物卡.png`);
-      document.body.appendChild(downloadAnchor);
-      downloadAnchor.click();
-      downloadAnchor.remove();
-      showNotification('图片生成并导出成功！', 'success');
+
+      // Skills (right column, grid: 3 cols x 4 rows)
+      const skillNames = ['激励', '展示', '射击', '发声', '抓取', '打击', '手艺', '储存', '学习', '治愈', '搜索', '穿越'];
+      skillNames.forEach((sk, i) => {
+        const col = i % 3;
+        const row = Math.floor(i / 3);
+        const val = activeChar.skills[sk] || 0;
+        draw(page1, `${sk}+${val}`, 280 + col * 90, 640 - row * 28, 9, dark);
+      });
+
+      // Tool & Durability
+      draw(page1, `工具: ${activeChar.tool}`, 50, 380, 11, dark);
+      draw(page1, `耐久: ${activeChar.durability}/${activeChar.durabilityMax}`, 300, 380, 11, dark);
+
+      // Techniques
+      const techText = (activeChar.techniques || []).slice(0, 4).join('、');
+      if (techText) draw(page1, `战技: ${techText}`, 50, 340, 9, dark, 250);
+
+      // Traits
+      const traitText = activeChar.traits.slice(2, 6).join('、');
+      if (traitText) draw(page1, `特性: ${traitText}`, 300, 340, 9, dark, 250);
+
+      // States
+      if (activeChar.statesActive.length > 0) {
+        const stateText = activeChar.statesActive.map(s => `${s.name}${s.level || ''}`).join(' ');
+        draw(page1, `状态: ${stateText}`, 50, 150, 9, gray, 230);
+      }
+
+      // Stamina
+      draw(page1, `体力: ${activeChar.stamina}/20`, 300, 150, 11, dark);
+
+      // ========== PAGE 2 ==========
+      // Adjectives
+      draw(page2, `${activeChar.adjectives[0]} → ${activeChar.adjectives[1]}`, 50, 730, 11, dark);
+      // Companion
+      draw(page2, `同伴: ${activeChar.companion.name}`, 50, 700, 11, dark);
+      draw(page2, `"${activeChar.companion.description}"`, 50, 680, 9, gray, 500);
+
+      // Background meals
+      const bg = activeChar.backgroundMeals;
+      draw(page2, `成长餐食: ${bg.upbringing.meal}`, 50, 620, 10, dark);
+      draw(page2, `动机餐食: ${bg.motivation.meal}`, 50, 580, 10, dark);
+      draw(page2, `雄心餐食: ${bg.ambition.meal}`, 50, 540, 10, dark);
+
+      // Bond
+      draw(page2, `联结: ${activeChar.bond}`, 50, 470, 9, gray, 500);
+
+      // Notes
+      if (activeChar.notes) {
+        draw(page2, `备注: ${activeChar.notes}`, 50, 400, 9, gray, 500);
+      }
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${activeChar.name}_空白人物卡.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showNotification('空白卡PDF导出成功！', 'success');
     } catch (e) {
       console.error(e);
-      showNotification('生成图片失败', 'error');
+      showNotification('空白卡PDF生成失败', 'error');
     }
   };
 
-  // Print friendly PDF/Print
-  const handlePrint = () => {
-    window.print();
+  // Export: Web Render PDF (Option B)
+  const exportWebRenderPdf = async () => {
+    if (!activeChar) return;
+    setIsExportModalOpen(false);
+    showNotification('正在生成数字卡PDF，请稍候...', 'info');
+
+    try {
+      const page1El = document.getElementById('sheet-page-1');
+      const page2El = document.getElementById('sheet-page-2');
+      if (!page1El || !page2El) throw new Error('Sheet pages not found');
+
+      // Temporarily remove overflow-hidden for clean capture
+      const origOverflow1 = page1El.style.overflow;
+      const origOverflow2 = page2El.style.overflow;
+      page1El.style.overflow = 'visible';
+      page2El.style.overflow = 'visible';
+
+      const [canvas1, canvas2] = await Promise.all([
+        html2canvas(page1El, { useCORS: true, scale: 3, backgroundColor: '#faf6ef' }),
+        html2canvas(page2El, { useCORS: true, scale: 3, backgroundColor: '#faf6ef' }),
+      ]);
+
+      page1El.style.overflow = origOverflow1;
+      page2El.style.overflow = origOverflow2;
+
+      const pdfDoc = await PDFDocument.create();
+      const pageWidth = 581;
+      const pageHeight = 791;
+
+      // Page 1
+      const img1Data = canvas1.toDataURL('image/png');
+      const img1Bytes = await fetch(img1Data).then(r => r.arrayBuffer());
+      const img1 = await pdfDoc.embedPng(img1Bytes);
+      const img1Dims = img1.scaleToFit(pageWidth - 20, pageHeight - 20);
+      const p1 = pdfDoc.addPage([pageWidth, pageHeight]);
+      p1.drawImage(img1, {
+        x: (pageWidth - img1Dims.width) / 2,
+        y: (pageHeight - img1Dims.height) / 2 + 10,
+        width: img1Dims.width,
+        height: img1Dims.height,
+      });
+
+      // Page 2
+      const img2Data = canvas2.toDataURL('image/png');
+      const img2Bytes = await fetch(img2Data).then(r => r.arrayBuffer());
+      const img2 = await pdfDoc.embedPng(img2Bytes);
+      const img2Dims = img2.scaleToFit(pageWidth - 20, pageHeight - 20);
+      const p2 = pdfDoc.addPage([pageWidth, pageHeight]);
+      p2.drawImage(img2, {
+        x: (pageWidth - img2Dims.width) / 2,
+        y: (pageHeight - img2Dims.height) / 2 + 10,
+        width: img2Dims.width,
+        height: img2Dims.height,
+      });
+
+      const pdfBytes = await pdfDoc.save();
+      const blob = new Blob([pdfBytes as BlobPart], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${activeChar.name}_数字人物卡.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showNotification('数字卡PDF导出成功！', 'success');
+    } catch (e) {
+      console.error(e);
+      showNotification('数字卡PDF生成失败', 'error');
+    }
   };
 
   // Handle Wizard Tool selection changes to reset styles/adjectives
@@ -2146,16 +2302,10 @@ export default function App() {
                     <Download size={14} /> 导出 JSON
                   </button>
                   <button 
-                    onClick={exportToPng} 
+                    onClick={() => setIsExportModalOpen(true)} 
                     className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1 whitespace-nowrap"
                   >
-                    <Share2 size={14} /> 导出 PNG
-                  </button>
-                  <button 
-                    onClick={handlePrint} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <Printer size={14} /> 打印本卡
+                    <FileDown size={14} /> 导出 PDF
                   </button>
                 </div>
               </div>
@@ -2167,7 +2317,7 @@ export default function App() {
               >
                 
                 {/* ==================== PAGE 1 OF THE CHARACTER SHEET ==================== */}
-                <div className="bg-[#faf6ef] text-ink p-6 rounded border-2 border-surface-border shadow-rough space-y-6 relative overflow-hidden">
+                <div id="sheet-page-1" className="bg-[#faf6ef] text-ink p-6 rounded border-2 border-surface-border shadow-rough space-y-6 relative overflow-hidden">
                   
                   {/* Decorative Header Border Line */}
                   <div className="flex justify-between items-center border-b-2 border-surface-border pb-4">
@@ -2583,7 +2733,7 @@ export default function App() {
                 </div>
 
                 {/* ==================== PAGE 2 OF THE CHARACTER SHEET ==================== */}
-                <div className="bg-[#faf6ef] text-ink p-6 rounded border-2 border-surface-border shadow-rough space-y-6 relative overflow-hidden">
+                <div id="sheet-page-2" className="bg-[#faf6ef] text-ink p-6 rounded border-2 border-surface-border shadow-rough space-y-6 relative overflow-hidden">
                   
                   {/* Decorative Page 2 Header */}
                   <div className="flex justify-between items-center border-b-2 border-surface-border pb-4">
@@ -2889,6 +3039,59 @@ export default function App() {
                 打开附录规则手册
               </span>
             </button>
+          </div>
+        )}
+
+        {/* Export Modal */}
+        {isExportModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+            <div className="bg-surface border-3 border-wilder-blue rounded-xl p-6 max-w-md w-full shadow-rough-lg space-y-5">
+              <h3 className="text-xl font-bold font-serif text-ink flex items-center gap-2">
+                <FileDown className="text-wilder-amber" /> 导出人物卡
+              </h3>
+              <p className="text-xs text-ink-muted">选择你需要的导出格式：</p>
+
+              <div className="grid gap-3">
+                <button
+                  onClick={exportBlankTemplatePdf}
+                  className="text-left border-2 border-surface-border rounded-lg p-4 hover:border-wilder-blue transition-colors bg-surface hover:bg-wilder-blue/5 group"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl mt-0.5">📄</span>
+                    <div>
+                      <div className="font-bold text-sm text-ink group-hover:text-wilder-blue">空白卡 PDF</div>
+                      <p className="text-[10px] text-ink-muted mt-1 leading-relaxed">
+                        以原始空白人物卡为基底，填入角色数据。保留原版留白设计，便于打印后手写修改。
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                <button
+                  onClick={exportWebRenderPdf}
+                  className="text-left border-2 border-surface-border rounded-lg p-4 hover:border-wilder-blue transition-colors bg-surface hover:bg-wilder-blue/5 group"
+                >
+                  <div className="flex items-start gap-3">
+                    <span className="text-2xl mt-0.5">💾</span>
+                    <div>
+                      <div className="font-bold text-sm text-ink group-hover:text-wilder-blue">数字卡 PDF</div>
+                      <p className="text-[10px] text-ink-muted mt-1 leading-relaxed">
+                        保留网页上的完整排版与样式，适合电子存档。所有编辑内容（状态、体力等）原样呈现。
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button
+                  onClick={() => setIsExportModalOpen(false)}
+                  className="text-xs bg-surface-border border border-orange-700 text-ink px-4 py-2 rounded hover:bg-surface-dark transition-colors"
+                >
+                  取消
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
