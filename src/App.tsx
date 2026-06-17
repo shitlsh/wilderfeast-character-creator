@@ -79,6 +79,49 @@ const BUILTIN_AVATARS = [
   { value: 'tree', label: '森林' }
 ];
 
+// Helper to highlight rulebook keywords in text with official design colors
+const highlightKeywords = (text: string) => {
+  if (!text) return '';
+  let html = text;
+  
+  // Highlight system rules
+  html = html.replace(/身体部位/g, '<span class="font-extrabold text-ink">身体部位</span>');
+  html = html.replace(/结束条件/g, '<span class="font-extrabold text-ink">结束条件</span>');
+  
+  // Highlights (Red-Rust) for major status conditions
+  html = html.replace(/燃烧/g, '<span class="font-bold text-red-600">燃烧</span>');
+  html = html.replace(/捕获/g, '<span class="font-bold text-red-600">捕获</span>');
+  html = html.replace(/不谐/g, '<span class="font-bold text-red-600">不谐</span>');
+  html = html.replace(/受伤/g, '<span class="font-bold text-red-600">受伤</span>');
+  html = html.replace(/暴露/g, '<span class="font-bold text-red-600">暴露</span>');
+  html = html.replace(/困惑/g, '<span class="font-bold text-red-600">困惑</span>');
+  html = html.replace(/惊恐/g, '<span class="font-bold text-red-600">惊恐</span>');
+  html = html.replace(/震慑/g, '<span class="font-bold text-red-600">震慑</span>');
+  html = html.replace(/康复/g, '<span class="font-bold text-red-600">康复</span>');
+  html = html.replace(/中毒/g, '<span class="font-bold text-red-600">中毒</span>');
+
+  // Highlights (Trait Teal) for traits
+  html = html.replace(/毅力/g, '<span class="font-extrabold text-wilder-teal">毅力</span>');
+  html = html.replace(/洞察/g, '<span class="font-extrabold text-wilder-teal">洞察</span>');
+  html = html.replace(/特性/g, '<span class="font-extrabold text-wilder-teal">特性</span>');
+
+  // Highlights (Wilder Blue) for actions / skills
+  html = html.replace(/打击/g, '<span class="font-bold text-wilder-blue">打击</span>');
+  html = html.replace(/射击/g, '<span class="font-bold text-wilder-blue">射击</span>');
+  html = html.replace(/搜索/g, '<span class="font-bold text-wilder-blue">搜索</span>');
+  html = html.replace(/穿越/g, '<span class="font-bold text-wilder-blue">穿越</span>');
+  html = html.replace(/技能/g, '<span class="font-bold text-wilder-blue">技能</span>');
+
+  // Highlights (Earthy Amber) for Styles
+  html = html.replace(/风格/g, '<span class="font-bold text-wilder-amber">风格</span>');
+  html = html.replace(/力量/g, '<span class="font-bold text-wilder-amber">力量</span>');
+  html = html.replace(/精准/g, '<span class="font-bold text-wilder-amber">精准</span>');
+  html = html.replace(/迅捷/g, '<span class="font-bold text-wilder-amber">迅捷</span>');
+  html = html.replace(/技巧/g, '<span class="font-bold text-wilder-amber">技巧</span>');
+
+  return <span dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
 export default function App() {
   // Navigation / Tabs
   // 'roster' | 'create' | 'play'
@@ -3126,13 +3169,13 @@ export default function App() {
           </div>
 
           {/* Tab Selection buttons */}
-          <div className="grid grid-cols-4 gap-1">
+          <div className="grid grid-cols-5 gap-1">
             {[
               { key: 'd', label: 'D：速查' },
               { key: 'a', label: 'A.1：特性' },
+              { key: 'e', label: 'A.2 区域' },
               { key: 'b', label: 'B：战技' },
-              { key: 'c', label: 'C：状态' },
-              { key: 'e', label: 'A.2 区域' }
+              { key: 'c', label: 'C：状态' }
             ].map(tb => (
               <button
                 key={tb.key}
@@ -3184,68 +3227,135 @@ export default function App() {
           {/* Interactive Lists */}
           <div className="max-h-[calc(100vh-180px)] overflow-y-auto space-y-3 pr-1 text-xs mt-4">
             
-            {/* Appendix A: Traits */}
+            {/* Appendix A.1: Traits */}
             {activeAppendixTab === 'a' && (
-              APPENDIX_TRAITS.filter(tr => 
-                tr.name.includes(appendixSearchQuery) || 
-                tr.effect.includes(appendixSearchQuery)
-              ).map(tr => (
-                <div key={tr.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber">
-                  <div className="flex justify-between items-center font-bold text-ink">
-                    <span className="font-serif">{tr.name}</span>
-                    <span className="text-[9px] bg-surface-well text-wilder-amber px-1.5 rounded">{tr.cost}</span>
-                  </div>
-                  <p className="text-ink-muted text-[11px] mt-1 leading-tight">{tr.effect}</p>
+              <div className="space-y-3">
+                <div className="border-b-2 border-wilder-blue pb-2 mb-3 flex items-center gap-1.5">
+                  <span className="text-wilder-orange text-xl">🌶️</span>
+                  <span className="font-serif font-black text-lg text-wilder-blue">附录A.1：特性</span>
                 </div>
-              ))
+                <div className="text-[10px] bg-surface-well px-2 py-1 text-ink-muted font-bold border-l-2 border-wilder-blue mb-2">
+                  默认特性（所有人自动获得毅力与洞察）及在狩猎、盛宴、突变中获得的特性。
+                </div>
+                {APPENDIX_TRAITS.filter(tr => 
+                  tr.name.includes(appendixSearchQuery) || 
+                  tr.effect.includes(appendixSearchQuery)
+                ).map(tr => (
+                  <div key={tr.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber shadow-sm">
+                    <div className="flex justify-between items-center font-bold text-ink">
+                      <span className="font-serif text-sm">{tr.name}</span>
+                      <span className="text-[9px] bg-surface-well text-wilder-amber border border-surface-border px-1.5 py-0.5 rounded font-mono">{tr.cost}</span>
+                    </div>
+                    <p className="text-ink-muted text-[11px] mt-1.5 leading-relaxed font-serif">{highlightKeywords(tr.effect)}</p>
+                    
+                    {/* Add specific official callouts for major traits */}
+                    {tr.name === '保护色' && (
+                      <div className="border border-wilder-amber/60 bg-surface-well/50 p-2.5 rounded-lg text-[9px] text-ink-muted italic text-center mt-2 leading-relaxed">
+                        拥有<span className="font-bold text-wilder-teal">保护色</span>的生物通常通过鲜艳的颜色来警告潜在的捕食者，它们不值得被捕食。
+                        <br />此<span className="font-bold text-wilder-teal">特性</span>也可以用来代表所拟态或惊吓展示，而无需改变其机制。
+                      </div>
+                    )}
+                    {tr.name === '感知电流' && (
+                      <div className="border border-wilder-amber/60 bg-surface-well/50 p-2.5 rounded-lg text-[9px] text-ink-muted italic text-center mt-2 leading-relaxed">
+                        拥有<span className="font-bold text-wilder-teal">感知电流</span>特性的生物能感应到电流，尤其是其他动物产生的电流。
+                        <br />此<span className="font-bold text-wilder-teal">特性</span>也可以用来代表其他非传统的感官，例如探测红外线或地脉的能力，而无需改变其机制。
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
 
             {/* Appendix B: Techniques */}
             {activeAppendixTab === 'b' && (
-              APPENDIX_TECHNIQUES.filter(tk => {
-                const matchesSearch = tk.name.includes(appendixSearchQuery) || tk.effect.includes(appendixSearchQuery);
-                if (appendixFilterWeapon === 'all') return matchesSearch;
-                if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
-                return tk.weapon === appendixFilterWeapon && matchesSearch;
-              }).map(tk => (
-                <div key={tk.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber">
-                  <div className="flex justify-between items-center font-bold text-ink">
-                    <span className="font-serif">{tk.name}</span>
-                    <span className="text-[9px] bg-surface-well text-wilder-amber px-1.5 rounded">{tk.cost}</span>
-                  </div>
-                  <div className="flex space-x-2 text-[9px] text-wilder-amber mt-0.5">
-                    <span>🔧 {tk.weapon}</span>
-                    <span>•</span>
-                    <span>⭐ {tk.rank}</span>
-                  </div>
-                  <p className="text-ink-muted text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
+              <div className="space-y-3">
+                <div className="border-b-2 border-wilder-blue pb-2 mb-3 flex items-center gap-1.5">
+                  <span className="text-wilder-orange text-xl">⚔️</span>
+                  <span className="font-serif font-black text-lg text-wilder-blue">附录B：战技</span>
                 </div>
-              ))
+                <div className="space-y-3">
+                  {APPENDIX_TECHNIQUES.filter(tk => {
+                    const matchesSearch = tk.name.includes(appendixSearchQuery) || tk.effect.includes(appendixSearchQuery);
+                    if (appendixFilterWeapon === 'all') return matchesSearch;
+                    if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
+                    return tk.weapon === appendixFilterWeapon && matchesSearch;
+                  }).map(tk => {
+                    const rankColor = tk.rank === '初级' ? 'bg-stone-600' : (tk.rank === '中级' ? 'bg-[#E07A2C]' : 'bg-[#1E4D8C]');
+                    return (
+                      <div key={tk.name} className="flex rounded-lg border border-surface-border overflow-hidden shadow-sm">
+                        <div className={`w-14 ${rankColor} text-white flex flex-col items-center justify-center font-serif font-black text-xs text-center p-1.5 shrink-0 select-none`}>
+                          <div>{tk.rank[0]}</div>
+                          <div className="mt-0.5">{tk.rank[1]}</div>
+                        </div>
+                        <div className="flex-1 bg-surface-well p-3 text-[11px] leading-relaxed text-ink space-y-1">
+                          <div className="flex justify-between items-center font-bold text-ink">
+                            <span className="font-serif text-sm">{tk.name}</span>
+                            <span className="text-[9px] bg-surface border border-surface-border text-wilder-amber px-1.5 py-0.5 rounded font-mono">{tk.cost}</span>
+                          </div>
+                          <div className="flex space-x-2 text-[9px] text-ink-light mt-0.5 font-mono">
+                            <span>🔧 {tk.weapon.includes('/') ? '通用' : tk.weapon}</span>
+                          </div>
+                          <p className="text-ink-muted text-[11px] mt-1 font-serif leading-relaxed">{highlightKeywords(tk.effect)}</p>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             )}
 
             {/* Appendix C: States */}
             {activeAppendixTab === 'c' && (
-              APPENDIX_STATES.filter(st => 
-                st.name.includes(appendixSearchQuery) || 
-                st.effect.includes(appendixSearchQuery)
-              ).map(st => (
-                <div key={st.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber">
-                  <div className="font-serif font-bold text-ink">{st.name}</div>
-                  <p className="text-ink-muted text-[11px] mt-1 leading-tight"><span className="font-bold text-wilder-blue">效果:</span> {st.effect}</p>
-                  <p className="text-[10px] text-wilder-amber mt-1"><span className="font-bold text-ink-muted">结束条件:</span> {st.endCondition}</p>
+              <div className="space-y-3">
+                <div className="border-b-2 border-wilder-blue pb-2 mb-3 flex items-center gap-1.5">
+                  <span className="text-wilder-orange text-xl">🌶️</span>
+                  <span className="font-serif font-black text-lg text-wilder-blue">附录C：状态</span>
                 </div>
-              ))
+                {APPENDIX_STATES.filter(st => 
+                  st.name.includes(appendixSearchQuery) || 
+                  st.effect.includes(appendixSearchQuery)
+                ).map(st => (
+                  <div key={st.name} className="flex rounded-lg border border-surface-border overflow-hidden shadow-sm">
+                    <div className="w-20 bg-[#B5523A] text-white flex items-center justify-center font-serif font-black text-xs text-center p-2 shrink-0 select-none">
+                      {st.name}
+                    </div>
+                    <div className="flex-1 bg-surface-well p-3 text-[11px] leading-relaxed text-ink space-y-1.5">
+                      <p className="font-serif">
+                        {highlightKeywords(st.effect)}
+                      </p>
+                      {st.endCondition && (
+                        <p className="text-[10px] text-ink-muted border-t border-surface-border/40 pt-1">
+                          <span className="font-extrabold text-ink">结束条件：</span>
+                          {highlightKeywords(st.endCondition)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
             )}
 
             {/* Appendix Regions */}
             {activeAppendixTab === 'e' && (
-              <div className="space-y-2">
-                <p className="text-[10px] text-ink-light italic mb-2">地区与区域特性影响猎群在特定地形中的行动。</p>
-                <div className="grid grid-cols-1 gap-1.5">
+              <div className="space-y-3">
+                <div className="border-b-2 border-wilder-blue pb-2 mb-3 flex items-center gap-1.5">
+                  <span className="text-wilder-orange text-xl">🗺️</span>
+                  <span className="font-serif font-black text-lg text-wilder-blue">附录A.2：地区与区域特性</span>
+                </div>
+                <div className="text-[10px] bg-surface-well px-2 py-1 text-ink-muted font-bold border-l-2 border-wilder-blue mb-2">
+                  地区与区域特性会影响猎群在旅行和特定环境中的生存与移动难度。
+                </div>
+                <div className="space-y-3">
                   {APPENDIX_REGIONS.filter(r => !appendixSearchQuery || r.name.includes(appendixSearchQuery) || r.effect.includes(appendixSearchQuery)).map(r => (
-                    <div key={r.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                      <span className="font-bold text-ink text-[11px]">{r.name}</span>
-                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{r.effect}</p>
+                    <div key={r.name} className="flex rounded-lg border border-surface-border overflow-hidden shadow-sm">
+                      <div className="w-20 bg-stone-700 text-white flex items-center justify-center font-serif font-black text-xs text-center p-2 shrink-0 select-none">
+                        {r.name}
+                      </div>
+                      <div className="flex-1 bg-surface-well p-3 text-[11px] leading-relaxed text-ink">
+                        <p className="font-serif">
+                          {highlightKeywords(r.effect)}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -3261,6 +3371,10 @@ export default function App() {
 
               return (
                 <div className="space-y-4">
+                  <div className="border-b-2 border-wilder-blue pb-2 mb-3 flex items-center gap-1.5">
+                    <span className="text-wilder-orange text-xl">📋</span>
+                    <span className="font-serif font-black text-lg text-wilder-blue">附录D：游戏流程快速参考</span>
+                  </div>
                   {/* 追踪 (Tracking) */}
                   {showTracking && (
                     <div className="flex rounded-lg shadow-sm border border-surface-border">
