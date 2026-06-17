@@ -2330,11 +2330,17 @@ export default function App() {
                             const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
                             if (!found) return null;
                             const effect = found.name.includes('X') ? found.effect.replace(/X/g, String(st.level)) : found.effect;
+                            // For 受伤, extract the level-specific description
+                            const isInjury = st.name === '受伤';
+                            const displayEffect = isInjury
+                              ? found.effect.split(/受伤\d[：:]/g).filter(Boolean)[st.level - 1] || found.effect
+                              : effect;
+                            const showEndCond = !isInjury && found.endCondition.length > 0;
                             const endCond = found.name.includes('X') ? found.endCondition.replace(/X/g, String(st.level)) : found.endCondition;
                             return (
                               <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
-                                <span className="font-bold">{st.name}{found.name.includes('X') ? st.level : ''}：</span>{effect}
-                                <br /><span className="italic">结束条件：{endCond}</span>
+                                <span className="font-bold">{st.name}{found.name.includes('X') ? st.level : ''}：</span>{displayEffect}
+                                {showEndCond && <><br /><span className="italic">结束条件：{endCond}</span></>}
                               </div>
                             );
                         })}
