@@ -30,7 +30,8 @@ interface Character {
     technique: number;
   };
   skills: { [key: string]: number };
-  traits: string[]; // List of names of traits & techniques
+  traits: string[]; // List of names of lineage/appendix traits
+  techniques: string[]; // List of technique names
   companion: {
     name: string;
     description: string;
@@ -55,6 +56,7 @@ interface Character {
     hidden: boolean;
     disharmony: boolean;
   };
+  statesActive: { name: string; level: number }[]; // Active conditions with levels
   avatarType: 'emoji' | 'upload' | 'drawing';
   avatarValue: string; // emoji character or base64 data url
   notes?: string;
@@ -178,6 +180,9 @@ export default function App() {
   // Drawer States
   const [isDiceDrawerOpen, setIsDiceDrawerOpen] = useState<boolean>(false);
   const [isManualDrawerOpen, setIsManualDrawerOpen] = useState<boolean>(false);
+  const [pickerModal, setPickerModal] = useState<'none' | 'technique' | 'trait'>('none');
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerWeapon, setPickerWeapon] = useState('all');
 
   // Alert/Notification State
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -187,11 +192,17 @@ export default function App() {
 
   // Initialize and load characters
   useEffect(() => {
+    const migrateCharacter = (c: Character): Character => ({
+      ...c,
+      techniques: c.techniques || c.traits.slice(0, 2),
+      statesActive: c.statesActive || [],
+    });
+
     const loadedCustoms = localStorage.getItem('wilder_customs');
     let customChars: Character[] = [];
     if (loadedCustoms) {
       try {
-        customChars = JSON.parse(loadedCustoms);
+        customChars = JSON.parse(loadedCustoms).map(migrateCharacter);
       } catch (e) {
         console.error('Error loading custom characters:', e);
       }
@@ -204,7 +215,7 @@ export default function App() {
       if (pg.traits.includes('钢铁之盾')) {
         dbMax = 50;
       }
-      return {
+      return migrateCharacter({
         id: `pregen_${i}`,
         isCustom: false,
         name: pg.name,
@@ -215,6 +226,7 @@ export default function App() {
         styleValues: pg.styleValues,
         skills: pg.skills,
         traits: pg.traits,
+        techniques: pg.traits.slice(0, 2),
         companion: pg.companion,
         backgroundMeals: pg.backgroundMeals,
         bond: pg.bond,
@@ -231,6 +243,7 @@ export default function App() {
           hidden: false,
           disharmony: false
         },
+        statesActive: [],
         avatarType: 'emoji',
         avatarValue: pg.name === '普莱兹' ? '渔夫' : 
                      pg.name === '巴格' ? '储藏者' : 
@@ -238,7 +251,7 @@ export default function App() {
                      pg.name === '泰伦' ? '屠夫' : 
                      pg.name === '莲恩' ? '调味者' : '变形者',
         notes: `预设角色 ${pg.name} (${pg.specialty})`
-      };
+      });
     });
 
     setCharacters([...preGenList, ...customChars]);
@@ -252,7 +265,11 @@ export default function App() {
     const loadedCustoms = localStorage.getItem('wilder_customs');
     let customChars: Character[] = [];
     if (loadedCustoms) {
-      customChars = JSON.parse(loadedCustoms);
+      customChars = (JSON.parse(loadedCustoms) as Character[]).map((c: Character) => ({
+        ...c,
+        techniques: c.techniques || c.traits.slice(0, 2),
+        statesActive: c.statesActive || [],
+      }));
     }
     
     // Keep pregens
@@ -270,6 +287,7 @@ export default function App() {
         styleValues: pg.styleValues,
         skills: pg.skills,
         traits: pg.traits,
+        techniques: pg.traits.slice(0, 2),
         companion: pg.companion,
         backgroundMeals: pg.backgroundMeals,
         bond: pg.bond,
@@ -286,6 +304,7 @@ export default function App() {
           hidden: false,
           disharmony: false
         },
+        statesActive: [],
         avatarType: 'emoji',
         avatarValue: pg.name === '普莱兹' ? '渔夫' : 
                      pg.name === '巴格' ? '储藏者' : 
@@ -667,6 +686,7 @@ export default function App() {
       styleValues: calculateWizStyles(),
       skills,
       traits: traitList,
+      techniques: [signatureTech, chosenTech],
       companion: {
         name: wizCompanionCustomName.trim() || wizLineage.companions[wizCompanionIndex].name,
         description: wizLineage.companions[wizCompanionIndex].description
@@ -702,6 +722,7 @@ export default function App() {
         hidden: false,
         disharmony: false
       },
+      statesActive: [],
       avatarType: wizAvatarType,
       avatarValue: wizAvatarValue
     };
@@ -1121,7 +1142,9 @@ export default function App() {
                         : 'bg-surface border-wilder-amber text-ink'
                     }`}
                   >
-                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-surface-border overflow-hidden flex-shrink-0 text-ink-muted">
+                    <div className={`w-16 h-16 rounded-full border-2 border-dashed flex items-center justify-center overflow-hidden flex-shrink-0 ${
+                      selectedCharId === char.id ? 'border-white/40 bg-wilder-blue/20 text-white/80' : 'border-parchment-300 bg-surface-border text-ink-muted'
+                    }`}>
                       {char.avatarType === 'emoji' ? (
                         getInkIcon(char.avatarValue, 32)
                       ) : (
@@ -1135,10 +1158,10 @@ export default function App() {
                           {char.isCustom ? '自建' : '官方预设'}
                         </span>
                       </div>
-                      <p className="text-xs text-ink-muted truncate">
+                      <p className={`text-xs truncate ${selectedCharId === char.id ? 'text-white/80' : 'text-ink-muted'}`}>
                         {char.adjectives.join(' / ')} • {char.specialty}
                       </p>
-                      <p className="text-xs text-ink-muted font-serif mt-1 flex items-center gap-1">
+                      <p className={`text-xs font-serif mt-1 flex items-center gap-1 ${selectedCharId === char.id ? 'text-white/70' : 'text-ink-muted'}`}>
                         工具: {char.tool} | 体力: {char.stamina}/20 | 和谐: {char.harmony}/{char.harmonyMax}
                       </p>
                     </div>
@@ -2266,25 +2289,118 @@ export default function App() {
                       </div>
 
                       {/* States Tracker inside style box */}
-                      <div className="border-t border-dashed border-orange-300 pt-3 space-y-2">
-                        <span className="block text-[10px] font-black text-ink-muted uppercase">⚠️ 临时状态 / 异常标记</span>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {[
-                            { key: 'exposed', label: '暴露 (Exposed)' },
-                            { key: 'hidden', label: '隐藏 (Hidden)' },
-                            { key: 'disharmony', label: '不谐 (Disharmony)' }
-                          ].map(st => (
-                            <label key={st.key} className="flex items-center space-x-1.5 cursor-pointer bg-white/80 p-1 rounded border border-surface-border text-ink">
-                              <input 
-                                type="checkbox" 
-                                checked={activeChar.states[st.key as keyof typeof activeChar.states]} 
-                                onChange={() => updateActiveCharStates(st.key as any)}
-                                className="accent-wilder-teal rounded"
-                              />
-                              <span className="scale-90 origin-left text-[10px] truncate">{st.label}</span>
-                            </label>
-                          ))}
+                      <div className="border-t border-dashed border-wilder-amber pt-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="block text-[10px] font-black text-ink-muted uppercase">⚠️ 状态</span>
+                          <div className="flex space-x-1">
+                            <select
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                e.target.value = '';
+                                if (!val) return;
+                                // Parse name and level from "名称X" or "名称"
+                                const levelMatch = val.match(/(\d+)$/);
+                                const baseName = levelMatch ? val.slice(0, -levelMatch[1].length).trim() : val;
+                                const level = levelMatch ? parseInt(levelMatch[1]) : 1;
+                                const existing = activeChar.statesActive.find(s => s.name === baseName);
+                                if (existing) {
+                                  const newStates = activeChar.statesActive.map(s => s.name === baseName ? { ...s, level: s.level + level } : s);
+                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                  setCharacters(updated);
+                                  saveCustomCharacters(updated.filter(c => c.isCustom));
+                                } else {
+                                  const newStates = [...activeChar.statesActive, { name: baseName, level }];
+                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                  setCharacters(updated);
+                                  saveCustomCharacters(updated.filter(c => c.isCustom));
+                                }
+                                showNotification(`已添加状态：${val}`, 'success');
+                              }}
+                              className="text-[9px] bg-surface border border-surface-border rounded px-1.5 py-0.5 text-ink max-w-[160px]"
+                            >
+                              <option value="">+ 添加状态</option>
+                              {APPENDIX_STATES.flatMap(s => {
+                                if (s.name.includes('X')) {
+                                  return [1, 2, 3, 4, 5].map(n => ({
+                                    ...s,
+                                    displayName: s.name.replace('X', String(n)),
+                                    level: n,
+                                  }));
+                                }
+                                return [{ ...s, displayName: s.name, level: 1 }];
+                              }).map(s => (
+                                <option key={s.displayName} value={s.displayName}>{s.displayName}</option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
+                        {activeChar.statesActive.length > 0 ? (
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {activeChar.statesActive.map((st, i) => {
+                              const found = APPENDIX_STATES.find(s => s.name.startsWith(st.name));
+                              return (
+                                <div key={`${st.name}-${i}`} className="flex items-center justify-between bg-surface/80 p-1.5 rounded border border-surface-border group">
+                                  <div className="flex items-center space-x-1.5">
+                                    <span className="font-bold text-[11px] text-ink">{st.name}</span>
+                                    {found?.endCondition.includes('X') && (
+                                      <span className="text-[10px] font-mono text-wilder-amber">Lv.{st.level}</span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    {found?.endCondition.includes('X') && (
+                                      <>
+                                        <button
+                                          onClick={() => {
+                                            const newStates = activeChar.statesActive.map(s => s.name === st.name ? { ...s, level: Math.max(1, s.level - 1) } : s);
+                                            const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                            setCharacters(updated);
+                                            saveCustomCharacters(updated.filter(c => c.isCustom));
+                                          }}
+                                          className="text-ink-light hover:text-ink text-xs w-4 h-4 flex items-center justify-center"
+                                        >-</button>
+                                        <button
+                                          onClick={() => {
+                                            const newStates = activeChar.statesActive.map(s => s.name === st.name ? { ...s, level: s.level + 1 } : s);
+                                            const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                            setCharacters(updated);
+                                            saveCustomCharacters(updated.filter(c => c.isCustom));
+                                          }}
+                                          className="text-ink-light hover:text-ink text-xs w-4 h-4 flex items-center justify-center"
+                                        >+</button>
+                                      </>
+                                    )}
+                                    <button
+                                      onClick={() => {
+                                        const newStates = activeChar.statesActive.filter((_, idx) => idx !== i);
+                                        const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                        setCharacters(updated);
+                                        saveCustomCharacters(updated.filter(c => c.isCustom));
+                                      }}
+                                      className="text-ink-light hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                                      title="移除状态"
+                                    >×</button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <p className="text-[10px] text-ink-light italic">无活跃状态</p>
+                        )}
+
+                        {/* Effect descriptions for all states */}
+                        {activeChar.statesActive.map(st => {
+                          const found = APPENDIX_STATES.find(s => s.name.startsWith(st.name));
+                          if (!found) return null;
+                          return (
+                            <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
+                              <span className="font-bold">{st.name}：</span>{found.effect}
+                              {found.endCondition.includes('X') && (
+                                <><br /><span className="italic">结束条件：{found.endCondition.replace(/X/g, String(st.level))}</span></>
+                              )}
+                            </div>
+                          );
+                        })}
 
                         {/* Injured trackers */}
                         <div className="pt-1.5 border-t border-dashed border-orange-200">
@@ -2343,14 +2459,10 @@ export default function App() {
                             >
                               <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-ink'}>{sk}</span>
                               
-                              {/* Skill Value & Slashes checkbox rendering */}
+                              {/* Skill value display */}
                               <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex items-center space-x-0.5 text-ink bg-surface-border border border-surface-border px-1 rounded-sm">
-                                  <span className="font-bold text-[9px] text-sky-900 pr-0.5">+{val}</span>
-                                  <span className="font-mono text-xs select-none">⊕</span>
-                                  {val >= 1 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
-                                  {val >= 2 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
-                                  {val >= 3 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
+                                <div className="bg-surface-border border border-surface-border px-1.5 py-0.5 rounded-sm">
+                                  <span className="font-bold text-[11px] text-sky-900">+{val}</span>
                                 </div>
                                 
                                 {/* Small adjustable buttons */}
@@ -2414,39 +2526,79 @@ export default function App() {
                       </div>
 
                       {/* Tool specific Techniques */}
-                      <div className="pt-2 border-t border-stone-200 space-y-2">
-                        <span className="block text-[10px] font-bold text-ink-light uppercase">武器流派特性:</span>
-                        {activeChar.traits.slice(0, 2).map(tName => {
-                          const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
-                          return (
-                            <div key={tName} className="text-xs">
-                              <span className="font-bold text-[#fc8419]">{tName}</span> <span className="text-[9px] bg-surface-border border border-surface-border px-1 rounded">{foundTech?.cost || '被动'}</span>
-                              <p className="text-[10px] text-ink-muted leading-tight mt-0.5">{foundTech?.effect}</p>
-                            </div>
-                          );
-                        })}
+                      <div className="pt-2 border-t border-surface-border space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="block text-[10px] font-bold text-ink-light uppercase">战技:</span>
+                          <button
+                            onClick={() => { setPickerModal('technique'); setPickerSearch(''); setPickerWeapon('all'); }}
+                            className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20"
+                          >
+                            + 添加战技
+                          </button>
+                        </div>
+                        {activeChar.techniques && activeChar.techniques.length > 0 ? (
+                          activeChar.techniques.map(tName => {
+                            const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
+                            return (
+                              <div key={tName} className="flex items-start justify-between group">
+                                <div className="text-xs flex-1">
+                                  <span className="font-bold text-ink">{tName}</span>
+                                  <span className="text-[9px] bg-surface-border border border-surface-border px-1 rounded ml-1 text-ink-light">{foundTech?.cost || '被动'}</span>
+                                  <p className="text-[10px] text-ink-muted leading-tight mt-0.5">{foundTech?.effect || tName}</p>
+                                </div>
+                                <button
+                                  onClick={() => {
+                                    const updated = characters.map(c => c.id === activeChar.id ? { ...c, techniques: c.techniques.filter((t: string) => t !== tName) } : c);
+                                    setCharacters(updated);
+                                    saveCustomCharacters(updated.filter(c => c.isCustom));
+                                  }}
+                                  className="text-ink-light hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0"
+                                  title="移除战技"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <p className="text-[10px] text-ink-light italic">暂无战技</p>
+                        )}
                       </div>
                     </div>
 
-                    {/* Right: Green Traits Box */}
+                    {/* Right: Traits Box */}
                     <div className="border-3 border-emerald-800 bg-emerald-50/10 rounded p-4 space-y-3 shadow-sm">
-                      <h4 className="font-serif font-black text-md text-emerald-950 border-b-2 border-emerald-800 pb-1.5">
-                        ❖ 特性 (Traits) ❖
-                      </h4>
+                      <div className="flex items-center justify-between border-b-2 border-emerald-800 pb-1.5">
+                        <h4 className="font-serif font-black text-md text-emerald-950">
+                          ❖ 特性 ❖
+                        </h4>
+                        <button
+                          onClick={() => { setPickerModal('trait'); setPickerSearch(''); }}
+                          className="text-[9px] bg-emerald-900/10 text-emerald-900 border border-emerald-900/30 px-1.5 py-0.5 rounded hover:bg-emerald-900/20"
+                        >
+                          + 添加特性
+                        </button>
+                      </div>
 
                       <div className="space-y-3 text-xs leading-tight">
-                        <div className="border-b border-dashed border-emerald-300 pb-1.5">
-                          <span className="font-extrabold text-emerald-900">毅力。</span><span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
-                          <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
+                        {/* Base traits - always present, cannot be removed */}
+                        <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
+                          <div>
+                            <span className="font-extrabold text-emerald-900">毅力。</span>
+                            <span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
+                            <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
+                          </div>
                         </div>
-                        <div className="border-b border-dashed border-emerald-300 pb-1.5">
-                          <span className="font-extrabold text-emerald-900">洞察。</span><span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
-                          <p className="text-[10px] text-ink mt-0.5">确立一个关于当前情境的细节。</p>
+                        <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
+                          <div>
+                            <span className="font-extrabold text-emerald-900">洞察。</span>
+                            <span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
+                            <p className="text-[10px] text-ink mt-0.5">确立一个关于当前情境的细节。</p>
+                          </div>
                         </div>
 
-                        {/* Linage starting traits */}
-                        {activeChar.traits.slice(2).map(tName => {
-                          // Search inside databases
+                        {/* Lineage/appendix traits - removable */}
+                        {activeChar.traits.slice(2).map((tName: string, idx: number) => {
                           let trEffect = '融入你自身的野性肉体异能与突变绝技。';
                           let trCost = '被动';
                           const foundA = APPENDIX_TRAITS.find(at => at.name === tName);
@@ -2461,10 +2613,25 @@ export default function App() {
                             }
                           }
                           return (
-                            <div key={tName}>
-                              <span className="font-extrabold text-amber-900">{tName}。</span>
-                              <span className="text-[9px] bg-amber-900 text-white px-1 rounded font-mono">{trCost}</span>
-                              <p className="text-[10px] text-ink mt-0.5">{trEffect}</p>
+                            <div key={tName} className="flex items-start justify-between group">
+                              <div>
+                                <span className="font-extrabold text-amber-900">{tName}。</span>
+                                <span className="text-[9px] bg-amber-900 text-white px-1 rounded font-mono">{trCost}</span>
+                                <p className="text-[10px] text-ink mt-0.5">{trEffect}</p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const newTraits = [...activeChar.traits];
+                                  newTraits.splice(idx + 2, 1);
+                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, traits: newTraits } : c);
+                                  setCharacters(updated);
+                                  saveCustomCharacters(updated.filter(c => c.isCustom));
+                                }}
+                                className="text-ink-light hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0"
+                                title="移除特性"
+                              >
+                                ×
+                              </button>
                             </div>
                           );
                         })}
@@ -2584,6 +2751,127 @@ export default function App() {
               </div>
             </div>
           )}
+
+        {/* Technique / Trait Picker Modal */}
+        {pickerModal !== 'none' && activeChar && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-6" onTouchMove={(e) => e.preventDefault()}>
+            <div className="bg-surface border-3 border-wilder-blue rounded-xl p-4 sm:p-6 max-w-lg w-full max-h-[80vh] flex flex-col shadow-rough-lg">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="font-serif font-bold text-wilder-blue text-base">
+                  {pickerModal === 'technique' ? '选择战技' : '选择特性'}
+                </h3>
+                <button onClick={() => setPickerModal('none')} className="text-ink-muted hover:text-ink text-lg leading-none">&times;</button>
+              </div>
+
+              {/* Search + weapon filter for techniques */}
+              {pickerModal === 'technique' && (
+                <div className="flex space-x-2 mb-3">
+                  <select
+                    value={pickerWeapon}
+                    onChange={(e) => setPickerWeapon(e.target.value)}
+                    className="text-xs bg-surface-well border border-surface-border rounded px-2 py-1.5 text-ink w-24 flex-shrink-0"
+                  >
+                    <option value="all">全部武器</option>
+                    {TOOLS.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
+                    <option value="通用">通用</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={pickerSearch}
+                    onChange={(e) => setPickerSearch(e.target.value)}
+                    placeholder="搜索战技名称..."
+                    className="text-xs bg-surface-well border border-surface-border rounded px-2 py-1.5 text-ink flex-1"
+                  />
+                </div>
+              )}
+              {pickerModal === 'trait' && (
+                <input
+                  type="text"
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder="搜索特性名称..."
+                  className="text-xs bg-surface-well border border-surface-border rounded px-2 py-1.5 text-ink w-full mb-3"
+                />
+              )}
+
+              {/* Scrollable list */}
+              <div className="flex-1 overflow-y-auto space-y-1.5 min-h-0 border-t border-surface-border pt-3">
+                {pickerModal === 'technique' && (
+                  <>
+                    {APPENDIX_TECHNIQUES.filter(t => {
+                      if (pickerWeapon !== 'all' && t.weapon !== pickerWeapon) return false;
+                      if (pickerSearch && !t.name.includes(pickerSearch) && !t.effect.includes(pickerSearch)) return false;
+                      return true;
+                    }).map(t => (
+                      <div
+                        key={t.name}
+                        onClick={() => {
+                          if (!activeChar || activeChar.techniques.includes(t.name)) {
+                            showNotification('该战技已存在', 'info');
+                          } else {
+                            const updated = characters.map(c => c.id === activeChar.id ? { ...c, techniques: [...c.techniques, t.name] } : c);
+                            setCharacters(updated);
+                            saveCustomCharacters(updated.filter(c => c.isCustom));
+                            showNotification(`已添加战技：${t.name}`, 'success');
+                          }
+                          setPickerModal('none');
+                        }}
+                        className="p-2 rounded cursor-pointer hover:bg-wilder-blue/10 border border-surface-border text-xs flex items-start justify-between"
+                      >
+                        <div className="flex-1 min-w-0">
+                          <span className="font-bold text-ink">{t.name}</span>
+                          <span className="text-[9px] text-ink-light ml-1">[{t.weapon}]</span>
+                          <span className="text-[9px] bg-surface-border px-1 rounded ml-1 text-ink-light">{t.cost}</span>
+                          <p className="text-[10px] text-ink-muted mt-0.5 line-clamp-2">{t.effect}</p>
+                        </div>
+                        <span className="text-wilder-blue text-xs ml-2 flex-shrink-0">
+                          {activeChar && activeChar.techniques.includes(t.name) ? '✓' : '+'}
+                        </span>
+                      </div>
+                    ))}
+                  </>
+                )}
+                {pickerModal === 'trait' && (
+                  <>
+                    {/* Lineage traits */}
+                    {LINEAGES.flatMap(l => l.traits).concat(APPENDIX_TRAITS.map(t => ({ name: t.name, cost: t.cost, effect: t.effect })))
+                      .filter(t => {
+                        if (!activeChar) return false;
+                        if (activeChar.traits.slice(2).includes(t.name) || t.name === '毅力' || t.name === '洞察') return false;
+                        if (pickerSearch && !t.name.includes(pickerSearch) && !t.effect.includes(pickerSearch)) return false;
+                        return true;
+                      })
+                      .map(t => (
+                        <div
+                          key={t.name}
+                          onClick={() => {
+                            if (!activeChar) return;
+                            const newTraits = [...activeChar.traits, t.name];
+                            const updated = characters.map(c => c.id === activeChar.id ? { ...c, traits: newTraits } : c);
+                            setCharacters(updated);
+                            saveCustomCharacters(updated.filter(c => c.isCustom));
+                            showNotification(`已添加特性：${t.name}`, 'success');
+                            setPickerModal('none');
+                          }}
+                          className="p-2 rounded cursor-pointer hover:bg-emerald-50 border border-surface-border text-xs"
+                        >
+                          <span className="font-bold text-emerald-900">{t.name}</span>
+                          <span className="text-[9px] bg-amber-900 text-white px-1 rounded ml-1">{t.cost || '被动'}</span>
+                          <p className="text-[10px] text-ink-muted mt-0.5 line-clamp-2">{t.effect}</p>
+                        </div>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              <div className="flex justify-end mt-3 pt-3 border-t border-surface-border">
+                <button onClick={() => setPickerModal('none')} className="text-xs bg-surface border border-surface-border text-ink px-3 py-1.5 rounded hover:bg-surface-border">
+                  关闭
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Backdrop Overlay */}
         {(isDiceDrawerOpen || isManualDrawerOpen) && (
