@@ -19,6 +19,7 @@ interface Character {
   id: string;
   isCustom: boolean;
   name: string;
+  playerName: string;
   specialty: string;
   adjectives: [string, string]; // [current, aspiring]
   tool: string;
@@ -108,6 +109,7 @@ export default function App() {
   // Character Wizard temporary state
   const [wizardStep, setWizardStep] = useState<number>(1);
   const [wizName, setWizName] = useState('');
+  const [wizPlayerName, setWizPlayerName] = useState('');
   const [wizTool, setWizTool] = useState<Tool>(TOOLS[0]);
   const [wizStylesChoice, setWizStylesChoice] = useState<'a' | 'b'>('a');
   const [wizSecondaryTech, setWizSecondaryTech] = useState<Technique | null>(null);
@@ -182,7 +184,8 @@ export default function App() {
   const [isManualDrawerOpen, setIsManualDrawerOpen] = useState<boolean>(false);
   const [pickerModal, setPickerModal] = useState<'none' | 'technique' | 'trait'>('none');
   const [pickerSearch, setPickerSearch] = useState('');
-  const [pickerWeapon, setPickerWeapon] = useState('all');
+  const [pendingState, setPendingState] = useState('');
+  const [pendingStateLevel, setPendingStateLevel] = useState(1);
 
   // Alert/Notification State
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
@@ -196,6 +199,7 @@ export default function App() {
       ...c,
       techniques: c.techniques || c.traits.slice(0, 2),
       statesActive: c.statesActive || [],
+      playerName: c.playerName || '',
     });
 
     const loadedCustoms = localStorage.getItem('wilder_customs');
@@ -219,6 +223,7 @@ export default function App() {
         id: `pregen_${i}`,
         isCustom: false,
         name: pg.name,
+        playerName: '',
         specialty: pg.specialty,
         adjectives: pg.adjectives,
         tool: pg.tool,
@@ -280,6 +285,7 @@ export default function App() {
         id: `pregen_${i}`,
         isCustom: false,
         name: pg.name,
+        playerName: '',
         specialty: pg.specialty,
         adjectives: pg.adjectives,
         tool: pg.tool,
@@ -679,6 +685,7 @@ export default function App() {
       id: `custom_${Date.now()}`,
       isCustom: true,
       name: wizName,
+      playerName: wizPlayerName,
       specialty: wizLineage.name,
       adjectives: [wizAdjectiveCurrent, wizAdjectiveAspiring],
       tool: wizTool.name,
@@ -738,6 +745,7 @@ export default function App() {
 
     // Reset wizard variables
     setWizName('');
+    setWizPlayerName('');
     setWizardStep(1);
   };
 
@@ -1214,12 +1222,22 @@ export default function App() {
                     <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">第一步：输入名字与身份描述</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold mb-1 text-ink-muted">姓名 (Name)</label>
+                        <label className="block text-xs font-bold mb-1 text-ink-muted">角色名 (Character)</label>
                         <input 
                           type="text" 
                           value={wizName} 
                           onChange={(e) => setWizName(e.target.value)}
-                          placeholder="例如: 普莱兹, 巴格, 或是你自己的称呼"
+                          placeholder="例如: 普莱兹, 巴格"
+                          className="w-full bg-surface border-2 border-wilder-amber rounded px-3 py-2 text-ink focus:outline-none focus:border-wilder-blue"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold mb-1 text-ink-muted">玩家名 (Player)</label>
+                        <input 
+                          type="text" 
+                          value={wizPlayerName} 
+                          onChange={(e) => setWizPlayerName(e.target.value)}
+                          placeholder="写下你的名字"
                           className="w-full bg-surface border-2 border-wilder-amber rounded px-3 py-2 text-ink focus:outline-none focus:border-wilder-blue"
                         />
                       </div>
@@ -2213,7 +2231,7 @@ export default function App() {
                     </div>
                     <div className="p-2">
                       <span className="block text-[10px] text-ink-light font-bold uppercase">玩家名</span>
-                      <span className="font-extrabold text-lg text-ink">{activeChar.isCustom ? '自定义食客' : '官方预设'}</span>
+                      <span className="font-extrabold text-lg text-ink">{activeChar.playerName || activeChar.name}</span>
                     </div>
                     <div className="p-2 bg-amber-50">
                       <span className="block text-[10px] text-amber-700 font-bold uppercase">专长 (谱系)</span>
@@ -2292,52 +2310,58 @@ export default function App() {
                       <div className="border-t border-dashed border-wilder-amber pt-3 space-y-2">
                         <div className="flex items-center justify-between">
                           <span className="block text-[10px] font-black text-ink-muted uppercase">⚠️ 状态</span>
-                          <div className="flex space-x-1">
+                          <div className="flex items-center space-x-1">
                             <select
+                              value={pendingState}
                               onChange={(e) => {
-                                const val = e.target.value;
-                                e.target.value = '';
-                                if (!val) return;
-                                // Parse name and level from "名称X" or "名称"
-                                const levelMatch = val.match(/(\d+)$/);
-                                const baseName = levelMatch ? val.slice(0, -levelMatch[1].length).trim() : val;
-                                const level = levelMatch ? parseInt(levelMatch[1]) : 1;
-                                const existing = activeChar.statesActive.find(s => s.name === baseName);
-                                if (existing) {
-                                  const newStates = activeChar.statesActive.map(s => s.name === baseName ? { ...s, level: s.level + level } : s);
-                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
-                                  setCharacters(updated);
-                                  saveCustomCharacters(updated.filter(c => c.isCustom));
-                                } else {
-                                  const newStates = [...activeChar.statesActive, { name: baseName, level }];
-                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
-                                  setCharacters(updated);
-                                  saveCustomCharacters(updated.filter(c => c.isCustom));
-                                }
-                                showNotification(`已添加状态：${val}`, 'success');
+                                setPendingState(e.target.value);
+                                const found = APPENDIX_STATES.find(s => s.name.startsWith(e.target.value));
+                                setPendingStateLevel(found?.endCondition.includes('X') ? 1 : 1);
                               }}
-                              className="text-[9px] bg-surface border border-surface-border rounded px-1.5 py-0.5 text-ink max-w-[160px]"
+                              className="text-[9px] bg-surface border border-surface-border rounded px-1.5 py-0.5 text-ink max-w-[110px]"
                             >
-                              <option value="">+ 添加状态</option>
-                              {APPENDIX_STATES.flatMap(s => {
-                                if (s.name.includes('X')) {
-                                  return [1, 2, 3, 4, 5].map(n => ({
-                                    ...s,
-                                    displayName: s.name.replace('X', String(n)),
-                                    level: n,
-                                  }));
-                                }
-                                return [{ ...s, displayName: s.name, level: 1 }];
-                              }).map(s => (
-                                <option key={s.displayName} value={s.displayName}>{s.displayName}</option>
+                              <option value="">+ 状态</option>
+                              {APPENDIX_STATES.map(s => (
+                                <option key={s.name} value={s.name.replace('X', '')}>{s.name.replace('X', '').trim()}</option>
                               ))}
                             </select>
+                            {pendingState && APPENDIX_STATES.find(s => s.name.startsWith(pendingState))?.endCondition.includes('X') && (
+                              <input
+                                type="number"
+                                min={1}
+                                max={20}
+                                value={pendingStateLevel}
+                                onChange={(e) => setPendingStateLevel(Math.max(1, parseInt(e.target.value) || 1))}
+                                className="w-10 text-center text-[9px] bg-surface border border-surface-border rounded px-1 py-0.5 text-ink"
+                              />
+                            )}
+                            {pendingState && (
+                              <button
+                                onClick={() => {
+                                  if (!activeChar) return;
+                                  const baseName = pendingState;
+                                  const existing = activeChar.statesActive.find(s => s.name === baseName);
+                                  const newStates = existing
+                                    ? activeChar.statesActive.map(s => s.name === baseName ? { ...s, level: s.level + pendingStateLevel } : s)
+                                    : [...activeChar.statesActive, { name: baseName, level: pendingStateLevel }];
+                                  const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                  setCharacters(updated);
+                                  saveCustomCharacters(updated.filter(c => c.isCustom));
+                                  showNotification(`已添加状态：${baseName}`, 'success');
+                                  setPendingState('');
+                                  setPendingStateLevel(1);
+                                }}
+                                className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20 flex-shrink-0"
+                              >
+                                添加
+                              </button>
+                            )}
                           </div>
                         </div>
                         {activeChar.statesActive.length > 0 ? (
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             {activeChar.statesActive.map((st, i) => {
-                              const found = APPENDIX_STATES.find(s => s.name.startsWith(st.name));
+                              const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
                               return (
                                 <div key={`${st.name}-${i}`} className="flex items-center justify-between bg-surface/80 p-1.5 rounded border border-surface-border group">
                                   <div className="flex items-center space-x-1.5">
@@ -2390,7 +2414,7 @@ export default function App() {
 
                         {/* Effect descriptions for all states */}
                         {activeChar.statesActive.map(st => {
-                          const found = APPENDIX_STATES.find(s => s.name.startsWith(st.name));
+                          const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
                           if (!found) return null;
                           return (
                             <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
@@ -2530,7 +2554,7 @@ export default function App() {
                         <div className="flex items-center justify-between">
                           <span className="block text-[10px] font-bold text-ink-light uppercase">战技:</span>
                           <button
-                            onClick={() => { setPickerModal('technique'); setPickerSearch(''); setPickerWeapon('all'); }}
+                            onClick={() => { setPickerModal('technique'); setPickerSearch(''); }}
                             className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20"
                           >
                             + 添加战技
@@ -2763,26 +2787,15 @@ export default function App() {
                 <button onClick={() => setPickerModal('none')} className="text-ink-muted hover:text-ink text-lg leading-none">&times;</button>
               </div>
 
-              {/* Search + weapon filter for techniques */}
+              {/* Search filter for techniques */}
               {pickerModal === 'technique' && (
-                <div className="flex space-x-2 mb-3">
-                  <select
-                    value={pickerWeapon}
-                    onChange={(e) => setPickerWeapon(e.target.value)}
-                    className="text-xs bg-surface-well border border-surface-border rounded px-2 py-1.5 text-ink w-24 flex-shrink-0"
-                  >
-                    <option value="all">全部武器</option>
-                    {TOOLS.map(t => <option key={t.name} value={t.name}>{t.name}</option>)}
-                    <option value="通用">通用</option>
-                  </select>
-                  <input
-                    type="text"
-                    value={pickerSearch}
-                    onChange={(e) => setPickerSearch(e.target.value)}
-                    placeholder="搜索战技名称..."
-                    className="text-xs bg-surface-well border border-surface-border rounded px-2 py-1.5 text-ink flex-1"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={pickerSearch}
+                  onChange={(e) => setPickerSearch(e.target.value)}
+                  placeholder={`搜索${activeChar?.tool || ''}战技或通用战技...`}
+                  className="text-xs bg-surface-well border border-surface-border rounded px-2 py-1.5 text-ink w-full mb-3"
+                />
               )}
               {pickerModal === 'trait' && (
                 <input
@@ -2799,7 +2812,12 @@ export default function App() {
                 {pickerModal === 'technique' && (
                   <>
                     {APPENDIX_TECHNIQUES.filter(t => {
-                      if (pickerWeapon !== 'all' && t.weapon !== pickerWeapon) return false;
+                      if (!activeChar) return false;
+                      // Only show techniques for the current tool or general techniques that include this tool
+                      const toolName = activeChar.tool;
+                      const isToolSpecific = t.weapon === toolName;
+                      const isGeneral = t.weapon.includes('/') && t.weapon.includes(toolName);
+                      if (!isToolSpecific && !isGeneral) return false;
                       if (pickerSearch && !t.name.includes(pickerSearch) && !t.effect.includes(pickerSearch)) return false;
                       return true;
                     }).map(t => (
@@ -2820,7 +2838,7 @@ export default function App() {
                       >
                         <div className="flex-1 min-w-0">
                           <span className="font-bold text-ink">{t.name}</span>
-                          <span className="text-[9px] text-ink-light ml-1">[{t.weapon}]</span>
+                          <span className="text-[9px] text-ink-light ml-1">[{t.weapon.includes('/') ? '通用' : t.weapon}]</span>
                           <span className="text-[9px] bg-surface-border px-1 rounded ml-1 text-ink-light">{t.cost}</span>
                           <p className="text-[10px] text-ink-muted mt-0.5 line-clamp-2">{t.effect}</p>
                         </div>
