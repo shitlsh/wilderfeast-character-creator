@@ -199,6 +199,10 @@ export default function App() {
   const [wizBackgroundValue, setWizBackgroundValue] = useState('');
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isDrawingModalOpen, setIsDrawingModalOpen] = useState(false);
+  const [isPortraitModalOpen, setIsPortraitModalOpen] = useState(false);
+  const [editPortraitType, setEditPortraitType] = useState<'portrait' | 'upload' | 'drawing'>('portrait');
+  const [editPortraitValue, setEditPortraitValue] = useState('');
+  const [isPortraitEditMode, setIsPortraitEditMode] = useState(false);
   const [drawPenColor, setDrawPenColor] = useState('#2d100c');
   const [drawPenSize, setDrawPenSize] = useState(3);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -1178,6 +1182,46 @@ export default function App() {
     reader.readAsDataURL(file);
   };
 
+  const handlePortraitUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      setEditPortraitType('upload');
+      setEditPortraitValue(event.target?.result as string);
+      showNotification('自定义插图上传成功！', 'success');
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const openPortraitDrawingModal = () => {
+    setIsPortraitModalOpen(false);
+    setIsPortraitEditMode(true);
+    setIsDrawingModalOpen(true);
+    setTimeout(() => {
+      initCanvas();
+      if (editPortraitType === 'drawing' && editPortraitValue) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const img = new Image();
+        img.onload = () => {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          ctx.scale(2, 2);
+          ctx.strokeStyle = drawPenColor;
+          ctx.lineWidth = drawPenSize;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          saveHistoryState();
+        };
+        img.src = editPortraitValue;
+      }
+    }, 50);
+  };
+
   // Drawing Canvas Handlers (for background image)
   const openBackgroundDrawingModal = () => {
     setIsDrawingModalOpen(true);
@@ -1396,10 +1440,18 @@ export default function App() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const dataUrl = canvas.toDataURL('image/png');
-    setWizBackgroundType('drawing');
-    setWizBackgroundValue(dataUrl);
-    setIsDrawingModalOpen(false);
-    showNotification('手绘背景图保存成功！', 'success');
+    if (isPortraitEditMode) {
+      setEditPortraitType('drawing');
+      setEditPortraitValue(dataUrl);
+      setIsDrawingModalOpen(false);
+      setIsPortraitModalOpen(true);
+      showNotification('手绘插图保存成功！', 'success');
+    } else {
+      setWizBackgroundType('drawing');
+      setWizBackgroundValue(dataUrl);
+      setIsDrawingModalOpen(false);
+      showNotification('手绘背景图保存成功！', 'success');
+    }
   };
 
   const uploadDrawingPhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -2505,6 +2557,104 @@ export default function App() {
                   </div>
                 </div>
               )}
+
+              {isPortraitModalOpen && activeChar && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-6" onTouchMove={(e) => e.preventDefault()}>
+                  <div className="bg-surface border-3 border-wilder-blue rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-rough-lg">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-serif font-bold text-wilder-blue text-base">编辑角色插图</h3>
+                      <button onClick={() => { setIsPortraitModalOpen(false); setIsPortraitEditMode(false); }} className="text-ink-muted hover:text-ink text-lg leading-none">&times;</button>
+                    </div>
+
+                    {/* Preview */}
+                    <div className="w-full h-48 border-3 border-dashed border-surface-border rounded-lg bg-surface-well mb-4 flex items-center justify-center overflow-hidden">
+                      {editPortraitType === 'portrait' ? (
+                        getCharacterPortrait(activeChar.name, 160, 'text-ink')
+                      ) : editPortraitType === 'upload' || editPortraitType === 'drawing' ? (
+                        <img src={editPortraitValue} alt="preview" className="w-full h-full object-contain" />
+                      ) : (
+                        <span className="text-xs text-ink-light">暂无插图</span>
+                      )}
+                    </div>
+
+                    {/* Options */}
+                    <div className="flex flex-wrap gap-2 mb-4">
+                      <label className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 cursor-pointer text-xs hover:bg-amber-100 transition-colors">
+                        📁 上传图片
+                        <input type="file" accept="image/*" onChange={handlePortraitUpload} className="hidden" />
+                      </label>
+                      <button
+                        type="button"
+                        onClick={openPortraitDrawingModal}
+                        className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs hover:bg-amber-100 transition-colors"
+                      >
+                        ✏️ 手绘
+                      </button>
+                      {activeChar && ['普莱兹', '巴格', '娜特·辛', '泰伦', '莲恩', '诺特'].includes(activeChar.name) && (
+                        <button
+                          type="button"
+                          onClick={() => { setEditPortraitType('portrait'); setEditPortraitValue(''); }}
+                          className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs hover:bg-amber-100 transition-colors"
+                        >
+                          🖼️ 默认肖像
+                        </button>
+                      )}
+                      {(editPortraitType === 'upload' || editPortraitType === 'drawing') && (
+                        <button
+                          type="button"
+                          onClick={() => { setEditPortraitType('portrait'); setEditPortraitValue(''); }}
+                          className="btn-sketch rounded px-3 py-1.5 bg-red-50 border-red-300 text-red-600 text-xs hover:bg-red-100 transition-colors"
+                        >
+                          🗑️ 清除
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex justify-end space-x-2 border-t border-surface-border pt-3">
+                      <button
+                        onClick={() => { setIsPortraitModalOpen(false); setIsPortraitEditMode(false); }}
+                        className="text-xs bg-surface border border-surface-border text-ink px-3 py-1.5 rounded hover:bg-surface-border transition-colors"
+                      >
+                        取消
+                      </button>
+                      <button
+                        onClick={() => {
+                          const updated = characters.map(c => c.id === activeChar.id ? { ...c, backgroundType: editPortraitType, backgroundValue: editPortraitValue } : c);
+                          setCharacters(updated);
+                          if (activeChar.isCustom) {
+                            const customs = characters.filter(c => c.isCustom);
+                            const idx = customs.findIndex(c => c.id === activeChar.id);
+                            if (idx !== -1) {
+                              customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                              saveCustomCharacters(customs);
+                            }
+                          } else {
+                            const customs = characters.filter(c => c.isCustom);
+                            const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                            if (pregenInCustoms) {
+                              const idx = customs.findIndex(c => c.id === activeChar.id);
+                              customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                              saveCustomCharacters(customs);
+                            } else {
+                              const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                              saveCustomCharacters([...customs, cloned]);
+                              setSelectedCharId(cloned.id);
+                            }
+                          }
+                          setIsPortraitModalOpen(false);
+                          setIsPortraitEditMode(false);
+                          showNotification('角色插图已更新！', 'success');
+                        }}
+                        className="text-xs bg-wilder-blue text-white px-4 py-1.5 rounded font-bold hover:bg-wilder-blue transition-colors"
+                      >
+                        ✅ 确认
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
             </div>
           )}
 
@@ -3053,7 +3203,12 @@ export default function App() {
                     </div>
 
                     {/* Right Portrait/Background Column (Col Span 5) */}
-                    <div className="md:col-span-5 border-2 border-surface-border rounded bg-white p-4 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative">
+                    <div className="md:col-span-5 border-2 border-surface-border rounded bg-white p-4 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative cursor-pointer hover:border-wilder-blue/50 transition-colors" onClick={() => {
+                      setEditPortraitType(activeChar.backgroundType);
+                      setEditPortraitValue(activeChar.backgroundValue);
+                      setIsPortraitEditMode(false);
+                      setIsPortraitModalOpen(true);
+                    }}>
                       <div className="absolute top-2 left-2 text-[9px] font-bold text-ink-light font-serif">
                         {activeChar.backgroundType === 'upload' || activeChar.backgroundType === 'drawing' ? '插图' : 'SKETCH'}
                       </div>
