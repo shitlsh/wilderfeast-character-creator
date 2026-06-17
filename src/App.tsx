@@ -2766,7 +2766,21 @@ export default function App() {
                                   onClick={() => {
                                     const updated = characters.map(c => c.id === activeChar.id ? { ...c, techniques: c.techniques.filter((t: string) => t !== tName) } : c);
                                     setCharacters(updated);
-                                    saveCustomCharacters(updated.filter(c => c.isCustom));
+                                    if (!activeChar.isCustom) {
+                                      const customs = characters.filter(c => c.isCustom);
+                                      const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                                      if (pregenInCustoms) {
+                                        const idx = customs.findIndex(c => c.id === activeChar.id);
+                                        customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                                        saveCustomCharacters(customs);
+                                      } else {
+                                        const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                                        saveCustomCharacters([...customs, cloned]);
+                                        setSelectedCharId(cloned.id);
+                                      }
+                                    } else {
+                                      saveCustomCharacters(updated.filter(c => c.isCustom));
+                                    }
                                   }}
                                   className="text-ink-light hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0"
                                   title="移除战技"
@@ -2841,7 +2855,21 @@ export default function App() {
                                   newTraits.splice(idx + 2, 1);
                                   const updated = characters.map(c => c.id === activeChar.id ? { ...c, traits: newTraits } : c);
                                   setCharacters(updated);
-                                  saveCustomCharacters(updated.filter(c => c.isCustom));
+                                  if (!activeChar.isCustom) {
+                                    const customs = characters.filter(c => c.isCustom);
+                                    const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                                    if (pregenInCustoms) {
+                                      const index = customs.findIndex(c => c.id === activeChar.id);
+                                      customs[index] = updated.find(c => c.id === activeChar.id)!;
+                                      saveCustomCharacters(customs);
+                                    } else {
+                                      const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                                      saveCustomCharacters([...customs, cloned]);
+                                      setSelectedCharId(cloned.id);
+                                    }
+                                  } else {
+                                    saveCustomCharacters(updated.filter(c => c.isCustom));
+                                  }
                                 }}
                                 className="text-ink-light hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity ml-1 flex-shrink-0"
                                 title="移除特性"
@@ -2882,7 +2910,21 @@ export default function App() {
                                     const newStates = activeChar.statesActive.filter((_, idx) => idx !== i);
                                     const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
                                     setCharacters(updated);
-                                    saveCustomCharacters(updated.filter(c => c.isCustom));
+                                    if (!activeChar.isCustom) {
+                                      const customs = characters.filter(c => c.isCustom);
+                                      const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                                      if (pregenInCustoms) {
+                                        const idx = customs.findIndex(c => c.id === activeChar.id);
+                                        customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                                        saveCustomCharacters(customs);
+                                      } else {
+                                        const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                                        saveCustomCharacters([...customs, cloned]);
+                                        setSelectedCharId(cloned.id);
+                                      }
+                                    } else {
+                                      saveCustomCharacters(updated.filter(c => c.isCustom));
+                                    }
                                   }}
                                   className="text-red-400 hover:text-red-700 text-xs ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
                                   title="移除状态"
@@ -3153,7 +3195,21 @@ export default function App() {
                           } else {
                             const updated = characters.map(c => c.id === activeChar.id ? { ...c, techniques: [...c.techniques, t.name] } : c);
                             setCharacters(updated);
-                            saveCustomCharacters(updated.filter(c => c.isCustom));
+                            if (!activeChar.isCustom) {
+                              const customs = characters.filter(c => c.isCustom);
+                              const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                              if (pregenInCustoms) {
+                                const idx = customs.findIndex(c => c.id === activeChar.id);
+                                customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                                saveCustomCharacters(customs);
+                              } else {
+                                const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                                saveCustomCharacters([...customs, cloned]);
+                                setSelectedCharId(cloned.id);
+                              }
+                            } else {
+                              saveCustomCharacters(updated.filter(c => c.isCustom));
+                            }
                             showNotification(`已添加战技：${t.name}`, 'success');
                           }
                           setPickerModal('none');
@@ -3191,7 +3247,21 @@ export default function App() {
                             const newTraits = [...activeChar.traits, t.name];
                             const updated = characters.map(c => c.id === activeChar.id ? { ...c, traits: newTraits } : c);
                             setCharacters(updated);
-                            saveCustomCharacters(updated.filter(c => c.isCustom));
+                            if (!activeChar.isCustom) {
+                              const customs = characters.filter(c => c.isCustom);
+                              const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                              if (pregenInCustoms) {
+                                const idx = customs.findIndex(c => c.id === activeChar.id);
+                                customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                                saveCustomCharacters(customs);
+                              } else {
+                                const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                                saveCustomCharacters([...customs, cloned]);
+                                setSelectedCharId(cloned.id);
+                              }
+                            } else {
+                              saveCustomCharacters(updated.filter(c => c.isCustom));
+                            }
                             showNotification(`已添加特性：${t.name}`, 'success');
                             setPickerModal('none');
                           }}
@@ -3355,7 +3425,21 @@ export default function App() {
                                 : [...activeChar.statesActive, { name: baseName, level }];
                               const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
                               setCharacters(updated);
-                              saveCustomCharacters(updated.filter(c => c.isCustom));
+                              if (!activeChar.isCustom) {
+                                const customs = characters.filter(c => c.isCustom);
+                                const pregenInCustoms = customs.find(c => c.id === activeChar.id);
+                                if (pregenInCustoms) {
+                                  const idx = customs.findIndex(c => c.id === activeChar.id);
+                                  customs[idx] = updated.find(c => c.id === activeChar.id)!;
+                                  saveCustomCharacters(customs);
+                                } else {
+                                  const cloned = { ...updated.find(c => c.id === activeChar.id)!, id: `${activeChar.id}_session`, isCustom: true };
+                                  saveCustomCharacters([...customs, cloned]);
+                                  setSelectedCharId(cloned.id);
+                                }
+                              } else {
+                                saveCustomCharacters(updated.filter(c => c.isCustom));
+                              }
                               showNotification(`已添加状态：${baseName}`, 'success');
                               setIsStateModalOpen(false);
                               setPendingState('');
