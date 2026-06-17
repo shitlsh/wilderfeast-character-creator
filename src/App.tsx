@@ -2759,7 +2759,7 @@ export default function App() {
                               <div key={tName} className="flex items-start justify-between group">
                                   <div className="text-xs flex-1 min-w-0">
                                     <span className="font-bold text-ink">{tName}</span>
-                                    <span className="inline-block px-1.5 py-px ml-1.5 leading-none text-[9px] font-bold rounded bg-surface-border border border-surface-border text-ink-light">{foundTech?.cost || '被动'}</span>
+                                    <span className="inline-block px-1.5 py-0.5 ml-1.5 leading-none text-[9px] font-bold rounded bg-surface-border border border-surface-border text-ink-light">{foundTech?.cost || '被动'}</span>
                                     <p className="text-[10px] text-ink-muted leading-snug mt-0.5 break-words">{foundTech?.effect || tName}</p>
                                 </div>
                                 <button
@@ -2801,14 +2801,14 @@ export default function App() {
                         <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
                           <div>
                             <span className="font-extrabold text-emerald-900">毅力。</span>
-                            <span className="inline-block px-1.5 py-px ml-1.5 leading-none text-[9px] font-bold rounded font-mono bg-emerald-900 text-white">1次成功</span>
+                            <span className="inline-block px-1.5 py-0.5 ml-1.5 leading-none text-[9px] font-bold rounded font-mono bg-emerald-900 text-white">1次成功</span>
                             <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
                           </div>
                         </div>
                         <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
                           <div>
                             <span className="font-extrabold text-emerald-900">洞察。</span>
-                            <span className="inline-block px-1.5 py-px ml-1.5 leading-none text-[9px] font-bold rounded font-mono bg-emerald-900 text-white">1次成功</span>
+                            <span className="inline-block px-1.5 py-0.5 ml-1.5 leading-none text-[9px] font-bold rounded font-mono bg-emerald-900 text-white">1次成功</span>
                             <p className="text-[10px] text-ink mt-0.5">确立一个关于当前情境的细节。</p>
                           </div>
                         </div>
@@ -2832,7 +2832,7 @@ export default function App() {
                             <div key={tName} className="flex items-start justify-between group">
                               <div>
                                 <span className="font-extrabold text-amber-900">{tName}。</span>
-                                <span className="inline-block px-1.5 py-px ml-1.5 leading-none text-[9px] font-bold rounded font-mono bg-amber-900 text-white">{trCost}</span>
+                                <span className="inline-block px-1.5 py-0.5 ml-1.5 leading-none text-[9px] font-bold rounded font-mono bg-amber-900 text-white">{trCost}</span>
                                 <p className="text-[10px] text-ink mt-0.5">{trEffect}</p>
                               </div>
                               <button
@@ -3033,7 +3033,7 @@ export default function App() {
                         <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
                           <p className="font-extrabold text-[#1E4D8C] text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
                             <span>哪一道餐食定义了你的童年？ (童年餐食: {activeChar.backgroundMeals.upbringing.meal})</span>
-                            <span className="inline-block px-1.5 py-px ml-1 leading-none rounded font-mono text-[9px] font-bold bg-[#1E4D8C]/10 text-[#1E4D8C]">+1 {activeChar.backgroundMeals.upbringing.skill}</span>
+                            <span className="inline-block px-1.5 py-0.5 ml-1 leading-none rounded font-mono text-[9px] font-bold bg-[#1E4D8C]/10 text-[#1E4D8C]">+1 {activeChar.backgroundMeals.upbringing.skill}</span>
                           </p>
                           <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.upbringing.text)}</p>
                         </div>
@@ -3048,7 +3048,7 @@ export default function App() {
                         <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
                           <p className="font-extrabold text-stone-700 text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
                             <span>哪一道餐食让你成为了一名荒野食客？ (动机餐食: {activeChar.backgroundMeals.motivation.meal})</span>
-                            <span className="inline-block px-1.5 py-px ml-1 leading-none rounded font-mono text-[9px] font-bold bg-stone-100 text-stone-700">+1 {activeChar.backgroundMeals.motivation.skill}</span>
+                            <span className="inline-block px-1.5 py-0.5 ml-1 leading-none rounded font-mono text-[9px] font-bold bg-stone-100 text-stone-700">+1 {activeChar.backgroundMeals.motivation.skill}</span>
                           </p>
                           <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.motivation.text)}</p>
                         </div>
@@ -3063,7 +3063,7 @@ export default function App() {
                         <div className="flex-1 bg-white p-3 text-xs leading-relaxed text-ink space-y-1">
                           <p className="font-extrabold text-[#E07A2C] text-[10px] border-b border-surface-border/40 pb-0.5 mb-1.5 flex items-center justify-between">
                             <span>你最想吃哪一道餐食？ (雄心餐食: {activeChar.backgroundMeals.ambition.meal})</span>
-                            <span className="inline-block px-1.5 py-px ml-1 leading-none rounded font-mono text-[9px] font-bold bg-[#E07A2C]/10 text-[#E07A2C]">+1 {activeChar.backgroundMeals.ambition.skill}</span>
+                            <span className="inline-block px-1.5 py-0.5 ml-1 leading-none rounded font-mono text-[9px] font-bold bg-[#E07A2C]/10 text-[#E07A2C]">+1 {activeChar.backgroundMeals.ambition.skill}</span>
                           </p>
                           <p className="text-ink leading-relaxed font-serif">{highlightKeywords(activeChar.backgroundMeals.ambition.text)}</p>
                         </div>
