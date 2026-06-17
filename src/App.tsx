@@ -2302,7 +2302,7 @@ export default function App() {
                                 <div key={`${st.name}-${i}`} className="flex items-center justify-between bg-surface/80 p-1.5 rounded border border-surface-border group">
                                   <div className="flex items-center space-x-1.5">
                                     <span className="font-bold text-[11px] text-ink">
-                                      {st.name}{found?.name.includes('X') ? st.level : ''}
+                                      {st.name}{found?.name.includes('X') || found?.name.includes('至') ? st.level : ''}
                                     </span>
                                   </div>
                                   <div className="flex items-center space-x-1">
@@ -2339,7 +2339,7 @@ export default function App() {
                             const endCond = found.name.includes('X') ? found.endCondition.replace(/X/g, String(st.level)) : found.endCondition;
                             return (
                               <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
-                                <span className="font-bold">{st.name}{found.name.includes('X') ? st.level : ''}：</span>{displayEffect}
+                                <span className="font-bold">{st.name}{found.name.includes('X') || found.name.includes('至') ? st.level : ''}：</span>{displayEffect}
                                 {showEndCond && <><br /><span className="italic">结束条件：{endCond}</span></>}
                               </div>
                             );
