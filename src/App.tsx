@@ -2,8 +2,8 @@ import { useState, useEffect, useRef } from 'react';
 import html2canvas from 'html2canvas';
 import { 
   Dice5, Download, Upload, Plus, Trash2, 
-  Heart, Shield, Printer, ArrowLeft, Shuffle, 
-  Users, Share2, Compass, Feather, BookOpen as BookIcon, Search
+  Printer, ArrowLeft, Shuffle, 
+  Users, Share2, Compass, BookOpen as BookIcon, Search
 } from 'lucide-react';
 import { 
   TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, BONDS, PRE_GENS,
@@ -1190,7 +1190,7 @@ export default function App() {
                         {char.adjectives.join(' / ')} • {char.specialty}
                       </p>
                       <p className={`text-xs font-serif mt-1 flex items-center gap-1 ${selectedCharId === char.id ? 'text-white/70' : 'text-ink-muted'}`}>
-                        工具: {char.tool} | 体力: {char.stamina}/20 | 和谐: {char.harmony}/{char.harmonyMax}
+                        工具: {char.tool}
                       </p>
                     </div>
                     {char.isCustom && (
@@ -2094,102 +2094,7 @@ export default function App() {
           {activeTab === 'play' && activeChar && (
             <div className="space-y-6">
               
-              {/* INTERACTIVE TRACKERS */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 wood-panel p-5 rounded-lg">
-                {/* Stamina Tracker */}
-                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between">
-                  <span className="text-xs font-bold text-ink-muted flex items-center justify-center gap-1">
-                    <Heart size={14} className="text-wilder-amber fill-earth-500" /> 最大体力 (Stamina)
-                  </span>
-                  <div className="text-3xl font-extrabold font-serif my-2 text-wilder-blue">
-                    {activeChar.stamina} / 20
-                  </div>
-                  <div className="flex justify-center space-x-2">
-                    <button 
-                      onClick={() => updateActiveCharStat('stamina', activeChar.stamina - 1)}
-                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
-                    >
-                      -1
-                    </button>
-                    <button 
-                      onClick={() => updateActiveCharStat('stamina', activeChar.stamina + 1)}
-                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
-                    >
-                      +1
-                    </button>
-                  </div>
-                </div>
 
-                {/* Durability Tracker */}
-                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between">
-                  <span className="text-xs font-bold text-ink-muted flex items-center justify-center gap-1">
-                    <Shield size={14} className="text-yellow-500" /> 工具耐久度 (Durability)
-                  </span>
-                  <div className="text-3xl font-extrabold font-serif my-2 text-yellow-500">
-                    {activeChar.durability} / {activeChar.durabilityMax}
-                  </div>
-                  <div className="flex justify-center space-x-2">
-                    <button 
-                      onClick={() => updateActiveCharStat('durability', activeChar.durability - 1)}
-                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
-                    >
-                      -1
-                    </button>
-                    <button 
-                      onClick={() => updateActiveCharStat('durability', activeChar.durability + 1)}
-                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
-                    >
-                      +1
-                    </button>
-                  </div>
-                </div>
-
-                {/* Harmony Tracker */}
-                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between">
-                  <span className="text-xs font-bold text-ink-muted flex items-center justify-center gap-1">
-                    <Feather size={14} className="text-ink-muted" /> 和谐值 (Harmony) &lt;H&gt;
-                  </span>
-                  <div className="text-3xl font-extrabold font-serif my-2 text-ink">
-                    {activeChar.harmony} / {activeChar.harmonyMax}
-                  </div>
-                  <div className="flex justify-center space-x-2">
-                    <button 
-                      onClick={() => updateActiveCharStat('harmony', activeChar.harmony - 1)}
-                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
-                    >
-                      -1
-                    </button>
-                    <button 
-                      onClick={() => updateActiveCharStat('harmony', activeChar.harmony + 1)}
-                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
-                    >
-                      +1
-                    </button>
-                  </div>
-                </div>
-
-                {/* Harmony Max cap modifier */}
-                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between text-xs">
-                  <span className="font-bold text-ink-muted">⚙️ 调整和谐上限</span>
-                  <p className="text-[10px] text-wilder-amber my-1 leading-tight">休整期间，上限会根据旅途成功与否而波动。</p>
-                  <div className="flex justify-center items-center space-x-3 my-1">
-                    <button 
-                      onClick={() => updateActiveCharStat('harmonyMax', activeChar.harmonyMax - 1)}
-                      className="px-2 py-0.5 bg-surface-border border border-orange-700 rounded font-bold hover:bg-orange-800"
-                    >
-                      -
-                    </button>
-                    <span className="font-bold font-serif text-sm">{activeChar.harmonyMax}</span>
-                    <button 
-                      onClick={() => updateActiveCharStat('harmonyMax', activeChar.harmonyMax + 1)}
-                      className="px-2 py-0.5 bg-surface-border border border-orange-700 rounded font-bold hover:bg-orange-800"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <div className="text-[9px] text-wilder-blue font-bold mt-1">初始默认和谐上限为 3</div>
-                </div>
-              </div>
 
               {/* ACTION SHEET PREVIEW CARD */}
               <div className="flex justify-between items-center bg-surface p-3 rounded border border-wilder-amber">
@@ -2208,7 +2113,7 @@ export default function App() {
                   </button>
                   <button 
                     onClick={exportToPng} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-wilder-blue border-wilder-blue text-xs text-white flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
                   >
                     <Share2 size={14} /> 导出 PNG
                   </button>
@@ -2326,68 +2231,6 @@ export default function App() {
                         })}
                       </div>
 
-                      {/* States Tracker inside style box */}
-                      <div className="border-t border-dashed border-wilder-amber pt-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="block text-[10px] font-black text-ink-muted uppercase">⚠️ 状态</span>
-                          <button
-                            onClick={() => { setIsStateModalOpen(true); setPendingState(''); setPendingStateLevel(1); }}
-                            className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20"
-                          >
-                            + 添加状态
-                          </button>
-                        </div>
-                        {activeChar.statesActive.length > 0 ? (
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            {activeChar.statesActive.map((st, i) => {
-                              const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
-                              return (
-                                <div key={`${st.name}-${i}`} className="flex items-center justify-between bg-surface/80 p-1.5 rounded border border-surface-border group">
-                                  <div className="flex items-center space-x-1.5">
-                                    <span className="font-bold text-[11px] text-ink">
-                                      {st.name}{found?.name.includes('X') || found?.name.includes('至') ? st.level : ''}
-                                    </span>
-                                  </div>
-                                  <div className="flex items-center space-x-1">
-                                    <button
-                                      onClick={() => {
-                                        const newStates = activeChar.statesActive.filter((_, idx) => idx !== i);
-                                        const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
-                                        setCharacters(updated);
-                                        saveCustomCharacters(updated.filter(c => c.isCustom));
-                                      }}
-                                      className="text-ink-light hover:text-red-600 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                                      title="移除状态"
-                                    >×</button>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <p className="text-[10px] text-ink-light italic">无活跃状态</p>
-                        )}
-
-                          {/* Effect descriptions for all states */}
-                          {activeChar.statesActive.map(st => {
-                            const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
-                            if (!found) return null;
-                            const effect = found.name.includes('X') ? found.effect.replace(/X/g, String(st.level)) : found.effect;
-                            // For 受伤, extract the level-specific description
-                            const isInjury = st.name === '受伤';
-                            const displayEffect = isInjury
-                              ? found.effect.split(/受伤\d[：:]/g).filter(Boolean)[st.level - 1] || found.effect
-                              : effect;
-                            const showEndCond = !isInjury && found.endCondition.length > 0;
-                            const endCond = found.name.includes('X') ? found.endCondition.replace(/X/g, String(st.level)) : found.endCondition;
-                            return (
-                              <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
-                                <span className="font-bold">{st.name}{found.name.includes('X') || found.name.includes('至') ? st.level : ''}：</span>{displayEffect}
-                                {showEndCond && <><br /><span className="italic">结束条件：{endCond}</span></>}
-                              </div>
-                            );
-                        })}
-                      </div>
                     </div>
 
                     {/* Right: Skills Grid (Col Span 8) - ALWAYS SHOWING ALL 12 SKILLS */}
@@ -2477,14 +2320,24 @@ export default function App() {
                           <span className="block text-[9px] text-ink-light font-bold uppercase">装备工具</span>
                           <span className="font-bold text-ink text-sm">{activeChar.tool}</span>
                         </div>
-                        <div className="bg-surface-border p-2 border border-surface-border rounded flex justify-between items-center">
-                          <div>
+                        <div className="bg-surface-border p-2 border border-surface-border rounded">
+                          <div className="flex justify-between items-center mb-1">
                             <span className="block text-[9px] text-ink-light font-bold uppercase">当前耐久</span>
-                            <span className="font-bold text-ink text-sm">{activeChar.durability}</span>
-                          </div>
-                          <div className="text-right">
                             <span className="block text-[9px] text-ink-light font-bold uppercase">最大耐久</span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="font-bold text-ink text-sm">{activeChar.durability}</span>
                             <span className="font-bold text-ink text-sm">{activeChar.durabilityMax}</span>
+                          </div>
+                          <div className="flex justify-center space-x-2 mt-1">
+                            <button 
+                              onClick={() => updateActiveCharStat('durability', activeChar.durability - 1)}
+                              className="px-2 py-0.5 bg-surface border border-orange-700 rounded font-bold hover:bg-orange-800 text-[10px]"
+                            >-1</button>
+                            <button 
+                              onClick={() => updateActiveCharStat('durability', activeChar.durability + 1)}
+                              className="px-2 py-0.5 bg-surface border border-orange-700 rounded font-bold hover:bg-orange-800 text-[10px]"
+                            >+1</button>
                           </div>
                         </div>
                         <div className="col-span-2 bg-surface-border p-2 border border-surface-border rounded text-[11px]">
@@ -2606,48 +2459,95 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Bottom row: Stamina & States boxes exactly matching the book footer */}
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-6 pt-4 border-t-2 border-surface-border">
-                      {/* Left: Stamina box */}
-                      <div className="md:col-span-5 border-3 border-wilder-amber bg-white rounded p-3 relative shadow-sm">
-                        <h4 className="font-serif font-black text-xs text-wilder-amber border-b border-wilder-amber pb-1 mb-2 flex items-center justify-between select-none">
-                          <span>体力 ❤</span>
-                        </h4>
-                        <div className="grid grid-cols-2 text-center divide-x divide-surface-border">
-                          <div>
-                            <span className="text-[9px] text-ink-light block uppercase font-bold">当前</span>
-                            <span className="text-2xl font-black font-serif text-ink">{activeChar.stamina}</span>
-                          </div>
-                          <div>
-                            <span className="text-[9px] text-ink-light block uppercase font-bold">最大</span>
-                            <span className="text-2xl font-black font-serif text-ink">20</span>
-                          </div>
-                        </div>
-                      </div>
+                  </div>
 
-                      {/* Right: States box */}
-                      <div className="md:col-span-7 border-3 border-red-600 bg-red-50/10 rounded p-3 relative shadow-sm">
-                        <h4 className="font-serif font-black text-xs text-red-700 border-b border-red-600 pb-1 mb-2 select-none">
-                          <span>状态</span>
-                        </h4>
-                        <div className="flex flex-wrap gap-1.5 min-h-[36px] items-center">
-                          {activeChar.statesActive && activeChar.statesActive.length > 0 ? (
-                            activeChar.statesActive.map(st => {
-                              const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
-                              const hasX = found?.name.includes('X') || found?.name.includes('至');
-                              return (
-                                <span key={st.name} className="px-2.5 py-1 bg-red-600/10 text-red-700 border border-red-600/30 rounded text-xs font-bold font-serif shadow-sm">
-                                  {st.name}{hasX ? ` ${st.level}` : ''}
+                  {/* States Box - standalone, below traits */}
+                  <div className="border-3 border-red-600 bg-red-50/10 rounded p-4 space-y-3 mt-6">
+                    <div className="flex items-center justify-between border-b border-red-600 pb-1.5">
+                      <h4 className="font-serif font-black text-xs text-red-700">⚠️ 状态</h4>
+                      <button
+                        onClick={() => { setIsStateModalOpen(true); setPendingState(''); setPendingStateLevel(1); }}
+                        className="text-[9px] bg-wilder-blue/10 text-wilder-blue border border-wilder-blue/30 px-1.5 py-0.5 rounded hover:bg-wilder-blue/20"
+                      >
+                        + 添加状态
+                      </button>
+                    </div>
+                    {activeChar.statesActive.length > 0 ? (
+                      <div className="space-y-2">
+                        <div className="flex flex-wrap gap-2">
+                          {activeChar.statesActive.map((st, i) => {
+                            const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
+                            return (
+                              <div key={`${st.name}-${i}`} className="flex items-center bg-red-600/10 text-red-700 border border-red-600/30 rounded px-2.5 py-1 group">
+                                <span className="font-bold text-xs font-serif">
+                                  {st.name}{found?.name.includes('X') || found?.name.includes('至') ? st.level : ''}
                                 </span>
-                              );
-                            })
-                          ) : (
-                            <span className="text-ink-light text-xs italic pl-1">无活跃状态 (全部良好)</span>
-                          )}
+                                <button
+                                  onClick={() => {
+                                    const newStates = activeChar.statesActive.filter((_, idx) => idx !== i);
+                                    const updated = characters.map(c => c.id === activeChar.id ? { ...c, statesActive: newStates } : c);
+                                    setCharacters(updated);
+                                    saveCustomCharacters(updated.filter(c => c.isCustom));
+                                  }}
+                                  className="text-red-400 hover:text-red-700 text-xs ml-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  title="移除状态"
+                                >×</button>
+                              </div>
+                            );
+                          })}
                         </div>
+                        {activeChar.statesActive.map(st => {
+                          const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
+                          if (!found) return null;
+                          const effect = found.name.includes('X') ? found.effect.replace(/X/g, String(st.level)) : found.effect;
+                          const isInjury = st.name === '受伤';
+                          const displayEffect = isInjury
+                            ? found.effect.split(/受伤\d[：:]/g).filter(Boolean)[st.level - 1] || found.effect
+                            : effect;
+                          const showEndCond = !isInjury && found.endCondition.length > 0;
+                          const endCond = found.name.includes('X') ? found.endCondition.replace(/X/g, String(st.level)) : found.endCondition;
+                          return (
+                            <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
+                              <span className="font-bold">{st.name}{found?.name.includes('X') || found?.name.includes('至') ? st.level : ''}：</span>{displayEffect}
+                              {showEndCond && <><br /><span className="italic">结束条件：{endCond}</span></>}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-[10px] text-ink-light italic">无活跃状态 (全部良好)</p>
+                    )}
+                  </div>
+
+                  {/* Stamina Box - standalone, with +/- buttons */}
+                  <div className="border-3 border-wilder-amber bg-white rounded p-4 relative shadow-sm mt-6">
+                    <h4 className="font-serif font-black text-xs text-wilder-amber border-b border-wilder-amber pb-1 mb-3 flex items-center justify-between select-none">
+                      <span>体力 ❤</span>
+                    </h4>
+                    <div className="grid grid-cols-2 text-center divide-x divide-surface-border mb-3">
+                      <div>
+                        <span className="text-[9px] text-ink-light block uppercase font-bold">当前</span>
+                        <span className="text-2xl font-black font-serif text-ink">{activeChar.stamina}</span>
+                      </div>
+                      <div>
+                        <span className="text-[9px] text-ink-light block uppercase font-bold">最大</span>
+                        <span className="text-2xl font-black font-serif text-ink">20</span>
                       </div>
                     </div>
-
+                    <div className="flex justify-center space-x-3">
+                      <button 
+                        onClick={() => updateActiveCharStat('stamina', activeChar.stamina - 1)}
+                        className="px-4 py-1.5 bg-surface-border border border-orange-700 rounded font-bold hover:bg-orange-800 text-sm"
+                      >
+                        -1
+                      </button>
+                      <button 
+                        onClick={() => updateActiveCharStat('stamina', activeChar.stamina + 1)}
+                        className="px-4 py-1.5 bg-surface-border border border-orange-700 rounded font-bold hover:bg-orange-800 text-sm"
+                      >
+                        +1
+                      </button>
+                    </div>
                   </div>
                 </div>
 
@@ -2925,19 +2825,21 @@ export default function App() {
         )}
 
         {/* Floating Button Bar */}
-        {activeChar && activeTab === 'play' && (
+        {(activeTab === 'roster' || (activeChar && activeTab === 'play')) && (
           <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 print:hidden">
-            {/* Dice Roller Toggle Button */}
-            <button
-              onClick={() => { setIsDiceDrawerOpen(!isDiceDrawerOpen); setIsManualDrawerOpen(false); }}
-              className="w-14 h-14 bg-wilder-blue border-3 border-surface-border hover:bg-wilder-blue rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
-            >
-              <Dice5 size={22} className="group-hover:rotate-45 transition-transform" />
-              <span className="text-[9px] font-bold mt-0.5 select-none">进行检定</span>
-              <span className="absolute right-16 bg-surface-dark text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-surface-border">
-                打开掷骰检定面板
-              </span>
-            </button>
+            {activeChar && activeTab === 'play' && (
+              /* Dice Roller Toggle Button */
+              <button
+                onClick={() => { setIsDiceDrawerOpen(!isDiceDrawerOpen); setIsManualDrawerOpen(false); }}
+                className="w-14 h-14 bg-wilder-blue border-3 border-surface-border hover:bg-wilder-blue rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
+              >
+                <Dice5 size={22} className="group-hover:rotate-45 transition-transform" />
+                <span className="text-[9px] font-bold mt-0.5 select-none">进行检定</span>
+                <span className="absolute right-16 bg-surface-dark text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-surface-border">
+                  打开掷骰检定面板
+                </span>
+              </button>
+            )}
 
             {/* Manual Toggle Button */}
             <button
