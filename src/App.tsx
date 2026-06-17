@@ -2326,14 +2326,14 @@ export default function App() {
                                 <div key={`${st.name}-${i}`} className="flex items-center justify-between bg-surface/80 p-1.5 rounded border border-surface-border group">
                                   <div className="flex items-center space-x-1.5">
                                     <span className="font-bold text-[11px] text-ink">
-                                      {st.name}{found?.endCondition.includes('X') ? st.level : ''}
+                                      {st.name}{found?.name.includes('X') ? st.level : ''}
                                     </span>
-                                    {found?.endCondition.includes('X') && (
+                                    {found?.name.includes('X') && (
                                       <span className="text-[10px] font-mono text-wilder-amber">Lv.{st.level}</span>
                                     )}
                                   </div>
                                   <div className="flex items-center space-x-1">
-                                    {found?.endCondition.includes('X') && (
+                                    {found?.name.includes('X') && (
                                       <>
                                         <button
                                           onClick={() => {
@@ -2374,18 +2374,17 @@ export default function App() {
                           <p className="text-[10px] text-ink-light italic">无活跃状态</p>
                         )}
 
-                        {/* Effect descriptions for all states */}
-                        {activeChar.statesActive.map(st => {
-                          const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
-                          if (!found) return null;
-                          return (
-                            <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
-                              <span className="font-bold">{st.name}{found?.endCondition.includes('X') ? st.level : ''}：</span>{found.effect}
-                              {found.endCondition.includes('X') && (
-                                <><br /><span className="italic">结束条件：{found.endCondition.replace(/X/g, String(st.level))}</span></>
-                              )}
-                            </div>
-                          );
+                          {/* Effect descriptions for all states */}
+                          {activeChar.statesActive.map(st => {
+                            const found = APPENDIX_STATES.find(s => s.name.replace('X', '').trim() === st.name || s.name.startsWith(st.name));
+                            if (!found) return null;
+                            const endCond = found.name.includes('X') ? found.endCondition.replace(/X/g, String(st.level)) : found.endCondition;
+                            return (
+                              <div key={`desc-${st.name}`} className="text-[9px] text-ink-muted leading-tight bg-surface/40 p-1.5 rounded border border-surface-border">
+                                <span className="font-bold">{st.name}{found.name.includes('X') ? st.level : ''}：</span>{found.effect}
+                                <br /><span className="italic">结束条件：{endCond}</span>
+                              </div>
+                            );
                         })}
 
                         {/* Injured trackers */}
@@ -2901,7 +2900,7 @@ export default function App() {
 
               <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                 {APPENDIX_STATES.filter(s => !appendixSearchQuery || s.name.includes(appendixSearchQuery) || s.effect.includes(appendixSearchQuery)).map(s => {
-                  const isX = s.endCondition.includes('X');
+                  const isX = s.name.includes('X');
                   const isSelected = pendingState === s.name.replace('X', '').trim();
                   return (
                     <div key={s.name} className="p-2 rounded border border-surface-border text-xs">
