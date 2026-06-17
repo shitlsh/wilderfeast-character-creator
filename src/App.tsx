@@ -6,6 +6,7 @@ import {
   Users, Compass, BookOpen as BookIcon, Search, FileDown
 } from 'lucide-react';
 import { PDFDocument, rgb } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
 import { 
   TOOLS, LINEAGES, UPBRINGINGS, MOTIVATIONS, AMBITIONS, BONDS, PRE_GENS,
   Tool, Lineage, Trait, Technique
@@ -556,6 +557,7 @@ export default function App() {
       ]);
 
       const pdfDoc = await PDFDocument.load(templateBytes);
+      pdfDoc.registerFontkit(fontkit);
       const customFont = await pdfDoc.embedFont(fontBytes);
       const pages = pdfDoc.getPages();
       const page1 = pages[0];
@@ -669,19 +671,53 @@ export default function App() {
       const page2El = document.getElementById('sheet-page-2');
       if (!page1El || !page2El) throw new Error('Sheet pages not found');
 
-      // Temporarily remove overflow-hidden for clean capture
-      const origOverflow1 = page1El.style.overflow;
-      const origOverflow2 = page2El.style.overflow;
-      page1El.style.overflow = 'visible';
-      page2El.style.overflow = 'visible';
+      // Hide interactive controls (buttons, inputs) inside the card during capture
+      const hideControls = (el: HTMLElement) => {
+        const controls = el.querySelectorAll('button, input, select, textarea');
+        const restored: { el: HTMLElement; display: string }[] = [];
+        controls.forEach((c) => {
+          const htmlEl = c as HTMLElement;
+          restored.push({ el: htmlEl, display: htmlEl.style.display });
+          htmlEl.style.display = 'none';
+        });
+        return restored;
+      };
+
+      // Remove overflow-hidden for clean capture
+      const fixOverflow = (el: HTMLElement) => {
+        const orig = el.style.overflow;
+        el.style.overflow = 'visible';
+        return orig;
+      };
+
+      // Also handle nested overflow-hidden on children
+      const fixAllOverflow = (el: HTMLElement) => {
+        const restoreList: { el: HTMLElement; orig: string }[] = [];
+        restoreList.push({ el, orig: fixOverflow(el) });
+        el.querySelectorAll('.overflow-hidden, [class*="overflow-hidden"]').forEach((child) => {
+          const htmlEl = child as HTMLElement;
+          restoreList.push({ el: htmlEl, orig: htmlEl.style.overflow });
+          htmlEl.style.overflow = 'visible';
+        });
+        return restoreList;
+      };
+
+      const restoredControls1 = hideControls(page1El);
+      const restoredControls2 = hideControls(page2El);
+      const restoredOverflow1 = fixAllOverflow(page1El);
+      const restoredOverflow2 = fixAllOverflow(page2El);
+
+      // Small delay to let CSS settle
+      await new Promise(r => setTimeout(r, 50));
 
       const [canvas1, canvas2] = await Promise.all([
-        html2canvas(page1El, { useCORS: true, scale: 3, backgroundColor: '#faf6ef' }),
-        html2canvas(page2El, { useCORS: true, scale: 3, backgroundColor: '#faf6ef' }),
+        html2canvas(page1El, { useCORS: true, scale: 3, backgroundColor: '#faf6ef', logging: false }),
+        html2canvas(page2El, { useCORS: true, scale: 3, backgroundColor: '#faf6ef', logging: false }),
       ]);
 
-      page1El.style.overflow = origOverflow1;
-      page2El.style.overflow = origOverflow2;
+      // Restore
+      [...restoredControls1, ...restoredControls2].forEach(({ el, display }) => { el.style.display = display; });
+      [...restoredOverflow1, ...restoredOverflow2].forEach(({ el, orig }) => { el.style.overflow = orig; });
 
       const pdfDoc = await PDFDocument.create();
       const pageWidth = 581;
