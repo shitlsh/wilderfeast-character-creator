@@ -2877,31 +2877,36 @@ export default function App() {
               <div className="flex-1 overflow-y-auto space-y-2 min-h-0">
                 {APPENDIX_STATES.filter(s => !appendixSearchQuery || s.name.includes(appendixSearchQuery) || s.effect.includes(appendixSearchQuery)).map(s => {
                   const isX = s.name.includes('X');
-                  const isSelected = pendingState === s.name.replace('X', '').trim();
+                  const rangeMatch = s.name.match(/(\d+)至(\d+)/);
+                  const hasRange = !!rangeMatch;
+                  const minLevel = hasRange ? parseInt(rangeMatch![1]) : 1;
+                  const maxLevel = hasRange ? parseInt(rangeMatch![2]) : 20;
+                  const displayName = s.name.replace(/ X$/, '').replace(/ \d+至\d+$/, '');
+                  const baseName = s.name.includes('至') ? s.name.replace(/ \d+至\d+$/, '') : s.name.replace(/ X$/, '').trim();
+                  const isSelected = pendingState === baseName;
                   return (
                     <div key={s.name} className="p-2 rounded border border-surface-border text-xs">
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-ink">{s.name.replace('X', '').trim()}</span>
+                        <span className="font-bold text-ink">{displayName}</span>
                         <div className="flex items-center space-x-2">
-                          {isX && (
+                          {(isX || hasRange) && (
                             <input
                               type="number"
-                              min={1}
-                              max={20}
-                              value={isSelected ? pendingStateLevel : 1}
+                              min={minLevel}
+                              max={maxLevel}
+                              value={isSelected ? pendingStateLevel : minLevel}
                               onChange={(e) => {
-                                setPendingState(s.name.replace('X', '').trim());
-                                setPendingStateLevel(Math.max(1, parseInt(e.target.value) || 1));
+                                setPendingState(baseName);
+                                setPendingStateLevel(Math.max(minLevel, Math.min(maxLevel, parseInt(e.target.value) || minLevel)));
                               }}
-                              onClick={() => setPendingState(s.name.replace('X', '').trim())}
+                              onClick={() => setPendingState(baseName)}
                               className="w-12 text-center text-[10px] bg-surface-well border border-surface-border rounded px-1 py-0.5 text-ink"
                               placeholder="等级"
                             />
                           )}
                           <button
                             onClick={() => {
-                              const baseName = s.name.replace('X', '').trim();
-                              const level = isX ? (isSelected && pendingState === baseName ? pendingStateLevel : 1) : 1;
+                              const level = (isX || hasRange) ? (isSelected && pendingState === baseName ? pendingStateLevel : minLevel) : 1;
                               const existing = activeChar.statesActive.find(st => st.name === baseName);
                               const newStates = existing
                                 ? activeChar.statesActive.map(st => st.name === baseName ? { ...st, level: st.level + level } : st)
