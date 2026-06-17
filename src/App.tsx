@@ -145,8 +145,28 @@ export default function App() {
   const [wizAvatarType, setWizAvatarType] = useState<'emoji' | 'upload' | 'drawing'>('emoji');
   const [wizAvatarValue, setWizAvatarValue] = useState('渔夫');
   const [isDrawingModalOpen, setIsDrawingModalOpen] = useState(false);
+  const [drawPenColor, setDrawPenColor] = useState('#2d100c');
+  const [drawPenSize, setDrawPenSize] = useState(3);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingStateRef = useRef<{ isDrawing: boolean; lastX: number; lastY: number }>({ isDrawing: false, lastX: 0, lastY: 0 });
+  const canvasHistoryRef = useRef<string[]>([]);
+  const historyIndexRef = useRef<number>(-1);
+
+  // Drawing modal: prevent body scroll + ESC close
+  useEffect(() => {
+    if (isDrawingModalOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') setIsDrawingModalOpen(false);
+      };
+      window.addEventListener('keydown', handleKey);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKey);
+      };
+    }
+    return () => {};
+  }, [isDrawingModalOpen]);
 
   const ALL_SKILLS = ['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'];
 
@@ -717,7 +737,32 @@ export default function App() {
   // Drawing Canvas Handlers
   const openDrawingModal = () => {
     setIsDrawingModalOpen(true);
-    setTimeout(initCanvas, 100);
+    setTimeout(() => {
+      initCanvas();
+      // Load existing drawing onto canvas for re-editing
+      if (wizAvatarType === 'drawing' && wizAvatarValue) {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const img = new Image();
+        img.onload = () => {
+          ctx.setTransform(1, 0, 0, 1, 0, 0);
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          ctx.scale(2, 2);
+          ctx.strokeStyle = drawPenColor;
+          ctx.lineWidth = drawPenSize;
+          ctx.lineCap = 'round';
+          ctx.lineJoin = 'round';
+          // Save initial state for undo
+          saveHistoryState();
+        };
+        img.src = wizAvatarValue;
+      } else {
+        initCanvas();
+      }
+    }, 100);
   };
 
   const initCanvas = () => {
@@ -731,10 +776,79 @@ export default function App() {
     canvas.height = rect.height * 2;
     ctx.scale(2, 2);
 
-    ctx.strokeStyle = '#2d100c';
-    ctx.lineWidth = 3;
+    ctx.strokeStyle = drawPenColor;
+    ctx.lineWidth = drawPenSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
+  };
+
+  const applyPenStyle = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.strokeStyle = drawPenColor;
+    ctx.lineWidth = drawPenSize;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // Also update the color/size for next stroke without affecting current canvas state
+  };
+
+  const saveHistoryState = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL();
+    const hist = canvasHistoryRef.current;
+    const idx = historyIndexRef.current;
+    // Truncate any redo states beyond current position
+    hist.length = idx + 1;
+    hist.push(dataUrl);
+    if (hist.length > 20) hist.shift();
+    historyIndexRef.current = hist.length - 1;
+  };
+
+  const undoCanvas = () => {
+    if (historyIndexRef.current <= 0) return;
+    historyIndexRef.current--;
+    const hist = canvasHistoryRef.current;
+    const canvas = canvasRef.current;
+    if (!canvas || !hist[historyIndexRef.current]) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = new Image();
+    img.onload = () => {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.scale(2, 2);
+      ctx.strokeStyle = drawPenColor;
+      ctx.lineWidth = drawPenSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    };
+    img.src = hist[historyIndexRef.current];
+  };
+
+  const redoCanvas = () => {
+    const hist = canvasHistoryRef.current;
+    if (historyIndexRef.current >= hist.length - 1) return;
+    historyIndexRef.current++;
+    const canvas = canvasRef.current;
+    if (!canvas || !hist[historyIndexRef.current]) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const img = new Image();
+    img.onload = () => {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      ctx.scale(2, 2);
+      ctx.strokeStyle = drawPenColor;
+      ctx.lineWidth = drawPenSize;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+    };
+    img.src = hist[historyIndexRef.current];
   };
 
   const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement> | MouseEvent) => {
@@ -752,6 +866,7 @@ export default function App() {
   };
 
   const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    applyPenStyle();
     const pos = getCanvasPos(e);
     drawingStateRef.current.isDrawing = true;
     drawingStateRef.current.lastX = pos.x;
@@ -775,10 +890,14 @@ export default function App() {
   };
 
   const stopDrawing = () => {
-    drawingStateRef.current.isDrawing = false;
+    if (drawingStateRef.current.isDrawing) {
+      drawingStateRef.current.isDrawing = false;
+      saveHistoryState();
+    }
   };
 
   const startTouchDrawing = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    applyPenStyle();
     const touch = e.touches[0];
     const pos = getTouchCanvasPos(touch);
     drawingStateRef.current.isDrawing = true;
@@ -806,7 +925,10 @@ export default function App() {
   };
 
   const stopTouchDrawing = () => {
-    drawingStateRef.current.isDrawing = false;
+    if (drawingStateRef.current.isDrawing) {
+      drawingStateRef.current.isDrawing = false;
+      saveHistoryState();
+    }
   };
 
   const clearCanvas = () => {
@@ -814,7 +936,16 @@ export default function App() {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.scale(2, 2);
+    ctx.strokeStyle = drawPenColor;
+    ctx.lineWidth = drawPenSize;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    // Reset history
+    canvasHistoryRef.current = [];
+    historyIndexRef.current = -1;
   };
 
   const saveDrawing = () => {
@@ -838,9 +969,16 @@ export default function App() {
       if (!ctx) return;
       const img = new Image();
       img.onload = () => {
-        const w = canvas.width / 2;
-        const h = canvas.height / 2;
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.drawImage(img, 0, 0, w, h);
+        ctx.scale(2, 2);
+        ctx.strokeStyle = drawPenColor;
+        ctx.lineWidth = drawPenSize;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        saveHistoryState();
       };
       img.src = event.target?.result as string;
     };
@@ -1228,11 +1366,42 @@ export default function App() {
 
                   {/* Drawing Canvas Modal */}
                   {isDrawingModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-                      <div className="bg-[#2d100c] border-3 border-earth-500 rounded-xl p-5 max-w-lg w-full shadow-rough-lg">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4" onTouchMove={(e) => e.preventDefault()}>
+                      <div className="bg-[#2d100c] border-3 border-earth-500 rounded-xl p-3 sm:p-5 max-w-lg w-full shadow-rough-lg">
                         <h3 className="text-lg font-bold font-serif text-earth-400 mb-1">✏️ 手绘角色肖像</h3>
                         <p className="text-xs text-orange-400 mb-3">在下方区域自由绘制你的角色头像</p>
-                        <div className="drawing-grid rounded-lg overflow-hidden border-2 border-earth-600" style={{ width: '100%', height: 280 }}>
+
+                        {/* Color palette + Pen size row */}
+                        <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
+                          <div className="flex items-center space-x-1">
+                            <span className="text-[10px] text-orange-400 mr-1">颜色</span>
+                            {['#2d100c','#1a1a1a','#8b4513','#a0522d','#556b2f','#8b6c4c','#d2691e','#c56b4e'].map(c => (
+                              <button
+                                key={c}
+                                type="button"
+                                onClick={() => setDrawPenColor(c)}
+                                className={`w-5 h-5 rounded-full border-2 transition-all ${drawPenColor === c ? 'border-white scale-110' : 'border-transparent'}`}
+                                style={{ backgroundColor: c }}
+                                title={c}
+                              />
+                            ))}
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <span className="text-[10px] text-orange-400 mr-1">粗细</span>
+                            {[2, 4, 6, 10].map(s => (
+                              <button
+                                key={s}
+                                type="button"
+                                onClick={() => setDrawPenSize(s)}
+                                className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-all ${drawPenSize === s ? 'bg-earth-600 text-white' : 'bg-amber-950 text-orange-300'}`}
+                              >
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="drawing-grid rounded-lg overflow-hidden border-2 border-earth-600 w-full h-[260px] sm:h-[320px]">
                           <canvas
                             ref={canvasRef}
                             className="w-full h-full cursor-crosshair"
@@ -1245,17 +1414,34 @@ export default function App() {
                             onTouchEnd={stopTouchDrawing}
                           />
                         </div>
-                        <div className="flex items-center justify-between mt-3">
+
+                        <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
                           <div className="flex space-x-2">
                             <button
                               type="button"
+                              onClick={undoCanvas}
+                              disabled={historyIndexRef.current <= 0}
+                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              ↩️ 撤销
+                            </button>
+                            <button
+                              type="button"
+                              onClick={redoCanvas}
+                              disabled={historyIndexRef.current >= canvasHistoryRef.current.length - 1}
+                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                            >
+                              ↪️ 重做
+                            </button>
+                            <button
+                              type="button"
                               onClick={clearCanvas}
-                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2.5 py-1 rounded hover:bg-amber-900"
+                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded hover:bg-amber-900"
                             >
                               🗑️ 清除
                             </button>
-                            <label className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2.5 py-1 rounded cursor-pointer hover:bg-amber-900">
-                              🖼️ 上传底图
+                            <label className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded cursor-pointer hover:bg-amber-900">
+                              🖼️ 底图
                               <input type="file" accept="image/*" onChange={uploadDrawingPhoto} className="hidden" />
                             </label>
                           </div>
