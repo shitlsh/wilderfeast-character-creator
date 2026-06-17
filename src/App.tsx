@@ -11,7 +11,7 @@ import {
 } from './data';
 import { getInkIcon, getCharacterPortrait } from './icons';
 import { 
-  APPENDIX_TRAITS, APPENDIX_TECHNIQUES, APPENDIX_STATES, APPENDIX_REGIONS, APPENDIX_ACTIONS 
+  APPENDIX_TRAITS, APPENDIX_TECHNIQUES, APPENDIX_STATES, APPENDIX_REGIONS 
 } from './appendixData';
 
 // Definition for our dynamic character state
@@ -3253,64 +3253,306 @@ export default function App() {
             )}
 
             {/* Appendix D: Quick Reference */}
-            {activeAppendixTab === 'd' && (
-              <div className="space-y-4">
-                {/* 追踪 */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🔄 追踪 (Tracking)</div>
-                  {APPENDIX_ACTIONS.filter(act => act.module === 'tracking' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                      <div className="flex justify-between font-bold text-ink text-[11px]">
-                        <span>{act.name}</span>
-                        <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
-                      </div>
-                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
-                    </div>
-                  ))}
-                </div>
+            {activeAppendixTab === 'd' && (() => {
+              const showTracking = !appendixSearchQuery || '追踪每个行进轮包含以下阶段寻踪选择该区域中的一个聚落收集物资觅食搜索风格扎营不谐受伤前进开始挑战难度值旅行穿越'.includes(appendixSearchQuery);
+              const showHunting = !appendixSearchQuery || '狩猎每个回合有3点行动攻击力量精准迅捷技巧防御饮食即时动作移动准备修复嘲讽特性'.includes(appendixSearchQuery);
+              const showFeast = !appendixSearchQuery || '盛宴问题烹饪风格技能特性'.includes(appendixSearchQuery);
+              const showRest = !appendixSearchQuery || '休整首先完成以下所有事项体力耐久度受伤不谐烹饪恢复照料补给训练投入项目'.includes(appendixSearchQuery);
 
-                {/* 狩猎 */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">⚔️ 狩猎 (Hunting)</div>
-                  <p className="text-[9px] text-ink-light italic">你每回合有3点行动，可用于以下选项：</p>
-                  {APPENDIX_ACTIONS.filter(act => act.module === 'hunting' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                      <div className="flex justify-between font-bold text-ink text-[11px]">
-                        <span>{act.name}</span>
-                        <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
+              return (
+                <div className="space-y-4">
+                  {/* 追踪 (Tracking) */}
+                  {showTracking && (
+                    <div className="flex rounded-lg shadow-sm border border-surface-border">
+                      <div className="w-8 bg-stone-700 text-white rounded-l-lg flex flex-col items-center justify-center font-serif font-black text-sm py-4 select-none shrink-0">
+                        <div>追</div>
+                        <div className="mt-1">踪</div>
                       </div>
-                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* 盛宴 */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🍲 盛宴 (Wild Feast)</div>
-                  <p className="text-[9px] text-ink-light italic">在荒野盛宴期间，你们可以回答以下问题：</p>
-                  {APPENDIX_ACTIONS.filter(act => act.module === 'feast' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                      <p className="text-ink text-[11px] leading-tight font-serif">{act.effect}</p>
-                    </div>
-                  ))}
-                </div>
-
-                {/* 休整 */}
-                <div className="space-y-1.5">
-                  <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🏕️ 休整 (Rest)</div>
-                  <p className="text-[9px] text-ink-light italic">首先完成以下所有事项：回复所有体力、所有耐久度；移除1个等级的受伤状态；获得家乡特产和香料。然后获得2点行动：</p>
-                  {APPENDIX_ACTIONS.filter(act => act.module === 'rest' && (!appendixSearchQuery || act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                    <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
-                      <div className="flex justify-between font-bold text-ink text-[11px]">
-                        <span>{act.name}</span>
-                        <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
+                      <div className="flex-1 bg-surface-well rounded-r-lg p-3 text-xs leading-relaxed text-ink space-y-2">
+                        <p className="font-bold text-ink-muted mb-1 text-[11px]">每个行进轮包含以下阶段：</p>
+                        <ul className="space-y-1.5 pl-1">
+                          <li className="list-none">
+                            <span className="font-extrabold text-ink">● 寻踪（可选）</span>
+                            <ul className="pl-4 mt-0.5 space-y-1">
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="font-extrabold">选择该区域中的一个聚落</span>。通过与该聚落互动，你们可以找到可行的觅食方式、安全的旅行方式以及足迹。
+                                </span>
+                              </li>
+                            </ul>
+                          </li>
+                          <li className="list-none">
+                            <span className="font-extrabold text-ink">● 收集物资（可选）</span>
+                            <ul className="pl-4 mt-0.5 space-y-1">
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="font-extrabold">步骤1：觅食</span>。每位荒野食客都进行一次<span className="text-wilder-blue font-bold">搜索</span>检定。若成功，你获得 [A] 份与你所用<span className="text-wilder-amber font-bold">风格</span>相对应的食材。
+                                </span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="font-extrabold">步骤2：扎营</span>。结束除<span className="text-red-600 font-bold">不谐</span>与<span className="text-red-600 font-bold">受伤</span>外的所有状态。回复 &lt;H&gt; 耐久度。猎群烹饪一餐。
+                                </span>
+                              </li>
+                            </ul>
+                          </li>
+                          <li className="list-none">
+                            <span className="font-extrabold text-ink">● 前进</span>
+                            <ul className="pl-4 mt-0.5 space-y-1">
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="font-extrabold">步骤1：开始挑战</span>。猎群必须完成一个难度值为 5 × 荒野食客人数的挑战，才能穿过该区域。
+                                </span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="font-extrabold">步骤2：旅行</span>。每位荒野食客都进行一次<span className="text-wilder-blue font-bold">穿越</span>检定。若成功，将你的 [A] 值加入猎群的总数中。
+                                </span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="font-extrabold">步骤3：检查结果</span>。如果你们完成了挑战，则开始一次安全事件。如果你们挑战失败，则开始一次危险事件。此外，如果你们使用了猎群尚未学会的<span className="text-wilder-amber font-bold">风格</span>进行旅行，则会受到等同于剩余难度值的伤害。
+                                </span>
+                              </li>
+                            </ul>
+                          </li>
+                        </ul>
                       </div>
-                      <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
                     </div>
-                  ))}
+                  )}
+
+                  {/* 狩猎 (Hunting) */}
+                  {showHunting && (
+                    <div className="flex rounded-lg shadow-sm border border-surface-border">
+                      <div className="w-8 bg-stone-700 text-white rounded-l-lg flex flex-col items-center justify-center font-serif font-black text-sm py-4 select-none shrink-0">
+                        <div>狩</div>
+                        <div className="mt-1">猎</div>
+                      </div>
+                      <div className="flex-1 bg-surface-well rounded-r-lg p-3 text-xs leading-relaxed text-ink space-y-2">
+                        <p className="font-bold text-ink-muted mb-1 text-[11px]">你每回合有3点行动，可用于以下选项：</p>
+                        <ul className="space-y-2 pl-1">
+                          <li className="list-none">
+                            <span className="font-extrabold text-ink">● 攻击</span>。（费用：可变）对射程内的一只生物进行一次<span className="text-wilder-blue font-bold">打击</span>或<span className="text-wilder-blue font-bold">射击</span>检定。每种<span className="text-wilder-amber font-bold">风格</span>都有不同的费用与效果。如果你在一个回合内进行多次攻击，每次都必须选择不同的<span className="text-wilder-amber font-bold">风格</span>。
+                            <ul className="pl-4 mt-1 space-y-1">
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="text-wilder-amber font-extrabold">力量</span>。（费用：2点行动）[A]×2点伤害。若失败，你陷入<span className="text-red-600 font-bold">暴露</span>状态。
+                                </span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="text-wilder-amber font-extrabold">精准</span>。（费用：2点行动）[A]点身体部位伤害。
+                                </span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="text-wilder-amber font-extrabold">迅捷</span>。（费用：1点行动）[A]点伤害。
+                                </span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1 text-wilder-amber font-mono">◇</span>
+                                <span>
+                                  <span className="text-wilder-amber font-extrabold">技巧</span>。（费用：1点行动）[A]点身体部位伤害。若失败，你陷入<span className="text-red-600 font-bold">暴露</span>状态。
+                                </span>
+                              </li>
+                            </ul>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">防御</span>。（费用：2点行动）直到你的下个回合开始前，你受到的任何伤害减半。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">饮食</span>。（费用：1点行动）吃下一份零食。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">即时动作</span>。（费用：1点行动）陈述你的目标，设定你的方式，并进行一次检定。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">移动</span>。（费用：1点行动）移动1跨度（靠近或远离），与队友进行跟随，或改变地形。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">准备</span>。（费用：1点行动）在下个回合获得1点额外行动。你每回合只能进行一次准备。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">修复</span>。（费用：2点行动）为你的<span className="font-extrabold">工具</span>回复1点耐久度。目标怪物无法进行修复。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">嘲讽</span>。（费用：1点行动）如果你在1跨度范围内，便会成为目标怪物的目标。
+                            </span>
+                          </li>
+                          <li className="list-none flex items-start">
+                            <span className="mr-1.5 text-ink font-mono">●</span>
+                            <span>
+                              <span className="font-extrabold">使用特性</span>。（费用：可变）每项<span className="text-wilder-teal font-bold">特性</span>都会说明其使用时机与费用。
+                            </span>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 盛宴 (Feast) */}
+                  {showFeast && (
+                    <div className="flex rounded-lg shadow-sm border border-surface-border">
+                      <div className="w-8 bg-stone-700 text-white rounded-l-lg flex flex-col items-center justify-center font-serif font-black text-sm py-4 select-none shrink-0">
+                        <div>盛</div>
+                        <div className="mt-1">宴</div>
+                      </div>
+                      <div className="flex-1 bg-surface-well rounded-r-lg p-3 text-xs leading-relaxed text-ink space-y-2">
+                        <p className="font-bold text-ink-muted mb-1 text-[11px]">在荒野盛宴期间，你可以...</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                            <span className="font-extrabold text-ink block text-[11px] border-b border-surface-border pb-1">回答以下问题...</span>
+                            <ul className="space-y-1 pl-1">
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>你们如何烹饪目标怪物？</span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>你们在准备餐食时做什么？</span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>你们在荒野盛宴上还准备了什么？</span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>这道餐食与你们的过往有何关联？</span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>下一次你们吃这道餐食时，会想起什么？</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="font-extrabold text-ink block text-[11px] border-b border-surface-border pb-1">来提出以下问题...</span>
+                            <ul className="space-y-1 pl-1">
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>目标怪物在某项<span className="text-wilder-amber font-bold">风格</span>上有多少等级？</span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>目标怪物在某项<span className="text-wilder-blue font-bold">技能</span>上有多少等级？</span>
+                              </li>
+                              <li className="list-none flex items-start">
+                                <span className="mr-1.5 text-ink-muted">•</span>
+                                <span>目标怪物的<span className="text-wilder-teal font-bold">特性</span>之一是什么？</span>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 休整 (Rest) */}
+                  {showRest && (
+                    <div className="flex rounded-lg shadow-sm border border-surface-border">
+                      <div className="w-8 bg-stone-700 text-white rounded-l-lg flex flex-col items-center justify-center font-serif font-black text-sm py-4 select-none shrink-0">
+                        <div>休</div>
+                        <div className="mt-1">整</div>
+                      </div>
+                      <div className="flex-1 bg-surface-well rounded-r-lg p-3 text-xs leading-relaxed text-ink space-y-2.5">
+                        <div className="space-y-1">
+                          <p className="font-bold text-ink mb-1 text-[11px]">首先，完成以下所有事项：</p>
+                          <ul className="space-y-0.5 pl-1.5">
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>回复所有体力。</span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>回复所有耐久度。</span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>移除1个等级的<span className="text-red-600 font-bold">受伤</span>状态，并结束除<span className="text-red-600 font-bold">不谐</span>外的所有其他状态的所有等级。</span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>获得 &lt;H&gt; 份家乡特产和1份家乡香料。</span>
+                            </li>
+                          </ul>
+                        </div>
+                        
+                        <div className="space-y-1 pt-1.5 border-t border-surface-border/60">
+                          <p className="font-bold text-ink mb-1 text-[11px]">然后，你们获得2点行动，可用于以下选项：</p>
+                          <ul className="space-y-1 pl-1.5">
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>
+                                <span className="font-extrabold">烹饪</span>。（费用：0点行动）烹饪任意数量的餐食。
+                              </span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>
+                                <span className="font-extrabold">恢复</span>。（费用：1点行动）移除1个等级的<span className="text-red-600 font-bold">受伤</span>状态。
+                              </span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>
+                                <span className="font-extrabold">照料</span>。（费用：0点行动）将一餐饭喂给正在<span className="text-red-600 font-bold">康复</span>的生物。
+                              </span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>
+                                <span className="font-extrabold">补给</span>。（费用：1点行动）获得 &lt;H&gt; 份家乡特产和1份家乡香料。
+                              </span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>
+                                <span className="font-extrabold">训练</span>。（费用：1点行动）完成一次训练，以学习一项战技。你们每个休整阶段只能进行一次训练。
+                              </span>
+                            </li>
+                            <li className="list-none flex items-start">
+                              <span className="mr-1.5 text-ink-muted">•</span>
+                              <span>
+                                <span className="font-extrabold">投入项目</span>。（费用：1点行动）进行一次检定，以完成一个自定义挑战。
+                              </span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
           </div>
           </div>
