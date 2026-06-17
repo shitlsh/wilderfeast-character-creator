@@ -1218,8 +1218,10 @@ export default function App() {
           saveHistoryState();
         };
         img.src = editPortraitValue;
+      } else {
+        initCanvas();
       }
-    }, 50);
+    }, 100);
   };
 
   // Drawing Canvas Handlers (for background image)
@@ -2456,12 +2458,15 @@ export default function App() {
                 </div>
               )}
 
-              {/* Drawing Canvas Modal - available across all wizard steps */}
-              {isDrawingModalOpen && (
+              </div>
+        )}
+
+        {/* Drawing Canvas Modal - available across all tabs */}
+        {isDrawingModalOpen && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4" onTouchMove={(e) => e.preventDefault()}>
                   <div className="bg-[#2d100c] border-3 border-wilder-blue rounded-xl p-3 sm:p-5 max-w-lg w-full shadow-rough-lg">
-                    <h3 className="text-lg font-bold font-serif text-wilder-blue mb-1">✏️ 手绘背景插图</h3>
-                    <p className="text-xs text-wilder-amber mb-3">在下方区域自由绘制你的角色背景插图</p>
+                    <h3 className="text-lg font-bold font-serif text-wilder-blue mb-1">✏️ {isPortraitEditMode ? '手绘角色插图' : '手绘背景插图'}</h3>
+                    <p className="text-xs text-wilder-amber mb-3">在下方区域自由绘制你的角色{isPortraitEditMode ? '插图' : '背景插图'}</p>
 
                     {/* Color palette + Pen size row */}
                     <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
@@ -2537,6 +2542,7 @@ export default function App() {
                           <input type="file" accept="image/*" onChange={uploadDrawingPhoto} className="hidden" />
                         </label>
                       </div>
+
                       <div className="flex space-x-2">
                         <button
                           type="button"
@@ -2550,7 +2556,7 @@ export default function App() {
                           onClick={saveBackgroundDrawing}
                           className="text-xs bg-wilder-blue border border-wilder-blue text-white px-3 py-1 rounded font-bold hover:bg-wilder-blue"
                         >
-                          💾 保存背景图
+                          💾 {isPortraitEditMode ? '保存插图' : '保存背景图'}
                         </button>
                       </div>
                     </div>
@@ -2558,7 +2564,8 @@ export default function App() {
                 </div>
               )}
 
-              {isPortraitModalOpen && activeChar && (
+          {/* Portrait Edit Modal - available across all tabs */}
+          {isPortraitModalOpen && activeChar && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-3 sm:p-6" onTouchMove={(e) => e.preventDefault()}>
                   <div className="bg-surface border-3 border-wilder-blue rounded-xl p-4 sm:p-6 max-w-lg w-full shadow-rough-lg">
                     <div className="flex justify-between items-center mb-3">
@@ -2654,9 +2661,6 @@ export default function App() {
                   </div>
                 </div>
               )}
-
-            </div>
-          )}
 
           {/* TAB 3: PLAY MODE INTERACTIVE SHEET */}
           {activeTab === 'play' && activeChar && (
