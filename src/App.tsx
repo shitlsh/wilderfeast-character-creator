@@ -631,7 +631,7 @@ export default function App() {
       styles.forEach(st => {
         const val = activeChar.styleValues[st.key as keyof typeof activeChar.styleValues] || 1;
         if (val === 0) return;
-        drawCentered(page1, String(val), 200, st.y, 14);
+        drawCentered(page1, String(val), 151, st.y, 14);
       });
 
       // Skills (3 cols x 4 rows)
@@ -642,21 +642,22 @@ export default function App() {
         const row = Math.floor(i / 3);
         const val = activeChar.skills[sk] || 0;
         if (val === 0) return;
-        const cx = col === 0 ? 375 : col === 1 ? 455 : 520;
-        const cy = 621 - row * 20;
+        const cx = col === 0 ? 295 : col === 1 ? 414 : 524;
+        const cy = 627 - row * 23;
         drawCentered(page1, `+${val}`, cx, cy, 9);
       });
 
       // Tool Name & Range
-      draw(page1, activeChar.tool, 90, 472, 10);
-      draw(page1, "1 (打击)", 95, 452, 10);
+      draw(page1, activeChar.tool, 90, 478, 10);
+      draw(page1, "射程: 1 (打击)", 95, 440, 8, darkInk);
+      draw(page1, "损坏时: 射程:1(打击)。该身体部位造成伤害减半。", 95, 426, 7, grayInk);
 
       // Durability (Center "当前" at 230, "最大" at 270)
       drawCentered(page1, String(activeChar.durability), 230, 452, 12);
       drawCentered(page1, String(activeChar.durabilityMax), 270, 452, 12);
 
       // Techniques Layout (blank lines start at y=372, spacing=20)
-      let techY = 372;
+      let techY = 382;
       (activeChar.techniques || []).forEach(tName => {
         const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
         const cost = foundTech?.cost || '被动';
@@ -668,7 +669,7 @@ export default function App() {
           
           // Draw wrapped effect on lines (spaced 20pt)
           techY = drawWrapped(page1, effect, 45, techY, 235, 8, 20, grayInk);
-          techY -= 20; // blank line before next technique
+          techY -= 15; // blank line before next technique
         }
       });
 
@@ -701,9 +702,8 @@ export default function App() {
         }
       });
 
-      // Stamina (Center "当前" at 92, "最大" at 192)
-      drawCentered(page1, String(activeChar.stamina), 92, 54, 14);
-      drawCentered(page1, "20", 192, 54, 14);
+      // Stamina (only show max value, moved up)
+      drawCentered(page1, "20", 206, 62, 18);
 
       // States (Lines are at y=92, 72, 52)
       if (activeChar.statesActive && activeChar.statesActive.length > 0) {
@@ -731,16 +731,16 @@ export default function App() {
       draw(page2, activeChar.specialty, 440, 688, 11);
 
       // Identity descriptors (现在的样子 / 想成为的样子)
-      draw(page2, activeChar.adjectives[0], 55, 618, 12);
-      draw(page2, activeChar.adjectives[1], 55, 580, 12);
+      draw(page2, activeChar.adjectives[0], 202, 647, 12);
+      draw(page2, activeChar.adjectives[1], 202, 620, 12);
 
       // Companion
-      draw(page2, activeChar.companion.name, 55, 535, 11);
-      drawWrapped(page2, `"${activeChar.companion.description}"`, 55, 515, 170, 8, 11, grayInk);
+      draw(page2, activeChar.companion.name, 55, 575, 11);
+      drawWrapped(page2, `"${activeChar.companion.description}"`, 55, 555, 170, 8, 11, grayInk);
 
       // Specialty & Spice (Center "特产" at 92, "香料" at 192)
-      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包', 92, 450, 11);
-      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒', 192, 450, 11);
+      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包', 92, 430, 11);
+      drawCentered(page2, activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒', 206, 430, 11);
 
       // Embed Portrait / Background Image inside the SKETCH box
       let imgBytes: ArrayBuffer | null = null;
@@ -793,13 +793,13 @@ export default function App() {
       draw(page2, `${bg.upbringing.meal} (+1 ${bg.upbringing.skill})`, 100, 352, 10, darkInk);
       drawWrapped(page2, bg.upbringing.text, 100, 334, courseWidth, 8, courseLeading, grayInk);
 
-      // Motivation (printed lines at y=286, 268, 250)
-      draw(page2, `${bg.motivation.meal} (+1 ${bg.motivation.skill})`, 100, 286, 10, darkInk);
-      drawWrapped(page2, bg.motivation.text, 100, 268, courseWidth, 8, courseLeading, grayInk);
+      // Motivation (printed lines at y=270, 252, 234)
+      draw(page2, `${bg.motivation.meal} (+1 ${bg.motivation.skill})`, 100, 270, 10, darkInk);
+      drawWrapped(page2, bg.motivation.text, 100, 252, courseWidth, 8, courseLeading, grayInk);
 
-      // Ambition (printed lines at y=220, 202, 184)
-      draw(page2, `${bg.ambition.meal} (+1 ${bg.ambition.skill})`, 100, 220, 10, darkInk);
-      drawWrapped(page2, bg.ambition.text, 100, 202, courseWidth, 8, courseLeading, grayInk);
+      // Ambition (printed lines at y=194, 176, 158)
+      draw(page2, `${bg.ambition.meal} (+1 ${bg.ambition.skill})`, 100, 194, 10, darkInk);
+      drawWrapped(page2, bg.ambition.text, 100, 176, courseWidth, 8, courseLeading, grayInk);
 
       // Bond (printed lines at y=110, 92, 74, 56)
       drawWrapped(page2, activeChar.bond, 70, 112, courseWidth, 8, 14, grayInk);
