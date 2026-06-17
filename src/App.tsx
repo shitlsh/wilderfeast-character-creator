@@ -146,6 +146,10 @@ export default function App() {
   const [appendixSearchQuery, setAppendixSearchQuery] = useState('');
   const [appendixFilterWeapon, setAppendixFilterWeapon] = useState('all');
 
+  // Drawer States
+  const [isDiceDrawerOpen, setIsDiceDrawerOpen] = useState<boolean>(false);
+  const [isManualDrawerOpen, setIsManualDrawerOpen] = useState<boolean>(false);
+
   // Alert/Notification State
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
@@ -800,11 +804,8 @@ export default function App() {
         </div>
       )}
 
-      {/* MAIN LAYOUT SPLIT */}
-      <main className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* LEFT/MAIN AREA */}
-        <div className="lg:col-span-8">
+      {/* MAIN LAYOUT - FULL WIDTH AND SPACIOUS */}
+      <main className="max-w-4xl mx-auto w-full px-2 sm:px-4">
           
           {/* TAB 1: ROSTER & SELECTION */}
           {activeTab === 'roster' && (
@@ -1622,7 +1623,7 @@ export default function App() {
               {/* INTERACTIVE SHEET WRAPPED IN ORANGE DOTTED MAT BACKGROUND - RESPONSIVE 2-PAGE OPEN BOOK */}
               <div 
                 ref={cardPrintRef}
-                className="wilder-dot-bg p-2 sm:p-4 md:p-8 rounded-lg shadow-rough-lg border-3 border-stone-950 grid grid-cols-1 xl:grid-cols-2 gap-6 print:grid-cols-2 print:gap-4 print:p-0 print:border-0 print:shadow-none"
+                className="wilder-dot-bg p-2 sm:p-4 md:p-8 rounded-lg shadow-rough-lg border-3 border-stone-950 flex flex-col gap-6 print:p-0 print:border-0 print:shadow-none"
               >
                 
                 {/* ==================== PAGE 1 OF THE CHARACTER SHEET ==================== */}
@@ -1684,7 +1685,7 @@ export default function App() {
                           return (
                             <div 
                               key={st.key}
-                              onClick={() => { setSelectedRollStyle(st.label); showNotification(`已选择风格骰：[${st.label}] (${val}d6)`, 'info'); }}
+                              onClick={() => { setSelectedRollStyle(st.label); setIsDiceDrawerOpen(true); showNotification(`已选择风格骰：[${st.label}] (${val}d6)`, 'info'); }}
                               className={`border-2 border-stone-900 rounded p-2 flex items-center justify-between cursor-pointer transition-all ${
                                 isSelected 
                                   ? 'bg-[#fc8419] text-white shadow-rough border-stone-950 scale-[1.02]' 
@@ -1789,7 +1790,7 @@ export default function App() {
                           return (
                             <div 
                               key={sk}
-                              onClick={() => { setSelectedRollSkill(sk); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
+                              onClick={() => { setSelectedRollSkill(sk); setIsDiceDrawerOpen(true); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
                               className={`p-2 flex items-center justify-between cursor-pointer transition-all ${
                                 index < 9 ? 'border-b-2 border-stone-900' : 'border-b-2 border-stone-900 md:border-b-0'
                               } ${
@@ -2043,381 +2044,434 @@ export default function App() {
               </div>
             </div>
           )}
-        </div>
 
-        {/* RIGHT AREA: DICE ROLLING SIMULATOR */}
-        <div className="lg:col-span-4 space-y-6">
-          <div className="wood-panel p-5 rounded-lg text-parchment-100">
-            <h3 className="font-serif font-bold text-lg mb-2 text-parchment-200 flex items-center gap-1.5">
-              <Dice5 className="text-earth-400" /> 荒野投掷组合契约
+        {/* Backdrop Overlay */}
+        {(isDiceDrawerOpen || isManualDrawerOpen) && (
+          <div 
+            onClick={() => { setIsDiceDrawerOpen(false); setIsManualDrawerOpen(false); }}
+            className="fixed inset-0 bg-stone-950/60 z-30 transition-opacity animate-fade-in print:hidden"
+          />
+        )}
+
+        {/* Floating Button Bar */}
+        {activeChar && activeTab === 'play' && (
+          <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 print:hidden">
+            {/* Dice Roller Toggle Button */}
+            <button
+              onClick={() => { setIsDiceDrawerOpen(!isDiceDrawerOpen); setIsManualDrawerOpen(false); }}
+              className="w-14 h-14 bg-earth-700 border-3 border-stone-950 hover:bg-earth-600 rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
+            >
+              <Dice5 size={22} className="group-hover:rotate-45 transition-transform" />
+              <span className="text-[9px] font-bold mt-0.5 select-none">进行检定</span>
+              <span className="absolute right-16 bg-stone-950 text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-stone-800">
+                打开掷骰检定面板
+              </span>
+            </button>
+
+            {/* Manual Toggle Button */}
+            <button
+              onClick={() => { setIsManualDrawerOpen(!isManualDrawerOpen); setIsDiceDrawerOpen(false); }}
+              className="w-14 h-14 bg-orange-700 border-3 border-stone-950 hover:bg-orange-600 rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
+            >
+              <BookIcon size={20} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[9px] font-bold mt-0.5 select-none">参考手册</span>
+              <span className="absolute right-16 bg-stone-950 text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-stone-800">
+                打开附录规则手册
+              </span>
+            </button>
+          </div>
+        )}
+
+      </main>
+
+      {/* Slide-out Dice Roller Drawer */}
+      {activeChar && (
+        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-[#150a02] border-l-3 border-stone-950 p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
+          isDiceDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="flex justify-between items-center border-b border-orange-900 pb-3 mb-4">
+            <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
+              <Dice5 className="text-orange-400" /> 荒野掷骰检定
             </h3>
-            <p className="text-[11px] text-orange-300 leading-relaxed mb-4">
-              你可以<b>任意组合</b> 1 种风格和 1 种技能。在下方自由配置并开始投掷！
-            </p>
+            <button 
+              onClick={() => setIsDiceDrawerOpen(false)}
+              className="text-orange-400 hover:text-white font-bold text-lg border border-orange-800 rounded-full w-6 h-6 flex items-center justify-center bg-stone-950/30"
+            >
+              ×
+            </button>
+          </div>
 
-            {/* FREE COMBINATION INTERACTIVE PANELS */}
-            {activeChar && (() => {
-              const styleKeyMap: { [key: string]: 'power' | 'precision' | 'swiftness' | 'technique' } = { 
-                '力量': 'power', 
-                '精准': 'precision', 
-                '迅捷': 'swiftness', 
-                '技巧': 'technique' 
-              };
-              const currentStyleKey = styleKeyMap[selectedRollStyle] || 'power';
-              const rawStyleDiceCount = activeChar.styleValues[currentStyleKey] || 1;
-              const styleDiceCount = actionDieMode === 'wild' ? Math.max(1, rawStyleDiceCount - 1) : rawStyleDiceCount;
-              const currentSkillVal = activeChar.skills[selectedRollSkill] || 0;
+          <p className="text-[11px] text-orange-300 leading-relaxed mb-4">
+            你可以<b>任意组合</b> 1 种风格和 1 种技能。在下方配置并进行投掷！
+          </p>
 
-              return (
-                <div className="space-y-4 bg-[#241103] p-4 rounded border border-orange-900 text-xs">
-                  
-                  {/* Style selection */}
-                  <div>
-                    <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 骰池数 ):</label>
-                    <div className="grid grid-cols-4 gap-1">
-                      {['力量', '精准', '迅捷', '技巧'].map(st => {
-                        const styleVal = activeChar.styleValues[styleKeyMap[st] || 'power'] || 1;
-                        const isSelected = selectedRollStyle === st;
-                        return (
-                          <button
-                            key={st}
-                            type="button"
-                            onClick={() => setSelectedRollStyle(st)}
-                            className={`py-1.5 rounded text-center border font-bold transition-all ${
-                              isSelected 
-                                ? 'bg-earth-600 border-earth-400 text-white shadow font-extrabold' 
-                                : 'bg-[#150a02] border-orange-900 text-orange-300 hover:border-orange-800'
-                            }`}
-                          >
-                            <div>{st}</div>
-                            <div className="text-[10px] font-mono opacity-80">{styleVal}d6</div>
-                          </button>
-                        );
-                      })}
-                    </div>
+          {(() => {
+            const styleKeyMap: { [key: string]: 'power' | 'precision' | 'swiftness' | 'technique' } = { 
+              '力量': 'power', 
+              '精准': 'precision', 
+              '迅捷': 'swiftness', 
+              '技巧': 'technique' 
+            };
+            const currentStyleKey = styleKeyMap[selectedRollStyle] || 'power';
+            const styleDiceCount = actionDieMode === 'wild' ? Math.max(1, (activeChar.styleValues[currentStyleKey] || 1) - 1) : (activeChar.styleValues[currentStyleKey] || 1);
+            const currentSkillVal = activeChar.skills[selectedRollSkill] || 0;
+
+            return (
+              <div className="space-y-4 bg-orange-950/40 p-4 rounded border border-orange-900 text-xs">
+                {/* Style selection */}
+                <div>
+                  <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 风格骰 ):</label>
+                  <div className="grid grid-cols-4 gap-1">
+                    {['力量', '精准', '迅捷', '技巧'].map(st => {
+                      const styleVal = activeChar.styleValues[styleKeyMap[st] || 'power'] || 1;
+                      const isSelected = selectedRollStyle === st;
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          onClick={() => setSelectedRollStyle(st)}
+                          className={`py-1.5 rounded text-center border font-bold transition-all text-[11px] ${
+                            isSelected 
+                              ? 'bg-earth-600 border-earth-400 text-white font-extrabold shadow scale-105' 
+                              : 'bg-[#150a02] border-orange-900 text-orange-300 hover:border-orange-855'
+                          }`}
+                        >
+                          <div>{st}</div>
+                          <div className="text-[9px] font-mono opacity-80">{styleVal}d6</div>
+                        </button>
+                      );
+                    })}
                   </div>
+                </div>
 
-                  {/* Skill selection */}
-                  <div>
-                    <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">2. 选择配套技能 ( 骰面等级加成 ):</label>
-                    <select
-                      value={selectedRollSkill}
-                      onChange={(e) => setSelectedRollSkill(e.target.value)}
-                      className="w-full bg-[#150a02] border-2 border-orange-900 text-parchment-200 rounded px-2.5 py-2 text-xs focus:outline-none focus:border-earth-500"
-                    >
-                      {['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'].map(sk => {
-                        const skillVal = activeChar.skills[sk] || 0;
-                        return (
-                          <option key={sk} value={sk}>
-                            {sk} ( 加值: +{skillVal} )
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
+                {/* Skill selection */}
+                <div>
+                  <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">2. 选择配套技能 ( +1 等级加成 ):</label>
+                  <select
+                    value={selectedRollSkill}
+                    onChange={(e) => setSelectedRollSkill(e.target.value)}
+                    className="w-full bg-[#150a02] border-2 border-orange-900 text-parchment-200 rounded px-2.5 py-2 text-xs focus:outline-none focus:border-earth-500"
+                  >
+                    {['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'].map(sk => {
+                      const skillVal = activeChar.skills[sk] || 0;
+                      return (
+                        <option key={sk} value={sk}>
+                          {sk} ( 加值: +{skillVal} )
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
 
-                  {/* Action Die selection */}
-                  <div>
-                    <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">3. 选择行动骰与心境 (Action Die & Mindset):</label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => { setActionDieMode('focus'); showNotification('心境已设为：集中精神 (d8)', 'success'); }}
-                        className={`p-2 rounded text-left border transition-all ${
-                          actionDieMode === 'focus'
-                            ? 'bg-earth-900 border-earth-500 text-white font-extrabold shadow'
-                            : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
-                        }`}
-                      >
-                        <div className="font-bold font-serif text-xs">集中精神 (Focus)</div>
-                        <p className="text-[9px] text-stone-400 leading-snug mt-0.5">依靠人类力量。获得 1d8 行动骰，稳定可靠。</p>
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={() => { setActionDieMode('wild'); showNotification('心境已设为：释放野性 (d20, 风格骰-1)', 'success'); }}
-                        className={`p-2 rounded text-left border transition-all ${
-                          actionDieMode === 'wild'
-                            ? 'bg-red-950 border-red-500 text-white font-extrabold shadow'
-                            : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
-                        }`}
-                      >
-                        <div className="font-bold font-serif text-xs text-red-400">释放野性 (Go Wild)</div>
-                        <p className="text-[9px] text-stone-400 leading-snug mt-0.5">化身狂乱怪物。获得 1d20 行动骰，但风格骰数减少 1。</p>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Confirm combination message */}
-                  <div className="border-t border-orange-950 pt-3 text-center">
-                    <div className="text-parchment-200 font-serif text-sm font-bold">
-                      当前备战：<span className="text-earth-400 font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
-                    </div>
-                    <div className="text-[10px] text-orange-400 mt-1">
-                      投掷：{styleDiceCount}d6 (风格) + {actionDieMode === 'focus' ? '1d8' : '1d20'} (行动) • 拥有 +{currentSkillVal} 技能加值
-                    </div>
-                    
+                {/* Action Die selection */}
+                <div>
+                  <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">3. 选择行动骰与心境 (Action Die & Mindset):</label>
+                  <div className="grid grid-cols-1 gap-2">
                     <button
-                      onClick={() => handleRollDice(selectedRollStyle, styleDiceCount, selectedRollSkill, currentSkillVal, actionDieMode)}
-                      className="w-full btn-sketch rounded mt-3 py-2.5 bg-earth-600 border-earth-400 text-white font-serif font-black text-sm flex items-center justify-center gap-1.5"
+                      type="button"
+                      onClick={() => { setActionDieMode('focus'); showNotification('心境已设为：集中精神 (d8)', 'success'); }}
+                      className={`p-2 rounded text-left border transition-all ${
+                        actionDieMode === 'focus'
+                          ? 'bg-earth-900 border-earth-500 text-white font-extrabold shadow scale-102'
+                          : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
+                      }`}
                     >
-                      投 掷 契 约
+                      <div className="font-bold font-serif text-xs">集中精神 (Focus)</div>
+                      <p className="text-[9px] text-stone-400 leading-snug mt-0.5">使用 1d8 行动骰。获得稳定、可靠、安全的判定效果。</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => { setActionDieMode('wild'); showNotification('心境已设为：释放野性 (d20, 风格骰-1)', 'success'); }}
+                      className={`p-2 rounded text-left border transition-all ${
+                        actionDieMode === 'wild'
+                          ? 'bg-red-950 border-red-500 text-white font-extrabold shadow scale-102'
+                          : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
+                      }`}
+                    >
+                      <div className="font-bold font-serif text-xs text-red-400">释放野性 (Go Wild)</div>
+                      <p className="text-[9px] text-stone-400 leading-snug mt-0.5">使用 1d20 行动骰。风格骰 d6 数量将扣减 1（代表丧失理智）。</p>
                     </button>
                   </div>
-
-                </div>
-              );
-            })()}
-
-            {/* RESULTS RENDERING */}
-            {diceRoll && (
-              <div className="mt-4 space-y-4 pt-4 border-t border-orange-900">
-                <div className="space-y-2">
-                  <span className="block text-xs font-bold text-parchment-300">
-                    投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
-                  </span>
-
-                  <div className="flex flex-wrap gap-2.5 justify-center py-2 items-center">
-                    {/* Style D6 Dice */}
-                    <div className="flex flex-wrap gap-1.5 justify-center">
-                      {diceRoll.dice.map((d, index) => (
-                        <div 
-                          key={index}
-                          onClick={() => toggleDiceActive(index)}
-                          className={`w-11 h-11 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${
-                            d.adjustedValue >= 5 
-                              ? 'bg-earth-600 border-earth-300 text-white shadow-md scale-105' 
-                              : 'bg-[#150a02] border-orange-900 text-parchment-400'
-                          }`}
-                          title="点击应用或撤销技能 +1 修正"
-                        >
-                          <span className="text-lg font-extrabold font-serif">{d.adjustedValue}</span>
-                          {d.active && <span className="text-[8px] bg-yellow-500 text-amber-950 font-bold px-1 rounded scale-75 mt-[-3px]">+1</span>}
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* Divider spacer */}
-                    <span className="text-orange-900 font-bold mx-1">＋</span>
-
-                    {/* Action Die Box */}
-                    <div className={`p-1.5 border-3 rounded-lg flex flex-col items-center justify-center text-center shadow-md min-w-[70px] ${
-                      diceRoll.actionDieType === 'd8'
-                        ? 'bg-amber-900/40 border-amber-500 text-amber-100'
-                        : 'bg-red-950/40 border-red-500 text-red-200'
-                    }`}>
-                      <span className="text-[8px] font-bold uppercase tracking-wider block leading-none">行动骰 {diceRoll.actionDieType}</span>
-                      <span className="text-xl font-serif font-black block mt-0.5">{diceRoll.actionDieValue}</span>
-                    </div>
-                  </div>
                 </div>
 
-                {/* Score results card */}
-                <div className="bg-[#150a02] p-4 rounded-lg border border-orange-900 text-center space-y-2 shadow-inner">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="border-r border-orange-900">
-                      <span className="text-[10px] text-orange-400 block uppercase font-bold">成功次数</span>
-                      <span className="text-3xl font-black font-serif text-earth-400">
-                        {diceRoll.successes}
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-[10px] text-orange-400 block uppercase font-bold">行动评级 [A]</span>
-                      <span className="text-3xl font-black font-serif text-yellow-500">
-                        {diceRoll.actionRating}
-                      </span>
-                    </div>
+                {/* Confirm combination message */}
+                <div className="border-t border-orange-950 pt-3 text-center">
+                  <div className="text-parchment-200 font-serif text-sm font-bold">
+                    当前备战：<span className="text-earth-400 font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
+                  </div>
+                  <div className="text-[10px] text-orange-400 mt-1">
+                    投掷：{styleDiceCount}d6 (风格) + {actionDieMode === 'focus' ? '1d8' : '1d20'} (行动) • +{currentSkillVal} 技能加值
+                  </div>
+                  
+                  <button
+                    onClick={() => handleRollDice(selectedRollStyle, styleDiceCount, selectedRollSkill, currentSkillVal, actionDieMode)}
+                    className="w-full btn-sketch rounded mt-3 py-2.5 bg-earth-600 border-earth-400 text-white font-serif font-black text-sm flex items-center justify-center gap-1.5"
+                  >
+                    进行掷骰检定
+                  </button>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* RESULTS RENDERING */}
+          {diceRoll && (
+            <div className="mt-4 space-y-4 pt-4 border-t border-orange-900">
+              <div className="space-y-2">
+                <span className="block text-xs font-bold text-parchment-300">
+                  投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
+                </span>
+
+                <div className="flex flex-wrap gap-2.5 justify-center py-2 items-center">
+                  {/* Style D6 Dice */}
+                  <div className="flex flex-wrap gap-1.5 justify-center">
+                    {diceRoll.dice.map((d, index) => (
+                      <div 
+                        key={index}
+                        onClick={() => toggleDiceActive(index)}
+                        className={`w-11 h-11 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${
+                          d.adjustedValue >= 5 
+                            ? 'bg-earth-600 border-earth-300 text-white shadow-md scale-105' 
+                            : 'bg-[#150a02] border-orange-900 text-parchment-400'
+                        }`}
+                        title="点击应用或撤销技能 +1 修正"
+                      >
+                        <span className="text-lg font-extrabold font-serif">{d.adjustedValue}</span>
+                        {d.active && <span className="text-[8px] bg-yellow-500 text-amber-950 font-bold px-1 rounded scale-75 mt-[-3px]">+1</span>}
+                      </div>
+                    ))}
                   </div>
 
-                  <div className="text-xs pt-2 border-t border-orange-900 leading-tight">
-                    {diceRoll.successes > 0 ? (
-                      <span className="text-orange-400 font-bold">
-                        检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！
-                      </span>
-                    ) : (
-                      <span className="text-earth-400 font-bold">
-                        检定失败！未掷出5点以上的成功值。你可能会陷入暴露、遭遇阻碍或导致和谐度降！
-                      </span>
-                    )}
+                  {/* Divider spacer */}
+                  <span className="text-orange-900 font-bold mx-1">＋</span>
+
+                  {/* Action Die Box */}
+                  <div className={`p-1.5 border-3 rounded-lg flex flex-col items-center justify-center text-center shadow-md min-w-[70px] ${
+                    diceRoll.actionDieType === 'd8'
+                      ? 'bg-amber-900/40 border-amber-500 text-amber-100'
+                      : 'bg-red-950/40 border-red-500 text-red-200'
+                  }`}>
+                    <span className="text-[8px] font-bold uppercase tracking-wider block leading-none">行动骰 {diceRoll.actionDieType}</span>
+                    <span className="text-xl font-serif font-black block mt-0.5">{diceRoll.actionDieValue}</span>
                   </div>
                 </div>
               </div>
-            )}
+
+              {/* Score results card */}
+              <div className="bg-[#150a02] p-4 rounded-lg border border-orange-900 text-center space-y-2 shadow-inner text-xs">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="border-r border-orange-900">
+                    <span className="text-[10px] text-orange-400 block uppercase font-bold">成功次数</span>
+                    <span className="text-3xl font-black font-serif text-earth-400">
+                      {diceRoll.successes}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[10px] text-orange-400 block uppercase font-bold">行动评级 [A]</span>
+                    <span className="text-3xl font-black font-serif text-yellow-500">
+                      {diceRoll.actionRating}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="text-xs pt-2 border-t border-orange-900 leading-tight">
+                  {diceRoll.successes > 0 ? (
+                    <span className="text-orange-400 font-bold">
+                      检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！
+                    </span>
+                  ) : (
+                    <span className="text-earth-400 font-bold">
+                      检定失败！未掷出5点以上的成功值。你可以配合技能修正是达到成功。
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Slide-out Reference Manual Drawer */}
+      {activeChar && (
+        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-amber-950 border-l-3 border-stone-950 p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
+          isManualDrawerOpen ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="flex justify-between items-center border-b border-orange-900 pb-3 mb-4">
+            <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
+              <BookIcon size={18} className="text-orange-400" /> 附录参考手册
+            </h3>
+            <button 
+              onClick={() => setIsManualDrawerOpen(false)}
+              className="text-orange-400 hover:text-white font-bold text-lg border border-orange-800 rounded-full w-6 h-6 flex items-center justify-center bg-stone-950/30"
+            >
+              ×
+            </button>
           </div>
 
-          {/* APPENDIX REFERENCE GUIDE PANEL */}
-          <div className="wood-panel p-5 rounded-lg text-parchment-100 space-y-4">
-            <div className="flex justify-between items-center border-b border-orange-900 pb-2">
-              <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
-                <BookIcon size={18} className="text-earth-400" /> 附录参考手册
-              </h3>
-            </div>
+          {/* Tab Selection buttons */}
+          <div className="grid grid-cols-4 gap-1">
+            {[
+              { key: 'd', label: 'D：速查' },
+              { key: 'a', label: 'A：特性' },
+              { key: 'b', label: 'B：战技' },
+              { key: 'c', label: 'C：状态' }
+            ].map(tb => (
+              <button
+                key={tb.key}
+                type="button"
+                onClick={() => { setActiveAppendixTab(tb.key as any); setAppendixSearchQuery(''); }}
+                className={`py-1.5 text-center text-xs font-bold transition-all border rounded ${
+                  activeAppendixTab === tb.key 
+                    ? 'bg-earth-600 border-earth-400 text-white shadow' 
+                    : 'bg-[#241103] border-orange-800 text-parchment-300 hover:bg-[#150a02]'
+                }`}
+              >
+                {tb.label}
+              </button>
+            ))}
+          </div>
 
-            {/* Tab Selection buttons */}
-            <div className="grid grid-cols-4 gap-1">
-              {[
-                { key: 'd', label: 'D：速查' },
-                { key: 'a', label: 'A：特性' },
-                { key: 'b', label: 'B：战技' },
-                { key: 'c', label: 'C：状态' }
-              ].map(tb => (
+          {/* Search Input bar */}
+          <div className="flex items-center bg-[#150a02] border border-orange-900 rounded px-2.5 py-1.5 mt-3">
+            <Search size={14} className="text-orange-400 mr-2" />
+            <input 
+              type="text"
+              value={appendixSearchQuery}
+              onChange={(e) => setAppendixSearchQuery(e.target.value)}
+              placeholder="搜索当前手册内容..."
+              className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-orange-800 w-full"
+            />
+          </div>
+
+          {/* If tab B (techniques) is chosen, show weapon filter buttons */}
+          {activeAppendixTab === 'b' && (
+            <div className="flex flex-wrap gap-1 pt-1.5">
+              {['all', '大砍刀', '防护手套', '平底锅', '叉子', '喷火器', '钢绳', '通用'].map(wp => (
                 <button
-                  key={tb.key}
+                  key={wp}
                   type="button"
-                  onClick={() => { setActiveAppendixTab(tb.key as any); setAppendixSearchQuery(''); }}
-                  className={`py-1.5 text-center text-xs font-bold transition-all border rounded ${
-                    activeAppendixTab === tb.key 
-                      ? 'bg-earth-600 border-earth-400 text-white shadow' 
-                      : 'bg-[#241103] border-orange-900 text-parchment-300 hover:bg-amber-950'
+                  onClick={() => setAppendixFilterWeapon(wp)}
+                  className={`px-2 py-0.5 rounded text-[10px] transition-all border ${
+                    appendixFilterWeapon === wp 
+                      ? 'bg-earth-800 border-earth-500 text-white font-bold' 
+                      : 'bg-[#150a02] border-orange-900 text-orange-300'
                   }`}
                 >
-                  {tb.label}
+                  {wp === 'all' ? '全部' : wp === '通用' ? '通用' : wp}
                 </button>
               ))}
             </div>
+          )}
 
-            {/* Search Input bar */}
-            <div className="flex items-center bg-[#150a02] border border-orange-900 rounded px-2.5 py-1.5">
-              <Search size={14} className="text-orange-400 mr-2" />
-              <input 
-                type="text"
-                value={appendixSearchQuery}
-                onChange={(e) => setAppendixSearchQuery(e.target.value)}
-                placeholder="搜索当前手册内容..."
-                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-orange-800 w-full"
-              />
-            </div>
+          {/* Interactive Lists */}
+          <div className="max-h-[calc(100vh-180px)] overflow-y-auto space-y-3 pr-1 text-xs mt-4">
+            
+            {/* Appendix A: Traits */}
+            {activeAppendixTab === 'a' && (
+              APPENDIX_TRAITS.filter(tr => 
+                tr.name.includes(appendixSearchQuery) || 
+                tr.effect.includes(appendixSearchQuery)
+              ).map(tr => (
+                <div key={tr.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
+                  <div className="flex justify-between items-center font-bold text-parchment-200">
+                    <span className="font-serif">{tr.name}</span>
+                    <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tr.cost}</span>
+                  </div>
+                  <p className="text-orange-300 text-[11px] mt-1 leading-tight">{tr.effect}</p>
+                </div>
+              ))
+            )}
 
-            {/* If tab B (techniques) is chosen, show weapon filter buttons */}
+            {/* Appendix B: Techniques */}
             {activeAppendixTab === 'b' && (
-              <div className="flex flex-wrap gap-1 pt-1">
-                {['all', '大砍刀', '防护手套', '平底锅', '叉子', '喷火器', '钢绳', '通用'].map(wp => (
-                  <button
-                    key={wp}
-                    type="button"
-                    onClick={() => setAppendixFilterWeapon(wp)}
-                    className={`px-2 py-0.5 rounded text-[10px] transition-all border ${
-                      appendixFilterWeapon === wp 
-                        ? 'bg-earth-800 border-earth-500 text-white font-bold' 
-                        : 'bg-[#150a02] border-orange-900 text-orange-300'
-                    }`}
-                  >
-                    {wp === 'all' ? '全部' : wp === '通用' ? '通用' : wp}
-                  </button>
-                ))}
+              APPENDIX_TECHNIQUES.filter(tk => {
+                const matchesSearch = tk.name.includes(appendixSearchQuery) || tk.effect.includes(appendixSearchQuery);
+                if (appendixFilterWeapon === 'all') return matchesSearch;
+                if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
+                return tk.weapon === appendixFilterWeapon && matchesSearch;
+              }).map(tk => (
+                <div key={tk.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
+                  <div className="flex justify-between items-center font-bold text-parchment-200">
+                    <span className="font-serif">{tk.name}</span>
+                    <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tk.cost}</span>
+                  </div>
+                  <div className="flex space-x-2 text-[9px] text-orange-400 mt-0.5">
+                    <span>🔧 {tk.weapon}</span>
+                    <span>•</span>
+                    <span>⭐ {tk.rank}</span>
+                  </div>
+                  <p className="text-orange-300 text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
+                </div>
+              ))
+            )}
+
+            {/* Appendix C: States */}
+            {activeAppendixTab === 'c' && (
+              APPENDIX_STATES.filter(st => 
+                st.name.includes(appendixSearchQuery) || 
+                st.effect.includes(appendixSearchQuery)
+              ).map(st => (
+                <div key={st.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
+                  <div className="font-serif font-bold text-parchment-200">{st.name}</div>
+                  <p className="text-orange-300 text-[11px] mt-1 leading-tight"><span className="font-bold text-earth-400">效果:</span> {st.effect}</p>
+                  <p className="text-[10px] text-orange-400 mt-1"><span className="font-bold text-parchment-300">结束条件:</span> {st.endCondition}</p>
+                </div>
+              ))
+            )}
+
+            {/* Appendix D: Quick Reference Actions */}
+            {activeAppendixTab === 'd' && (
+              <div className="space-y-4">
+                {/* Combat */}
+                {(!appendixSearchQuery || '战斗行动'.includes(appendixSearchQuery)) && (
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] bg-[#150a02] px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">⚔️ 狩猎行动 (Combat Actions)</div>
+                    {APPENDIX_ACTIONS.filter(act => act.type === 'combat' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                      <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
+                        <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
+                          <span>{act.name}</span>
+                          <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
+                        </div>
+                        <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Feast */}
+                {(!appendixSearchQuery || '盛宴问题'.includes(appendixSearchQuery)) && (
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] bg-[#150a02] px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🍲 盛宴问题 (Feast Questions)</div>
+                    {APPENDIX_ACTIONS.filter(act => act.type === 'feast' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                      <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
+                        <p className="text-parchment-200 text-[11px] leading-tight font-serif">{act.effect}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Rest */}
+                {(!appendixSearchQuery || '休整行动'.includes(appendixSearchQuery)) && (
+                  <div className="space-y-1.5">
+                    <div className="text-[10px] bg-[#150a02] px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🏕️ 休整行动 (Rest Actions)</div>
+                    {APPENDIX_ACTIONS.filter(act => act.type === 'rest' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
+                      <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
+                        <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
+                          <span>{act.name}</span>
+                          <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
+                        </div>
+                        <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Interactive Lists */}
-            <div className="max-h-96 overflow-y-auto space-y-3 pr-1 text-xs">
-              
-              {/* Appendix A: Traits */}
-              {activeAppendixTab === 'a' && (
-                APPENDIX_TRAITS.filter(tr => 
-                  tr.name.includes(appendixSearchQuery) || 
-                  tr.effect.includes(appendixSearchQuery)
-                ).map(tr => (
-                  <div key={tr.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
-                    <div className="flex justify-between items-center font-bold text-parchment-200">
-                      <span className="font-serif">{tr.name}</span>
-                      <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tr.cost}</span>
-                    </div>
-                    <p className="text-orange-300 text-[11px] mt-1 leading-tight">{tr.effect}</p>
-                  </div>
-                ))
-              )}
-
-              {/* Appendix B: Techniques */}
-              {activeAppendixTab === 'b' && (
-                APPENDIX_TECHNIQUES.filter(tk => {
-                  const matchesSearch = tk.name.includes(appendixSearchQuery) || tk.effect.includes(appendixSearchQuery);
-                  if (appendixFilterWeapon === 'all') return matchesSearch;
-                  if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
-                  return tk.weapon === appendixFilterWeapon && matchesSearch;
-                }).map(tk => (
-                  <div key={tk.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
-                    <div className="flex justify-between items-center font-bold text-parchment-200">
-                      <span className="font-serif">{tk.name}</span>
-                      <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tk.cost}</span>
-                    </div>
-                    <div className="flex space-x-2 text-[9px] text-orange-400 mt-0.5">
-                      <span>🔧 {tk.weapon}</span>
-                      <span>•</span>
-                      <span>⭐ {tk.rank}</span>
-                    </div>
-                    <p className="text-orange-300 text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
-                  </div>
-                ))
-              )}
-
-              {/* Appendix C: States */}
-              {activeAppendixTab === 'c' && (
-                APPENDIX_STATES.filter(st => 
-                  st.name.includes(appendixSearchQuery) || 
-                  st.effect.includes(appendixSearchQuery)
-                ).map(st => (
-                  <div key={st.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
-                    <div className="font-serif font-bold text-parchment-200">{st.name}</div>
-                    <p className="text-orange-300 text-[11px] mt-1 leading-tight"><span className="font-bold text-earth-400">效果:</span> {st.effect}</p>
-                    <p className="text-[10px] text-orange-400 mt-1"><span className="font-bold text-parchment-300">结束条件:</span> {st.endCondition}</p>
-                  </div>
-                ))
-              )}
-
-              {/* Appendix D: Quick Reference Actions */}
-              {activeAppendixTab === 'd' && (
-                <div className="space-y-4">
-                  {/* Combat */}
-                  {(!appendixSearchQuery || '战斗狩猎行动'.includes(appendixSearchQuery)) && (
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] bg-amber-950 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">⚔️ 狩猎回合行动 (Combat Actions)</div>
-                      {APPENDIX_ACTIONS.filter(act => act.type === 'combat' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                        <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
-                          <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
-                            <span>{act.name}</span>
-                            <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
-                          </div>
-                          <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Feast */}
-                  {(!appendixSearchQuery || '盛宴共餐问题'.includes(appendixSearchQuery)) && (
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] bg-amber-950 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🍲 盛宴共享探讨 (Feast Questions)</div>
-                      {APPENDIX_ACTIONS.filter(act => act.type === 'feast' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                        <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
-                          <p className="text-parchment-200 text-[11px] leading-tight font-serif">{act.effect}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Rest */}
-                  {(!appendixSearchQuery || '休整营地行动'.includes(appendixSearchQuery)) && (
-                    <div className="space-y-1.5">
-                      <div className="text-[10px] bg-amber-950 px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🏕️ 休整营地行动 (Rest Actions)</div>
-                      {APPENDIX_ACTIONS.filter(act => act.type === 'rest' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                        <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
-                          <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
-                            <span>{act.name}</span>
-                            <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
-                          </div>
-                          <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-
-            </div>
           </div>
-        </div>
-
-      </main>
+          </div>
+        )}
 
       {/* FOOTER */}
       <footer className="text-center py-8 mt-12 border-t border-orange-950 text-xs text-orange-400">
