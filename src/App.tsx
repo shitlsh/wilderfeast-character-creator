@@ -1051,14 +1051,14 @@ export default function App() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* HEADER SECTION */}
-      <header className="flex flex-col md:flex-row justify-between items-center pb-6 mb-6 border-b-2 border-orange-900">
+      <header className="flex flex-col md:flex-row justify-between items-center pb-6 mb-6 border-b-2 border-surface-border">
         <div className="flex items-center space-x-3 mb-4 md:mb-0">
-          <span className="text-parchment-200">{getInkIcon('屠夫', 40)}</span>
+          <span className="text-[#E07A2B]">{getInkIcon('屠夫', 40)}</span>
           <div>
-            <h1 className="text-3xl font-extrabold text-parchment-200 tracking-wide font-serif">
+            <h1 className="text-3xl font-extrabold text-[#E07A2B] tracking-wide font-serif">
               荒野盛宴电子人物卡
             </h1>
-            <p className="text-xs text-orange-300">
+            <p className="text-xs text-[#F5EBD6]">
               Wilderfeast Character Sheet & Creator Wizard
             </p>
           </div>
@@ -1066,27 +1066,27 @@ export default function App() {
         <div className="flex space-x-2">
           <button 
             onClick={() => { setActiveTab('roster'); setDiceRoll(null); }}
-            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'roster' ? 'bg-earth-600 border-earth-400 text-white' : 'bg-[#241103] border-orange-700 text-parchment-200'}`}
+            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'roster' ? 'bg-wilder-blue border-wilder-amber text-white' : 'bg-surface border-orange-700 text-ink'}`}
           >
-            <Users size={16} /> 猎人群罗盘 (猎人列表)
+            <Users size={16} /> 猎人列表
           </button>
           <button 
             onClick={() => { setActiveTab('create'); setWizardStep(1); setDiceRoll(null); }}
-            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'create' ? 'bg-earth-600 border-earth-400 text-white' : 'bg-[#241103] border-orange-700 text-parchment-200'}`}
+            className={`btn-sketch rounded px-4 py-2 flex items-center gap-1 ${activeTab === 'create' ? 'bg-wilder-blue border-wilder-amber text-white' : 'bg-surface border-orange-700 text-ink'}`}
           >
-            <Plus size={16} /> 新建荒野角色
+            <Plus size={16} /> 新建猎人
           </button>
         </div>
       </header>
 
       {/* NOTIFICATIONS */}
       {notification && (
-        <div className={`fixed top-4 right-4 z-50 px-5 py-3 rounded-md shadow-rough border-3 text-sm flex items-center gap-2 ${
-          notification.type === 'success' ? 'bg-orange-700 border-orange-500 text-white' : 
-          notification.type === 'error' ? 'bg-earth-700 border-earth-500 text-white' : 
-          'bg-yellow-850 border-yellow-500 text-yellow-100'
-        }`}>
-          <span>{notification.type === 'success' ? '✨' : notification.type === 'error' ? '💥' : '🔍'}</span>
+        <div className="fixed top-4 right-4 z-50 px-5 py-3 rounded-md shadow-rough border-l-3 text-sm flex items-center gap-2 bg-surface text-ink ${
+          notification.type === 'success' ? 'border-l-wilder-amber' : 
+          notification.type === 'error' ? 'border-l-wilder-blue' : 
+          'border-l-surface-border'
+        }">
+          <span className="flex-shrink-0">{notification.type === 'success' ? '✨' : notification.type === 'error' ? '💥' : '🔍'}</span>
           <span>{notification.message}</span>
         </div>
       )}
@@ -1098,12 +1098,12 @@ export default function App() {
           {activeTab === 'roster' && (
             <div className="wood-panel p-6 rounded-lg">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold font-serif text-parchment-200 flex items-center gap-2">
-                  <Compass className="text-earth-400" /> 猎群契约 (我的猎人列表)
+                <h2 className="text-2xl font-bold font-serif text-ink flex items-center gap-2">
+                  <Compass className="text-wilder-blue" /> 猎人列表
                 </h2>
                 
                 <div className="relative">
-                  <label className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-parchment-200 flex items-center gap-1 cursor-pointer text-xs">
+                  <label className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-ink flex items-center gap-1 cursor-pointer text-xs">
                     <Upload size={14} /> 导入 JSON
                     <input type="file" accept=".json" onChange={handleJsonImport} className="hidden" />
                   </label>
@@ -1117,11 +1117,11 @@ export default function App() {
                     onClick={() => { setSelectedCharId(char.id); setActiveTab('play'); }}
                     className={`border-3 p-4 rounded-md cursor-pointer transition-all hover:translate-y-[-2px] hover:shadow-rough flex items-center space-x-4 ${
                       selectedCharId === char.id 
-                        ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                        : 'bg-[#241103] border-orange-800 text-parchment-200'
+                        ? 'bg-wilder-blue border-wilder-blue text-white shadow-rough' 
+                        : 'bg-surface border-wilder-amber text-ink'
                     }`}
                   >
-                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-amber-950 overflow-hidden flex-shrink-0 text-parchment-300">
+                    <div className="w-16 h-16 rounded-full border-2 border-dashed border-parchment-300 flex items-center justify-center bg-surface-border overflow-hidden flex-shrink-0 text-ink-muted">
                       {char.avatarType === 'emoji' ? (
                         getInkIcon(char.avatarValue, 32)
                       ) : (
@@ -1131,21 +1131,21 @@ export default function App() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2">
                         <span className="font-bold font-serif text-lg truncate">{char.name}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded ${char.isCustom ? 'bg-earth-600 text-white' : 'bg-orange-800 text-orange-200'}`}>
+                        <span className={`text-[10px] px-2 py-0.5 rounded border ${char.isCustom ? 'bg-wilder-blue/10 text-wilder-blue border-wilder-blue/30' : 'bg-wilder-amber/10 text-wilder-amber border-wilder-amber/30'}`}>
                           {char.isCustom ? '自建' : '官方预设'}
                         </span>
                       </div>
-                      <p className="text-xs text-orange-300 truncate">
+                      <p className="text-xs text-ink-muted truncate">
                         {char.adjectives.join(' / ')} • {char.specialty}
                       </p>
-                      <p className="text-xs text-parchment-300 font-serif mt-1 flex items-center gap-1">
+                      <p className="text-xs text-ink-muted font-serif mt-1 flex items-center gap-1">
                         工具: {char.tool} | 体力: {char.stamina}/20 | 和谐: {char.harmony}/{char.harmonyMax}
                       </p>
                     </div>
                     {char.isCustom && (
                       <button 
                         onClick={(e) => deleteCharacter(char.id, e)}
-                        className="text-orange-400 hover:text-earth-400 p-2"
+                        className="text-wilder-amber hover:text-wilder-blue p-2"
                         title="删除角色"
                       >
                         <Trash2 size={16} />
@@ -1156,11 +1156,11 @@ export default function App() {
 
                 <div 
                   onClick={() => { setActiveTab('create'); setWizardStep(1); }}
-                  className="border-3 border-dashed border-orange-700 p-6 rounded-md cursor-pointer transition-all hover:bg-[#241103] flex flex-col items-center justify-center text-orange-300"
+                  className="border-3 border-dashed border-orange-700 p-6 rounded-md cursor-pointer transition-all hover:bg-surface flex flex-col items-center justify-center text-ink-muted"
                 >
                   <Plus size={32} className="mb-2" />
                   <span className="font-bold">契约新猎人</span>
-                  <span className="text-xs mt-1 text-orange-400">开始分步向导，定制属于你的荒野食客</span>
+                  <span className="text-xs mt-1 text-wilder-amber">开始分步向导，定制属于你的荒野食客</span>
                 </div>
               </div>
             </div>
@@ -1168,17 +1168,17 @@ export default function App() {
 
           {/* TAB 2: WIZARD CHARACTER CREATOR */}
           {activeTab === 'create' && (
-            <div className="wood-panel p-6 rounded-lg text-parchment-100">
+            <div className="wood-panel p-6 rounded-lg text-ink">
               {/* Step bar indicator */}
-              <div className="flex justify-between items-center mb-6 pb-4 border-b border-orange-900">
-                <span className="font-serif font-bold text-xl text-parchment-200">
+              <div className="flex justify-between items-center mb-6 pb-4 border-b border-surface-border">
+                <span className="font-serif font-bold text-xl text-ink">
                   创建荒野食客 ({wizardStep}/3 步)
                 </span>
                 <div className="flex space-x-1">
                   {[1, 2, 3].map(s => (
                     <div 
                       key={s} 
-                      className={`h-2 w-10 rounded ${s <= wizardStep ? 'bg-earth-500' : 'bg-orange-950'}`} 
+                      className={`h-2 w-10 rounded ${s <= wizardStep ? 'bg-wilder-blue' : 'bg-surface-border'}`} 
                     />
                   ))}
                 </div>
@@ -1188,25 +1188,25 @@ export default function App() {
               {wizardStep === 1 && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">第一步：输入名字与身份描述</h3>
+                    <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">第一步：输入名字与身份描述</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-xs font-bold mb-1 text-orange-300">姓名 (Name)</label>
+                        <label className="block text-xs font-bold mb-1 text-ink-muted">姓名 (Name)</label>
                         <input 
                           type="text" 
                           value={wizName} 
                           onChange={(e) => setWizName(e.target.value)}
                           placeholder="例如: 普莱兹, 巴格, 或是你自己的称呼"
-                          className="w-full bg-[#241103] border-2 border-orange-800 rounded px-3 py-2 text-parchment-100 focus:outline-none focus:border-earth-500"
+                          className="w-full bg-surface border-2 border-wilder-amber rounded px-3 py-2 text-ink focus:outline-none focus:border-wilder-blue"
                         />
                       </div>
                       <div className="grid grid-cols-2 gap-2">
                         <div>
-                          <label className="block text-xs font-bold mb-1 text-orange-300">目前的你 (形容词)</label>
+                          <label className="block text-xs font-bold mb-1 text-ink-muted">目前的你 (形容词)</label>
                           <select 
                             value={wizAdjectiveCurrent} 
                             onChange={(e) => setWizAdjectiveCurrent(e.target.value)}
-                            className="w-full bg-[#241103] border-2 border-orange-800 rounded px-2 py-2 text-parchment-100 focus:outline-none"
+                            className="w-full bg-surface border-2 border-wilder-amber rounded px-2 py-2 text-ink focus:outline-none"
                           >
                             {wizTool.adjectives.map(adj => (
                               <option key={adj} value={adj}>{adj}</option>
@@ -1214,11 +1214,11 @@ export default function App() {
                           </select>
                         </div>
                         <div>
-                          <label className="block text-xs font-bold mb-1 text-orange-300">向往却难成为的你</label>
+                          <label className="block text-xs font-bold mb-1 text-ink-muted">向往却难成为的你</label>
                           <select 
                             value={wizAdjectiveAspiring} 
                             onChange={(e) => setWizAdjectiveAspiring(e.target.value)}
-                            className="w-full bg-[#241103] border-2 border-orange-800 rounded px-2 py-2 text-parchment-100 focus:outline-none"
+                            className="w-full bg-surface border-2 border-wilder-amber rounded px-2 py-2 text-ink focus:outline-none"
                           >
                             {wizTool.adjectives.map(adj => (
                               <option key={adj} value={adj}>{adj}</option>
@@ -1230,8 +1230,8 @@ export default function App() {
                   </div>
 
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择你的方舟钢工具</h3>
-                    <p className="text-xs text-orange-300 mb-4">
+                    <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">选择你的方舟钢工具</h3>
+                    <p className="text-xs text-ink-muted mb-4">
                       工具决定你的核心战斗风格 (Styles) 与初始招式 (Techniques)。每项工具代表你在战斗中的独特战术定位。
                     </p>
 
@@ -1242,30 +1242,30 @@ export default function App() {
                           onClick={() => setWizTool(t)}
                           className={`border-3 p-3 rounded cursor-pointer transition-all ${
                             wizTool.name === t.name 
-                              ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                              : 'bg-[#241103] border-orange-900 text-parchment-300 hover:border-orange-700'
+                              ? 'bg-wilder-blue border-wilder-blue text-white shadow-rough' 
+                              : 'bg-surface border-surface-border text-ink-muted hover:border-orange-700'
                           }`}
                         >
                           <div className="font-bold font-serif text-md">{t.name}</div>
-                          <div className="text-[10px] text-orange-400 mt-1 truncate">{t.styles.name}</div>
+                          <div className="text-[10px] text-wilder-amber mt-1 truncate">{t.styles.name}</div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="bg-[#241103] p-4 rounded border border-orange-900 mt-4">
-                      <h4 className="font-bold text-sm text-parchment-200">{wizTool.name} 的机制细节:</h4>
-                      <p className="text-xs text-orange-300 mt-1 leading-relaxed">{wizTool.description}</p>
+                    <div className="bg-surface p-4 rounded border border-surface-border mt-4">
+                      <h4 className="font-bold text-sm text-ink">{wizTool.name} 的机制细节:</h4>
+                      <p className="text-xs text-ink-muted mt-1 leading-relaxed">{wizTool.description}</p>
                       
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-orange-900">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-3 pt-3 border-t border-surface-border">
                         <div>
-                          <span className="block text-xs font-bold text-parchment-200 mb-1">风格分配选择：</span>
+                          <span className="block text-xs font-bold text-ink mb-1">风格分配选择：</span>
                           <div className="space-y-2">
                             <label className="flex items-center space-x-2 text-xs cursor-pointer">
                               <input 
                                 type="radio" 
                                 checked={wizStylesChoice === 'a'} 
                                 onChange={() => setWizStylesChoice('a')} 
-                                className="accent-earth-500" 
+                                className="accent-wilder-teal" 
                               />
                               <span>分配 (A): 3级高点，2级次高点</span>
                             </label>
@@ -1274,7 +1274,7 @@ export default function App() {
                                 type="radio" 
                                 checked={wizStylesChoice === 'b'} 
                                 onChange={() => setWizStylesChoice('b')} 
-                                className="accent-earth-500" 
+                                className="accent-wilder-teal" 
                               />
                               <span>分配 (B): 2级高点，3级次高点</span>
                             </label>
@@ -1282,18 +1282,18 @@ export default function App() {
                         </div>
 
                         <div>
-                          <span className="block text-xs font-bold text-parchment-200 mb-1">招牌战技（自动获得）：</span>
+                          <span className="block text-xs font-bold text-ink mb-1">招牌战技（自动获得）：</span>
                           {wizTool.techniques.filter(tk => tk.type === 'signature').map(tk => (
                             <div key={tk.name} className="text-xs">
-                              <span className="font-bold text-earth-400">{tk.name}</span> <span className="text-[10px] bg-orange-950 px-1 rounded">{tk.cost}</span>
-                              <p className="text-[10px] text-orange-400 mt-0.5">{tk.effect}</p>
+                              <span className="font-bold text-wilder-blue">{tk.name}</span> <span className="text-[10px] bg-surface-border px-1 rounded">{tk.cost}</span>
+                              <p className="text-[10px] text-wilder-amber mt-0.5">{tk.effect}</p>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       <div className="mt-4">
-                        <span className="block text-xs font-bold text-parchment-200 mb-2">自选次要初始战技（从下列 3 选 1）：</span>
+                        <span className="block text-xs font-bold text-ink mb-2">自选次要初始战技（从下列 3 选 1）：</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {wizTool.techniques.filter(tk => tk.type === 'optional').map(tk => (
                             <div 
@@ -1301,15 +1301,15 @@ export default function App() {
                               onClick={() => setWizSecondaryTech(tk)}
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizSecondaryTech?.name === tk.name 
-                                  ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                                  : 'bg-[#241103] border-orange-900 text-parchment-300'
+                                  ? 'bg-wilder-blue border-wilder-blue text-white shadow-rough' 
+                                  : 'bg-surface border-surface-border text-ink-muted'
                               }`}
                             >
                               <div className="flex justify-between font-bold">
                                 <span>{tk.name}</span>
-                                <span className="text-[9px] bg-orange-950 px-1 rounded text-earth-300">{tk.cost}</span>
+                                <span className="text-[9px] bg-surface-border px-1 rounded text-wilder-amber">{tk.cost}</span>
                               </div>
-                              <p className="text-[10px] text-orange-400 mt-1 line-clamp-3">{tk.effect}</p>
+                              <p className="text-[10px] text-wilder-amber mt-1 line-clamp-3">{tk.effect}</p>
                             </div>
                           ))}
                         </div>
@@ -1319,9 +1319,9 @@ export default function App() {
 
                   {/* Avatar Picker */}
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择人物卡头像</h3>
+                    <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">选择人物卡头像</h3>
                     <div className="flex items-center space-x-6">
-                      <div className="w-20 h-20 rounded-full border-3 border-dashed border-earth-500 bg-[#241103] flex items-center justify-center text-parchment-200 overflow-hidden flex-shrink-0">
+                      <div className="w-20 h-20 rounded-full border-3 border-dashed border-wilder-blue bg-surface flex items-center justify-center text-ink overflow-hidden flex-shrink-0">
                         {wizAvatarType === 'emoji' ? (
                           getInkIcon(wizAvatarValue, 40)
                         ) : (
@@ -1335,27 +1335,27 @@ export default function App() {
                               key={av.value}
                               type="button"
                               onClick={() => { setWizAvatarType('emoji'); setWizAvatarValue(av.value); }}
-                              className={`w-10 h-10 rounded border-2 text-parchment-200 flex items-center justify-center transition-all ${
+                              className={`w-10 h-10 rounded border-2 flex items-center justify-center transition-all ${
                                 wizAvatarType === 'emoji' && wizAvatarValue === av.value 
-                                  ? 'bg-earth-800 border-earth-500 ring-2 ring-earth-400' 
-                                  : 'bg-[#241103] border-orange-800 hover:border-orange-500'
+                                  ? 'bg-wilder-blue border-wilder-blue ring-2 ring-wilder-teal text-white' 
+                                  : 'bg-surface border-wilder-amber hover:border-orange-500 text-ink'
                               }`}
                               title={av.label}
                             >
-                              {getInkIcon(av.value, 20)}
+                              {getInkIcon(av.value, 20, wizAvatarType === 'emoji' && wizAvatarValue === av.value ? 'text-white' : 'text-ink')}
                             </button>
                           ))}
                         </div>
                         <div className="flex items-center space-x-2 text-xs">
-                          <span className="text-orange-400">或者自己上传图片：</span>
-                          <label className="btn-sketch rounded px-2.5 py-1 bg-orange-950 border-orange-700 cursor-pointer text-[11px]">
+                          <span className="text-wilder-amber">或者自己上传图片：</span>
+                          <label className="btn-sketch rounded px-2.5 py-1 bg-surface-border border-orange-700 cursor-pointer text-[11px]">
                             选择文件
                             <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
                           </label>
                           <button
                             type="button"
                             onClick={openDrawingModal}
-                            className="btn-sketch rounded px-2.5 py-1 bg-orange-950 border-orange-700 cursor-pointer text-[11px] flex items-center gap-1"
+                            className="btn-sketch rounded px-2.5 py-1 bg-surface-border border-orange-700 cursor-pointer text-[11px] flex items-center gap-1"
                           >
                             ✏️ 手绘
                           </button>
@@ -1367,14 +1367,14 @@ export default function App() {
                   {/* Drawing Canvas Modal */}
                   {isDrawingModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-2 sm:p-4" onTouchMove={(e) => e.preventDefault()}>
-                      <div className="bg-[#2d100c] border-3 border-earth-500 rounded-xl p-3 sm:p-5 max-w-lg w-full shadow-rough-lg">
-                        <h3 className="text-lg font-bold font-serif text-earth-400 mb-1">✏️ 手绘角色肖像</h3>
-                        <p className="text-xs text-orange-400 mb-3">在下方区域自由绘制你的角色头像</p>
+                      <div className="bg-[#2d100c] border-3 border-wilder-blue rounded-xl p-3 sm:p-5 max-w-lg w-full shadow-rough-lg">
+                        <h3 className="text-lg font-bold font-serif text-wilder-blue mb-1">✏️ 手绘角色肖像</h3>
+                        <p className="text-xs text-wilder-amber mb-3">在下方区域自由绘制你的角色头像</p>
 
                         {/* Color palette + Pen size row */}
                         <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
                           <div className="flex items-center space-x-1">
-                            <span className="text-[10px] text-orange-400 mr-1">颜色</span>
+                            <span className="text-[10px] text-wilder-amber mr-1">颜色</span>
                             {['#2d100c','#1a1a1a','#8b4513','#a0522d','#556b2f','#8b6c4c','#d2691e','#c56b4e'].map(c => (
                               <button
                                 key={c}
@@ -1387,13 +1387,13 @@ export default function App() {
                             ))}
                           </div>
                           <div className="flex items-center space-x-1">
-                            <span className="text-[10px] text-orange-400 mr-1">粗细</span>
+                            <span className="text-[10px] text-wilder-amber mr-1">粗细</span>
                             {[2, 4, 6, 10].map(s => (
                               <button
                                 key={s}
                                 type="button"
                                 onClick={() => setDrawPenSize(s)}
-                                className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-all ${drawPenSize === s ? 'bg-earth-600 text-white' : 'bg-amber-950 text-orange-300'}`}
+                                className={`w-6 h-6 rounded flex items-center justify-center text-[10px] font-bold transition-all ${drawPenSize === s ? 'bg-wilder-blue text-white' : 'bg-surface-border text-ink-muted'}`}
                               >
                                 {s}
                               </button>
@@ -1401,7 +1401,7 @@ export default function App() {
                           </div>
                         </div>
 
-                        <div className="drawing-grid rounded-lg overflow-hidden border-2 border-earth-600 w-full h-[260px] sm:h-[320px]">
+                        <div className="drawing-grid rounded-lg overflow-hidden border-2 border-wilder-blue w-full h-[260px] sm:h-[320px]">
                           <canvas
                             ref={canvasRef}
                             className="w-full h-full cursor-crosshair"
@@ -1421,7 +1421,7 @@ export default function App() {
                               type="button"
                               onClick={undoCanvas}
                               disabled={historyIndexRef.current <= 0}
-                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               ↩️ 撤销
                             </button>
@@ -1429,18 +1429,18 @@ export default function App() {
                               type="button"
                               onClick={redoCanvas}
                               disabled={historyIndexRef.current >= canvasHistoryRef.current.length - 1}
-                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
                             >
                               ↪️ 重做
                             </button>
                             <button
                               type="button"
                               onClick={clearCanvas}
-                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded hover:bg-amber-900"
+                              className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900"
                             >
                               🗑️ 清除
                             </button>
-                            <label className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-2 py-1 rounded cursor-pointer hover:bg-amber-900">
+                            <label className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded cursor-pointer hover:bg-amber-900">
                               🖼️ 底图
                               <input type="file" accept="image/*" onChange={uploadDrawingPhoto} className="hidden" />
                             </label>
@@ -1449,14 +1449,14 @@ export default function App() {
                             <button
                               type="button"
                               onClick={() => setIsDrawingModalOpen(false)}
-                              className="text-xs bg-amber-950 border border-orange-800 text-orange-300 px-3 py-1 rounded hover:bg-amber-900"
+                              className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-3 py-1 rounded hover:bg-amber-900"
                             >
                               取消
                             </button>
                             <button
                               type="button"
                               onClick={saveDrawing}
-                              className="text-xs bg-earth-700 border border-earth-500 text-white px-3 py-1 rounded font-bold hover:bg-earth-600"
+                              className="text-xs bg-wilder-blue border border-wilder-blue text-white px-3 py-1 rounded font-bold hover:bg-wilder-blue"
                             >
                               💾 保存头像
                             </button>
@@ -1469,7 +1469,7 @@ export default function App() {
                   <div className="flex justify-end pt-4">
                     <button 
                       onClick={nextStep}
-                      className="btn-sketch rounded px-6 py-2.5 bg-earth-600 border-earth-400 text-white flex items-center gap-1 font-serif font-bold text-md"
+                      className="btn-sketch rounded px-6 py-2.5 bg-wilder-blue border-wilder-amber text-white flex items-center gap-1 font-serif font-bold text-md"
                     >
                       下一步：选择你的专长 (谱系) →
                     </button>
@@ -1481,8 +1481,8 @@ export default function App() {
               {wizardStep === 2 && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400 font-serif">选择你的突变专长 (Specialty)</h3>
-                    <p className="text-xs text-orange-300 mb-4">
+                    <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue font-serif">选择你的突变专长 (Specialty)</h3>
+                    <p className="text-xs text-ink-muted mb-4">
                       荒野食客通过烹食怪物来获得基因突变。选择你所擅长的怪物谱系。专长决定你的初始特性和亲密同伴。
                     </p>
 
@@ -1493,25 +1493,25 @@ export default function App() {
                           onClick={() => setWizLineage(l)}
                           className={`border-3 p-3 rounded cursor-pointer transition-all ${
                             wizLineage.name === l.name 
-                              ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                              : 'bg-[#241103] border-orange-900 text-parchment-300 hover:border-orange-700'
+                              ? 'bg-wilder-blue border-wilder-blue text-white shadow-rough' 
+                              : 'bg-surface border-surface-border text-ink-muted hover:border-orange-700'
                           }`}
                         >
                           <div className="font-bold font-serif text-md">{l.name}</div>
-                          <div className="text-[9px] text-orange-400 mt-1 line-clamp-1">{l.description}</div>
+                          <div className="text-[9px] text-wilder-amber mt-1 line-clamp-1">{l.description}</div>
                         </div>
                       ))}
                     </div>
 
-                    <div className="bg-[#241103] p-4 rounded border border-orange-900 mt-4 space-y-4">
+                    <div className="bg-surface p-4 rounded border border-surface-border mt-4 space-y-4">
                       <div>
-                        <h4 className="font-bold text-sm text-parchment-200">🥗 {wizLineage.name} 的生物特征:</h4>
-                        <p className="text-xs text-orange-300 mt-1 leading-relaxed">{wizLineage.description}</p>
+                        <h4 className="font-bold text-sm text-ink">🥗 {wizLineage.name} 的生物特征:</h4>
+                        <p className="text-xs text-ink-muted mt-1 leading-relaxed">{wizLineage.description}</p>
                       </div>
 
                       {/* Lineage traits selection */}
-                      <div className="border-t border-orange-900 pt-3">
-                        <span className="block text-xs font-bold text-parchment-200 mb-2">🧬 初始特性一（从本谱系专属特性中 3 选 1）：</span>
+                      <div className="border-t border-surface-border pt-3">
+                        <span className="block text-xs font-bold text-ink mb-2">🧬 初始特性一（从本谱系专属特性中 3 选 1）：</span>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                           {wizLineage.traits.map(tr => (
                             <div 
@@ -1519,32 +1519,32 @@ export default function App() {
                               onClick={() => setWizTraitPrimary(tr)}
                               className={`border-2 p-2.5 rounded cursor-pointer transition-all text-xs ${
                                 wizTraitPrimary?.name === tr.name 
-                                  ? 'bg-earth-900 border-earth-500 text-white shadow-rough' 
-                                  : 'bg-[#241103] border-orange-900 text-parchment-300'
+                                  ? 'bg-wilder-blue border-wilder-blue text-white shadow-rough' 
+                                  : 'bg-surface border-surface-border text-ink-muted'
                               }`}
                             >
-                              <div className="flex justify-between font-bold text-earth-400">
+                              <div className={`flex justify-between font-bold ${wizTraitPrimary?.name === tr.name ? 'text-white' : 'text-wilder-blue'}`}>
                                 <span>{tr.name}</span>
-                                <span className="text-[9px] bg-amber-950 px-1 rounded text-parchment-400">{tr.cost}</span>
+                                <span className="text-[9px] bg-surface-border px-1 rounded text-ink-light">{tr.cost}</span>
                               </div>
-                              <p className="text-[10px] text-orange-400 mt-1">{tr.effect}</p>
+                              <p className={`text-[10px] mt-1 ${wizTraitPrimary?.name === tr.name ? 'text-white/80' : 'text-wilder-amber'}`}>{tr.effect}</p>
                             </div>
                           ))}
                         </div>
                       </div>
 
                       {/* General second trait selection */}
-                      <div className="border-t border-orange-900 pt-3 space-y-3">
+                      <div className="border-t border-surface-border pt-3 space-y-3">
                         <div className="flex flex-col md:flex-row justify-between md:items-center gap-2">
-                          <span className="block text-xs font-bold text-parchment-200">初始特性二（杂学：可自选自大专长或附录A特性库）：</span>
+                          <span className="block text-xs font-bold text-ink">初始特性二（杂学：可自选自大专长或附录A特性库）：</span>
                           <div className="flex space-x-2">
                             <button
                               type="button"
                               onClick={() => setWizSecondaryTraitSource('specialty')}
                               className={`px-3 py-1 rounded text-xs font-bold transition-all border ${
                                 wizSecondaryTraitSource === 'specialty' 
-                                  ? 'bg-earth-600 border-earth-400 text-white shadow-rough' 
-                                  : 'bg-[#241103] border-orange-800 text-parchment-300'
+                                  ? 'bg-wilder-blue border-wilder-amber text-white shadow-rough' 
+                                  : 'bg-surface border-wilder-amber text-ink-muted'
                               }`}
                             >
                               8大专长特性
@@ -1554,8 +1554,8 @@ export default function App() {
                               onClick={() => setWizSecondaryTraitSource('appendix')}
                               className={`px-3 py-1 rounded text-xs font-bold transition-all border ${
                                 wizSecondaryTraitSource === 'appendix' 
-                                  ? 'bg-earth-600 border-earth-400 text-white shadow-rough' 
-                                  : 'bg-[#241103] border-orange-800 text-parchment-300'
+                                  ? 'bg-wilder-blue border-wilder-amber text-white shadow-rough' 
+                                  : 'bg-surface border-wilder-amber text-ink-muted'
                               }`}
                             >
                               附录A特性库
@@ -1564,18 +1564,18 @@ export default function App() {
                         </div>
 
                         {wizSecondaryTraitSource === 'specialty' ? (
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-[#150a02] rounded border border-orange-900">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 bg-surface-well rounded border border-surface-border">
                             {LINEAGES.map(lg => (
                               <div key={lg.name} className="space-y-1">
-                                <div className="text-[9px] bg-orange-950 px-1.5 py-0.5 text-parchment-300 font-bold truncate">{lg.name}</div>
+                                <div className="text-[9px] bg-surface-border px-1.5 py-0.5 text-ink-muted font-bold truncate">{lg.name}</div>
                                 {lg.traits.map(tr => (
                                   <div 
                                     key={tr.name}
                                     onClick={() => setWizTraitSecondary(tr)}
                                     className={`p-1.5 rounded cursor-pointer text-[10px] transition-all truncate ${
                                       wizTraitSecondary?.name === tr.name 
-                                        ? 'bg-earth-800 text-white' 
-                                        : 'text-parchment-400 hover:bg-[#241103]'
+                                        ? 'bg-wilder-blue text-white' 
+                                        : 'text-ink-light hover:bg-surface'
                                     }`}
                                     title={`${tr.name}: ${tr.effect}`}
                                   >
@@ -1587,17 +1587,17 @@ export default function App() {
                           </div>
                         ) : (
                           <div className="space-y-2">
-                            <div className="flex items-center bg-[#150a02] border border-orange-900 rounded px-2 py-1">
-                              <Search size={14} className="text-orange-400 mr-1.5" />
+                            <div className="flex items-center bg-surface-well border border-surface-border rounded px-2 py-1">
+                              <Search size={14} className="text-wilder-amber mr-1.5" />
                               <input 
                                 type="text"
                                 value={wizSecondarySearchQuery}
                                 onChange={(e) => setWizSecondarySearchQuery(e.target.value)}
                                 placeholder="搜索附录A特性名称 or 描述..."
-                                className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-orange-800 w-full"
+                                className="bg-transparent focus:outline-none text-xs text-ink placeholder:text-wilder-amber w-full"
                               />
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1 bg-[#150a02] rounded border border-orange-900">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5 max-h-48 overflow-y-auto p-1 bg-surface-well rounded border border-surface-border">
                               {APPENDIX_TRAITS.filter(tr => 
                                 tr.name.includes(wizSecondarySearchQuery) || 
                                 tr.effect.includes(wizSecondarySearchQuery)
@@ -1607,13 +1607,13 @@ export default function App() {
                                   onClick={() => setWizTraitSecondary({ name: tr.name, cost: tr.cost, effect: tr.effect })}
                                   className={`p-2 rounded cursor-pointer text-[10px] transition-all border ${
                                     wizTraitSecondary?.name === tr.name 
-                                      ? 'bg-earth-800 border-earth-500 text-white' 
-                                      : 'bg-[#241103] border-orange-900 text-parchment-400 hover:bg-amber-950 hover:text-white'
+                                      ? 'bg-wilder-blue border-wilder-blue text-white' 
+                                      : 'bg-surface border-surface-border text-ink-light hover:bg-surface-border hover:text-ink'
                                   }`}
                                   title={`${tr.name} (${tr.cost}): ${tr.effect}`}
                                 >
                                   <div className="font-bold truncate">{tr.name}</div>
-                                  <div className="text-[8px] text-orange-400 truncate mt-0.5">{tr.cost}</div>
+                                  <div className="text-[8px] text-wilder-amber truncate mt-0.5">{tr.cost}</div>
                                 </div>
                               ))}
                             </div>
@@ -1621,8 +1621,8 @@ export default function App() {
                         )}
 
                         {wizTraitSecondary && (
-                          <div className="mt-2 text-xs bg-amber-950 p-2 rounded border border-orange-900 text-orange-300">
-                            已选择次要特性: <span className="font-bold text-earth-400">{wizTraitSecondary.name}</span> ({wizTraitSecondary.cost}) — {wizTraitSecondary.effect}
+                          <div className="mt-2 text-xs bg-surface-border p-2 rounded border border-surface-border text-ink-muted">
+                            已选择次要特性: <span className="font-bold text-wilder-blue">{wizTraitSecondary.name}</span> ({wizTraitSecondary.cost}) — {wizTraitSecondary.effect}
                           </div>
                         )}
                       </div>
@@ -1631,8 +1631,8 @@ export default function App() {
 
                   {/* Companion choice */}
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">选择你的密切同伴 (Companion)</h3>
-                    <p className="text-xs text-orange-300 mb-3">
+                    <h3 className="text-lg font-bold font-serif mb-2 text-wilder-blue">选择你的密切同伴 (Companion)</h3>
+                    <p className="text-xs text-ink-muted mb-3">
                       每一名荒野食客都与一只怪物同伴有着深厚的默契和牵绊。
                     </p>
 
@@ -1643,24 +1643,24 @@ export default function App() {
                           onClick={() => setWizCompanionIndex(i)}
                           className={`border-2 p-2.5 rounded cursor-pointer text-xs transition-all ${
                             wizCompanionIndex === i 
-                                  ? 'bg-earth-900 border-earth-600 text-white shadow-rough' 
-                                  : 'bg-[#241103] border-orange-900 text-parchment-400 hover:border-orange-800'
+                                  ? 'bg-wilder-blue border-wilder-blue text-white shadow-rough' 
+                                  : 'bg-surface border-surface-border text-ink-light hover:border-wilder-amber'
                           }`}
                         >
                           <div className="font-bold font-serif">{comp.name}</div>
-                          <p className="text-[10px] text-orange-400 mt-1 line-clamp-3">{comp.description}</p>
+                          <p className="text-[10px] text-wilder-amber mt-1 line-clamp-3">{comp.description}</p>
                         </div>
                       ))}
                     </div>
 
                     <div className="mt-3">
-                      <label className="block text-xs font-bold mb-1 text-orange-300">给同伴起个自定义名字（留空则使用默认名）：</label>
+                      <label className="block text-xs font-bold mb-1 text-ink-muted">给同伴起个自定义名字（留空则使用默认名）：</label>
                       <input 
                         type="text" 
                         value={wizCompanionCustomName} 
                         onChange={(e) => setWizCompanionCustomName(e.target.value)}
                         placeholder={`默认：${wizLineage.companions[wizCompanionIndex].name}`}
-                        className="w-full max-w-md bg-[#241103] border-2 border-orange-800 rounded px-3 py-1.5 text-xs text-parchment-100"
+                        className="w-full max-w-md bg-surface border-2 border-wilder-amber rounded px-3 py-1.5 text-xs text-ink"
                       />
                     </div>
                   </div>
@@ -1668,13 +1668,13 @@ export default function App() {
                   <div className="flex justify-between pt-4">
                     <button 
                       onClick={() => setWizardStep(1)}
-                      className="btn-sketch rounded px-4 py-2 bg-[#241103] border-orange-800 text-parchment-200"
+                      className="btn-sketch rounded px-4 py-2 bg-surface border-wilder-amber text-ink"
                     >
                       ← 上一步
                     </button>
                     <button 
                       onClick={nextStep}
-                      className="btn-sketch rounded px-6 py-2.5 bg-earth-600 border-earth-400 text-white flex items-center gap-1 font-serif font-bold text-md"
+                      className="btn-sketch rounded px-6 py-2.5 bg-wilder-blue border-wilder-amber text-white flex items-center gap-1 font-serif font-bold text-md"
                     >
                       下一步：三道菜式背景设置 →
                     </button>
@@ -1686,29 +1686,29 @@ export default function App() {
               {wizardStep === 3 && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-1 text-earth-400">第三步：设定“三道菜式”背景故事</h3>
-                    <p className="text-xs text-orange-300 mb-4 leading-relaxed">
+                    <h3 className="text-lg font-bold font-serif mb-1 text-wilder-blue">第三步：设定“三道菜式”背景故事</h3>
+                    <p className="text-xs text-ink-muted mb-4 leading-relaxed">
                       在选择了一项工具和专长后，请按照以下步骤，为自己打造一份“三道菜式”的背景。通过食物来构建你的角色故事，通过你的背景，你将获得初始技能。
-                      <span className="text-earth-400 font-bold block mt-1">💡 规则计算：每个背景对应的选择会给你提供一项唯一的 +1 初始技能加值，三种背景对应的初始技能必须各不相同！</span>
+                      <span className="text-wilder-blue font-bold block mt-1">💡 规则计算：每个背景对应的选择会给你提供一项唯一的 +1 初始技能加值，三种背景对应的初始技能必须各不相同！</span>
                     </p>
 
                     <div className="space-y-4">
                       {/* Course 1: Upbringing */}
-                      <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
+                      <div className="bg-surface p-4 rounded border border-surface-border space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
+                          <span className="font-bold text-ink text-sm flex items-center gap-1">
                             第一道菜：成长背景 (Upbringing) — 童年餐食
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('upbringing')}
-                            className="text-xs bg-earth-700 border border-earth-500 px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-earth-600"
+                            className="text-xs bg-wilder-blue border border-wilder-blue px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-wilder-blue"
                           >
                             <Shuffle size={12} /> 随机骰选
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-orange-400 mb-1">童年美食名称</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">童年美食名称</label>
                             <select
                               value={wizUpbringingIndex}
                               onChange={(e) => {
@@ -1719,7 +1719,7 @@ export default function App() {
                                   setWizUpbringingText(UPBRINGINGS[val].description);
                                 }
                               }}
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                             >
                               {UPBRINGINGS.map((u, i) => {
                                 const commaIdx = u.description.indexOf('，');
@@ -1736,79 +1736,79 @@ export default function App() {
                                 value={wizUpbringingMeal}
                                 onChange={(e) => setWizUpbringingMeal(e.target.value)}
                                 placeholder="输入自定义美食名称..."
-                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
+                                className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink mt-2"
                               />
                             )}
                           </div>
                           <div className="md:col-span-6">
-                            <label className="block text-[10px] text-orange-400 mb-1">童年成长细节</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">童年成长细节</label>
                             <textarea 
                               rows={2}
                               value={wizUpbringingText} 
                               onChange={(e) => setWizUpbringingText(e.target.value)}
                               placeholder="描述在什么环境下吃、谁在身边、什么样的情感"
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">对应技能加成</label>
                             {wizUpbringingIndex === -1 ? (
                               <select
                                 value={wizUpbringingCustomSkill}
                                 onChange={(e) => setWizUpbringingCustomSkill(e.target.value)}
-                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white text-center font-bold"
+                                className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink text-center font-bold"
                               >
                                 {ALL_SKILLS.map(s => (
                                   <option key={s} value={s}>+1 {s}</option>
                                 ))}
                               </select>
                             ) : (
-                              <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                              <div className="bg-surface-well border border-wilder-amber text-wilder-blue text-xs text-center font-bold py-2 rounded">
                                 +1 {UPBRINGINGS[wizUpbringingIndex].skill}
                               </div>
                             )}
                           </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-orange-950">
+                        <div className="grid grid-cols-2 gap-3 pt-1 border-t border-surface-border">
                           <div>
-                            <label className="block text-[10px] text-orange-400 mb-0.5">家乡特产</label>
+                            <label className="block text-[10px] text-wilder-amber mb-0.5">家乡特产</label>
                             <input 
                               type="text" 
                               value={wizUpbringingSpecialty} 
                               onChange={(e) => setWizUpbringingSpecialty(e.target.value)}
                               placeholder="例如: 白米, 玉米, 虫尾"
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2 py-1 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2 py-1 text-xs text-ink"
                             />
                           </div>
                           <div>
-                            <label className="block text-[10px] text-orange-400 mb-0.5">家乡香料</label>
+                            <label className="block text-[10px] text-wilder-amber mb-0.5">家乡香料</label>
                             <input 
                               type="text" 
                               value={wizUpbringingSpice} 
                               onChange={(e) => setWizUpbringingSpice(e.target.value)}
                               placeholder="例如: 大蒜, 鱼露, 怪物之血"
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2 py-1 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2 py-1 text-xs text-ink"
                             />
                           </div>
                         </div>
                       </div>
 
                       {/* Course 2: Motivation */}
-                      <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
+                      <div className="bg-surface p-4 rounded border border-surface-border space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
+                          <span className="font-bold text-ink text-sm flex items-center gap-1">
                             第二道菜：动机 (Motivation) — 变异野兽餐
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('motivation')}
-                            className="text-xs bg-earth-700 border border-earth-500 px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-earth-600"
+                            className="text-xs bg-wilder-blue border border-wilder-blue px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-wilder-blue"
                           >
                             <Shuffle size={12} /> 随机骰选
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-orange-400 mb-1">动机餐食名称</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">动机餐食名称</label>
                             <select
                               value={wizMotivationIndex}
                               onChange={(e) => {
@@ -1819,7 +1819,7 @@ export default function App() {
                                   setWizMotivationText(MOTIVATIONS[val].description);
                                 }
                               }}
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                             >
                               {MOTIVATIONS.map((m, i) => {
                                 const commaIdx = m.description.indexOf('，');
@@ -1836,34 +1836,34 @@ export default function App() {
                                 value={wizMotivationMeal}
                                 onChange={(e) => setWizMotivationMeal(e.target.value)}
                                 placeholder="输入自定义动机餐食名称..."
-                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
+                                className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink mt-2"
                               />
                             )}
                           </div>
                           <div className="md:col-span-6">
-                            <label className="block text-[10px] text-orange-400 mb-1">入伙故事与野性觉醒</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">入伙故事与野性觉醒</label>
                             <textarea 
                               rows={2}
                               value={wizMotivationText} 
                               onChange={(e) => setWizMotivationText(e.target.value)}
                               placeholder="那是什么怪物？那只怪物是怎么死的？你为什么吃了它？是谁与你一同烹饪的？"
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">对应技能加成</label>
                             {wizMotivationIndex === -1 ? (
                               <select
                                 value={wizMotivationCustomSkill}
                                 onChange={(e) => setWizMotivationCustomSkill(e.target.value)}
-                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white text-center font-bold"
+                                className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink text-center font-bold"
                               >
                                 {ALL_SKILLS.map(s => (
                                   <option key={s} value={s}>+1 {s}</option>
                                 ))}
                               </select>
                             ) : (
-                              <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                              <div className="bg-surface-well border border-wilder-amber text-wilder-blue text-xs text-center font-bold py-2 rounded">
                                 +1 {MOTIVATIONS[wizMotivationIndex].skill}
                               </div>
                             )}
@@ -1872,21 +1872,21 @@ export default function App() {
                       </div>
 
                       {/* Course 3: Ambition */}
-                      <div className="bg-[#241103] p-4 rounded border border-orange-900 space-y-3">
+                      <div className="bg-surface p-4 rounded border border-surface-border space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="font-bold text-parchment-200 text-sm flex items-center gap-1">
+                          <span className="font-bold text-ink text-sm flex items-center gap-1">
                             第三道菜：雄心 (Ambition) — 梦想终极餐
                           </span>
                           <button 
                             onClick={() => rollBackgroundOption('ambition')}
-                            className="text-xs bg-earth-700 border border-earth-500 px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-earth-600"
+                            className="text-xs bg-wilder-blue border border-wilder-blue px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-wilder-blue"
                           >
                             <Shuffle size={12} /> 随机骰选
                           </button>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-12 gap-3">
                           <div className="md:col-span-4">
-                            <label className="block text-[10px] text-orange-400 mb-1">雄心餐食名称</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">雄心餐食名称</label>
                             <select
                               value={wizAmbitionIndex}
                               onChange={(e) => {
@@ -1897,7 +1897,7 @@ export default function App() {
                                   setWizAmbitionText(AMBITIONS[val].description);
                                 }
                               }}
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                             >
                               {AMBITIONS.map((a, i) => {
                                 const commaIdx = a.description.indexOf('，');
@@ -1914,34 +1914,34 @@ export default function App() {
                                 value={wizAmbitionMeal}
                                 onChange={(e) => setWizAmbitionMeal(e.target.value)}
                                 placeholder="输入自定义梦想料理名称..."
-                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white mt-2"
+                                className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink mt-2"
                               />
                             )}
                           </div>
                           <div className="md:col-span-6">
-                            <label className="block text-[10px] text-orange-400 mb-1">渴望达成的成就</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">渴望达成的成就</label>
                             <textarea 
                               rows={2}
                               value={wizAmbitionText} 
                               onChange={(e) => setWizAmbitionText(e.target.value)}
                               placeholder="这道餐食代表了什么？你为何渴望它？这种渴望有多强烈？是什么阻碍了你？你以前吃过吗？"
-                              className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white"
+                              className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                             />
                           </div>
                           <div className="md:col-span-2">
-                            <label className="block text-[10px] text-orange-400 mb-1">对应技能加成</label>
+                            <label className="block text-[10px] text-wilder-amber mb-1">对应技能加成</label>
                             {wizAmbitionIndex === -1 ? (
                               <select
                                 value={wizAmbitionCustomSkill}
                                 onChange={(e) => setWizAmbitionCustomSkill(e.target.value)}
-                                className="w-full bg-[#150a02] border border-orange-800 rounded px-2.5 py-1.5 text-xs text-white text-center font-bold"
+                                className="w-full bg-surface-well border border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink text-center font-bold"
                               >
                                 {ALL_SKILLS.map(s => (
                                   <option key={s} value={s}>+1 {s}</option>
                                 ))}
                               </select>
                             ) : (
-                              <div className="bg-[#150a02] border border-orange-800 text-earth-400 text-xs text-center font-bold py-2 rounded">
+                              <div className="bg-surface-well border border-wilder-amber text-wilder-blue text-xs text-center font-bold py-2 rounded">
                                 +1 {AMBITIONS[wizAmbitionIndex].skill}
                               </div>
                             )}
@@ -1953,13 +1953,25 @@ export default function App() {
 
                   {/* Bond input */}
                   <div>
-                    <h3 className="text-lg font-bold font-serif mb-2 text-earth-400">联结 (Connection Bond)</h3>
-                    <p className="text-xs text-orange-300 mb-2">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-lg font-bold font-serif text-wilder-blue">联结 (Connection Bond)</h3>
+                      <button 
+                        onClick={() => {
+                          const roll = Math.floor(Math.random() * 20);
+                          setWizBondIndex(roll);
+                          setWizBond(BONDS[roll].description);
+                        }}
+                        className="text-xs bg-wilder-blue border border-wilder-blue px-2 py-1 rounded text-white flex items-center gap-1 hover:bg-wilder-blue"
+                      >
+                        <Shuffle size={12} /> 随机骰选
+                      </button>
+                    </div>
+                    <p className="text-xs text-ink-muted mb-2">
                       从你的背景故事中选择一道菜，然后再选择另一位荒野食客。你们两人因这道菜而结下了牵绊。
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
                       <div>
-                        <label className="block text-[10px] text-orange-400 mb-1">联结选项</label>
+                        <label className="block text-[10px] text-wilder-amber mb-1">联结选项</label>
                         <select
                           value={wizBondIndex}
                           onChange={(e) => {
@@ -1969,7 +1981,7 @@ export default function App() {
                               setWizBond(BONDS[val].description);
                             }
                           }}
-                          className="w-full bg-[#241103] border-2 border-orange-800 rounded px-2.5 py-1.5 text-xs text-parchment-100"
+                          className="w-full bg-surface border-2 border-wilder-amber rounded px-2.5 py-1.5 text-xs text-ink"
                         >
                           {BONDS.map((b, i) => {
                             const commaIdx = b.description.indexOf('，');
@@ -1984,13 +1996,13 @@ export default function App() {
                         </select>
                       </div>
                       <div className="md:col-span-3">
-                        <label className="block text-[10px] text-orange-400 mb-1">牵绊详情</label>
+                        <label className="block text-[10px] text-wilder-amber mb-1">牵绊详情</label>
                         <textarea 
                           rows={2}
                           value={wizBond} 
                           onChange={(e) => setWizBond(e.target.value)}
                           placeholder="描述你与队友之间的联结..."
-                          className="w-full bg-[#241103] border-2 border-orange-800 rounded px-3 py-2 text-xs text-parchment-100"
+                          className="w-full bg-surface border-2 border-wilder-amber rounded px-3 py-2 text-xs text-ink"
                         />
                       </div>
                     </div>
@@ -2000,14 +2012,14 @@ export default function App() {
                   <div className="flex justify-between pt-4">
                     <button 
                       onClick={() => setWizardStep(2)}
-                      className="btn-sketch rounded px-4 py-2 bg-[#241103] border-orange-800 text-parchment-200"
+                      className="btn-sketch rounded px-4 py-2 bg-surface border-wilder-amber text-ink"
                     >
                       ← 上一步
                     </button>
                     
                     <button 
                       onClick={handleCreateCharacter}
-                      className="btn-sketch rounded px-8 py-3 bg-earth-600 border-earth-400 text-white flex items-center gap-2 font-serif font-bold text-lg hover:shadow-rough"
+                      className="btn-sketch rounded px-8 py-3 bg-wilder-blue border-wilder-amber text-white flex items-center gap-2 font-serif font-bold text-lg hover:shadow-rough"
                     >
                       刻入猎群契约（创建荒野食客）
                     </button>
@@ -2024,23 +2036,23 @@ export default function App() {
               {/* INTERACTIVE TRACKERS */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 wood-panel p-5 rounded-lg">
                 {/* Stamina Tracker */}
-                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between">
-                  <span className="text-xs font-bold text-parchment-300 flex items-center justify-center gap-1">
-                    <Heart size={14} className="text-earth-500 fill-earth-500" /> 最大体力 (Stamina)
+                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between">
+                  <span className="text-xs font-bold text-ink-muted flex items-center justify-center gap-1">
+                    <Heart size={14} className="text-wilder-amber fill-earth-500" /> 最大体力 (Stamina)
                   </span>
-                  <div className="text-3xl font-extrabold font-serif my-2 text-earth-400">
+                  <div className="text-3xl font-extrabold font-serif my-2 text-wilder-blue">
                     {activeChar.stamina} / 20
                   </div>
                   <div className="flex justify-center space-x-2">
                     <button 
                       onClick={() => updateActiveCharStat('stamina', activeChar.stamina - 1)}
-                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
+                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       -1
                     </button>
                     <button 
                       onClick={() => updateActiveCharStat('stamina', activeChar.stamina + 1)}
-                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
+                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       +1
                     </button>
@@ -2048,8 +2060,8 @@ export default function App() {
                 </div>
 
                 {/* Durability Tracker */}
-                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between">
-                  <span className="text-xs font-bold text-parchment-300 flex items-center justify-center gap-1">
+                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between">
+                  <span className="text-xs font-bold text-ink-muted flex items-center justify-center gap-1">
                     <Shield size={14} className="text-yellow-500" /> 工具耐久度 (Durability)
                   </span>
                   <div className="text-3xl font-extrabold font-serif my-2 text-yellow-500">
@@ -2058,13 +2070,13 @@ export default function App() {
                   <div className="flex justify-center space-x-2">
                     <button 
                       onClick={() => updateActiveCharStat('durability', activeChar.durability - 1)}
-                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
+                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       -1
                     </button>
                     <button 
                       onClick={() => updateActiveCharStat('durability', activeChar.durability + 1)}
-                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
+                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       +1
                     </button>
@@ -2072,23 +2084,23 @@ export default function App() {
                 </div>
 
                 {/* Harmony Tracker */}
-                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between">
-                  <span className="text-xs font-bold text-parchment-300 flex items-center justify-center gap-1">
-                    <Feather size={14} className="text-parchment-300" /> 和谐值 (Harmony) &lt;H&gt;
+                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between">
+                  <span className="text-xs font-bold text-ink-muted flex items-center justify-center gap-1">
+                    <Feather size={14} className="text-ink-muted" /> 和谐值 (Harmony) &lt;H&gt;
                   </span>
-                  <div className="text-3xl font-extrabold font-serif my-2 text-parchment-100">
+                  <div className="text-3xl font-extrabold font-serif my-2 text-ink">
                     {activeChar.harmony} / {activeChar.harmonyMax}
                   </div>
                   <div className="flex justify-center space-x-2">
                     <button 
                       onClick={() => updateActiveCharStat('harmony', activeChar.harmony - 1)}
-                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
+                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       -1
                     </button>
                     <button 
                       onClick={() => updateActiveCharStat('harmony', activeChar.harmony + 1)}
-                      className="px-3 py-1 bg-orange-950 rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
+                      className="px-3 py-1 bg-surface-border rounded border border-orange-700 font-bold hover:bg-orange-800 text-sm"
                     >
                       +1
                     </button>
@@ -2096,57 +2108,57 @@ export default function App() {
                 </div>
 
                 {/* Harmony Max cap modifier */}
-                <div className="bg-[#241103] p-3 rounded border border-orange-800 text-center flex flex-col justify-between text-xs">
-                  <span className="font-bold text-parchment-300">⚙️ 调整和谐上限</span>
-                  <p className="text-[10px] text-orange-400 my-1 leading-tight">休整期间，上限会根据旅途成功与否而波动。</p>
+                <div className="bg-surface p-3 rounded border border-wilder-amber text-center flex flex-col justify-between text-xs">
+                  <span className="font-bold text-ink-muted">⚙️ 调整和谐上限</span>
+                  <p className="text-[10px] text-wilder-amber my-1 leading-tight">休整期间，上限会根据旅途成功与否而波动。</p>
                   <div className="flex justify-center items-center space-x-3 my-1">
                     <button 
                       onClick={() => updateActiveCharStat('harmonyMax', activeChar.harmonyMax - 1)}
-                      className="px-2 py-0.5 bg-orange-950 border border-orange-700 rounded font-bold hover:bg-orange-800"
+                      className="px-2 py-0.5 bg-surface-border border border-orange-700 rounded font-bold hover:bg-orange-800"
                     >
                       -
                     </button>
                     <span className="font-bold font-serif text-sm">{activeChar.harmonyMax}</span>
                     <button 
                       onClick={() => updateActiveCharStat('harmonyMax', activeChar.harmonyMax + 1)}
-                      className="px-2 py-0.5 bg-orange-950 border border-orange-700 rounded font-bold hover:bg-orange-800"
+                      className="px-2 py-0.5 bg-surface-border border border-orange-700 rounded font-bold hover:bg-orange-800"
                     >
                       +
                     </button>
                   </div>
-                  <div className="text-[9px] text-earth-400 font-bold mt-1">初始默认和谐上限为 3</div>
+                  <div className="text-[9px] text-wilder-blue font-bold mt-1">初始默认和谐上限为 3</div>
                 </div>
               </div>
 
               {/* ACTION SHEET PREVIEW CARD */}
-              <div className="flex justify-between items-center bg-[#241103] p-3 rounded border border-orange-800">
+              <div className="flex justify-between items-center bg-surface p-3 rounded border border-wilder-amber">
                 <div className="flex space-x-2">
                   <button 
                     onClick={() => setActiveTab('roster')} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-xs text-parchment-200 flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
                   >
                     <ArrowLeft size={14} /> 返回列表
                   </button>
                   <button 
                     onClick={() => handleJsonExport(activeChar)} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-xs text-parchment-200 flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
                   >
                     <Download size={14} /> 导出 JSON
                   </button>
                   <button 
                     onClick={exportToPng} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-earth-700 border-earth-500 text-xs text-white flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-wilder-blue border-wilder-blue text-xs text-white flex items-center gap-1"
                   >
                     <Share2 size={14} /> 导出 PNG
                   </button>
                   <button 
                     onClick={handlePrint} 
-                    className="btn-sketch rounded px-3 py-1.5 bg-orange-950 border-orange-700 text-xs text-parchment-200 flex items-center gap-1"
+                    className="btn-sketch rounded px-3 py-1.5 bg-surface-border border-orange-700 text-xs text-ink flex items-center gap-1"
                   >
                     <Printer size={14} /> 打印本卡
                   </button>
                 </div>
-                <div className="text-xs text-orange-300 font-bold italic">
+                <div className="text-xs text-ink-muted font-bold italic">
                   点击任意【属性风格】即可快捷模拟掷骰
                 </div>
               </div>
@@ -2154,31 +2166,31 @@ export default function App() {
               {/* INTERACTIVE SHEET WRAPPED IN ORANGE DOTTED MAT BACKGROUND - RESPONSIVE 2-PAGE OPEN BOOK */}
               <div 
                 ref={cardPrintRef}
-                className="wilder-dot-bg p-2 sm:p-4 md:p-8 rounded-lg shadow-rough-lg border-3 border-stone-950 flex flex-col gap-6 print:p-0 print:border-0 print:shadow-none"
+                className="wilder-dot-bg p-2 sm:p-4 md:p-8 rounded-lg shadow-rough-lg border-3 border-surface-border flex flex-col gap-6 print:p-0 print:border-0 print:shadow-none"
               >
                 
                 {/* ==================== PAGE 1 OF THE CHARACTER SHEET ==================== */}
-                <div className="bg-[#faf6ef] text-stone-950 p-6 rounded border-2 border-stone-900 shadow-rough space-y-6 relative overflow-hidden">
+                <div className="bg-[#faf6ef] text-ink p-6 rounded border-2 border-surface-border shadow-rough space-y-6 relative overflow-hidden">
                   
                   {/* Decorative Header Border Line */}
-                  <div className="flex justify-between items-center border-b-2 border-stone-900 pb-4">
+                  <div className="flex justify-between items-center border-b-2 border-surface-border pb-4">
                     <div className="flex items-center space-x-2">
-                      <span className="text-stone-900">{getInkIcon('屠夫', 32)}</span>
+                      <span className="text-ink">{getInkIcon('屠夫', 32)}</span>
                       <span className="font-serif font-black text-2xl tracking-wider text-sky-950">荒 野 盛 宴</span>
-                      <span className="text-stone-900 rotate-180">{getInkIcon('屠夫', 32)}</span>
+                      <span className="text-ink rotate-180">{getInkIcon('屠夫', 32)}</span>
                     </div>
-                    <span className="text-xs font-serif font-bold text-stone-600 border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 1 / 2</span>
+                    <span className="text-xs font-serif font-bold text-ink-muted border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 1 / 2</span>
                   </div>
 
                   {/* Character Name / Player / Specialty Table */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 border-2 border-stone-900 divide-y-2 md:divide-y-0 md:divide-x-2 divide-stone-900 bg-white font-serif text-sm">
+                  <div className="grid grid-cols-1 md:grid-cols-3 border-2 border-surface-border divide-y-2 md:divide-y-0 md:divide-x-2 divide-stone-900 bg-white font-serif text-sm">
                     <div className="p-2">
-                      <span className="block text-[10px] text-stone-500 font-bold uppercase">角色名</span>
-                      <span className="font-extrabold text-lg text-stone-900">{activeChar.name}</span>
+                      <span className="block text-[10px] text-ink-light font-bold uppercase">角色名</span>
+                      <span className="font-extrabold text-lg text-ink">{activeChar.name}</span>
                     </div>
                     <div className="p-2">
-                      <span className="block text-[10px] text-stone-500 font-bold uppercase">玩家名</span>
-                      <span className="font-extrabold text-lg text-stone-900">{activeChar.isCustom ? '自定义食客' : '官方预设'}</span>
+                      <span className="block text-[10px] text-ink-light font-bold uppercase">玩家名</span>
+                      <span className="font-extrabold text-lg text-ink">{activeChar.isCustom ? '自定义食客' : '官方预设'}</span>
                     </div>
                     <div className="p-2 bg-amber-50">
                       <span className="block text-[10px] text-amber-700 font-bold uppercase">专长 (谱系)</span>
@@ -2196,13 +2208,13 @@ export default function App() {
                     <div className="lg:col-span-4 border-2 border-orange-500 rounded p-4 bg-orange-50/50 space-y-3">
                       {/* Decorative SVG Style Title Banner */}
                       <div className="flex items-center justify-center select-none mt-[-5px]">
-                        <svg className="w-full h-8 max-w-[150px] text-orange-850" viewBox="0 0 160 30" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg className="w-full h-8 max-w-[150px] text-wilder-amber" viewBox="0 0 160 30" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M12 15l4-4 4 4-4 4zM24 15l3-3 3 3-3 3z" strokeWidth="1.5" />
                           <path d="M136 15l3-3 3 3-3 3zM148 15l4-4 4 4-4 4z" strokeWidth="1.5" />
                           <text x="80" y="19" textAnchor="middle" fontSize="13" fontWeight="900" fontFamily="serif" stroke="none" fill="currentColor">风 格</text>
                         </svg>
                       </div>
-                      <p className="text-[9px] text-orange-700 text-center leading-none mt-[-4px]">点击属性，在右侧骰池中快速装填风格骰</p>
+                      <p className="text-[9px] text-wilder-amber text-center leading-none mt-[-4px]">点击属性，在右侧骰池中快速装填风格骰</p>
 
                       <div className="space-y-2.5">
                         {[
@@ -2217,39 +2229,36 @@ export default function App() {
                             <div 
                               key={st.key}
                               onClick={() => { setSelectedRollStyle(st.label); setIsDiceDrawerOpen(true); showNotification(`已选择风格骰：[${st.label}] (${val}d6)`, 'info'); }}
-                              className={`border-2 border-stone-900 rounded p-2 flex items-center justify-between cursor-pointer transition-all ${
+                              className={`border-2 border-surface-border rounded p-2 flex items-center justify-between cursor-pointer transition-all ${
                                 isSelected 
-                                  ? 'bg-[#fc8419] text-white shadow-rough border-stone-950 scale-[1.02]' 
-                                  : 'bg-white hover:bg-orange-100 text-stone-900'
+                                  ? 'bg-[#fc8419] text-white shadow-rough border-surface-border scale-[1.02]' 
+                                  : 'bg-white hover:bg-orange-100 text-ink'
                               }`}
                             >
                               <div className="min-w-0 flex-1">
                                 <span className="font-serif font-extrabold text-sm block truncate">{st.label}</span>
-                                <span className={`text-[8px] block truncate ${isSelected ? 'text-orange-100' : 'text-stone-500'}`}>{st.desc}</span>
+                                <span className={`text-[8px] block truncate ${isSelected ? 'text-wilder-amber' : 'text-ink-light'}`}>{st.desc}</span>
                               </div>
                               
                               {/* Sturdy Interactive Styles Adjuster */}
-                              <div className="flex items-center space-x-1" onClick={(e) => e.stopPropagation()}>
+                              <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                                 <button 
                                   onClick={() => updateActiveCharStyle(st.key, Math.max(1, val - 1))}
-                                  className="w-5 h-5 bg-stone-100 hover:bg-stone-200 border border-stone-800 flex items-center justify-center font-bold text-stone-900 rounded-sm text-[10px]"
+                                  className="w-6 h-6 bg-surface-border hover:bg-surface-border border border-surface-border flex items-center justify-center font-bold text-ink rounded-sm text-xs"
                                   title="减少风格值"
                                 >
                                   -
                                 </button>
-                                <div className="border border-stone-800 px-2 py-0.5 bg-stone-50 font-mono font-black text-xs text-stone-900 rounded-sm min-w-[22px] text-center">
+                                <div className="border border-surface-border px-3 py-1 bg-surface-border font-mono font-black text-sm text-ink rounded-sm min-w-[28px] text-center">
                                   {val}
                                 </div>
                                 <button 
                                   onClick={() => updateActiveCharStyle(st.key, Math.min(5, val + 1))}
-                                  className="w-5 h-5 bg-stone-100 hover:bg-stone-200 border border-stone-800 flex items-center justify-center font-bold text-stone-900 rounded-sm text-[10px]"
+                                  className="w-6 h-6 bg-surface-border hover:bg-surface-border border border-surface-border flex items-center justify-center font-bold text-ink rounded-sm text-xs"
                                   title="增加风格值"
                                 >
                                   +
                                 </button>
-                              </div>
-                              <div className="border-2 border-stone-900 px-3 py-1 bg-stone-100 font-mono font-black text-lg text-stone-900 rounded shadow-sm">
-                                {val}
                               </div>
                             </div>
                           );
@@ -2258,19 +2267,19 @@ export default function App() {
 
                       {/* States Tracker inside style box */}
                       <div className="border-t border-dashed border-orange-300 pt-3 space-y-2">
-                        <span className="block text-[10px] font-black text-orange-900 uppercase">⚠️ 临时状态 / 异常标记</span>
+                        <span className="block text-[10px] font-black text-ink-muted uppercase">⚠️ 临时状态 / 异常标记</span>
                         <div className="grid grid-cols-2 gap-2 text-xs">
                           {[
                             { key: 'exposed', label: '暴露 (Exposed)' },
                             { key: 'hidden', label: '隐藏 (Hidden)' },
                             { key: 'disharmony', label: '不谐 (Disharmony)' }
                           ].map(st => (
-                            <label key={st.key} className="flex items-center space-x-1.5 cursor-pointer bg-white/80 p-1 rounded border border-stone-300 text-stone-900">
+                            <label key={st.key} className="flex items-center space-x-1.5 cursor-pointer bg-white/80 p-1 rounded border border-surface-border text-ink">
                               <input 
                                 type="checkbox" 
                                 checked={activeChar.states[st.key as keyof typeof activeChar.states]} 
                                 onChange={() => updateActiveCharStates(st.key as any)}
-                                className="accent-orange-600 rounded"
+                                className="accent-wilder-teal rounded"
                               />
                               <span className="scale-90 origin-left text-[10px] truncate">{st.label}</span>
                             </label>
@@ -2279,10 +2288,10 @@ export default function App() {
 
                         {/* Injured trackers */}
                         <div className="pt-1.5 border-t border-dashed border-orange-200">
-                          <span className="block text-[9px] font-black text-orange-900 mb-1">受伤等级 (Injured Ranks):</span>
+                          <span className="block text-[9px] font-black text-ink-muted mb-1">受伤等级 (Injured Ranks):</span>
                           <div className="grid grid-cols-3 gap-1">
                             {['injured1', 'injured2', 'injured3'].map((inj, index) => (
-                              <label key={inj} className="flex items-center justify-center space-x-1 py-1 rounded border border-stone-300 bg-white text-[9px] font-bold text-stone-800 cursor-pointer">
+                              <label key={inj} className="flex items-center justify-center space-x-1 py-1 rounded border border-surface-border bg-white text-[9px] font-bold text-ink cursor-pointer">
                                 <input 
                                   type="checkbox" 
                                   checked={activeChar.states[inj as keyof typeof activeChar.states]} 
@@ -2314,7 +2323,7 @@ export default function App() {
                       <p className="text-[9px] text-sky-800 text-center leading-none mt-[-4px]">点击对应技能，在右侧骰池中快速装填（使用小箭头直接修改属性增长）</p>
 
                       {/* 12-cell skill layout styled exactly like physical card, fully responsive */}
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 border-2 border-stone-900 bg-white text-xs font-serif shadow-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 border-2 border-surface-border bg-white text-xs font-serif shadow-sm">
                         {['激励', '展示', '射击', '发声', '抓取', '打击', '手艺', '储存', '学习', '治愈', '搜索', '穿越'].map((sk, index) => {
                           const val = activeChar.skills[sk] || 0;
                           const isSelected = selectedRollSkill === sk;
@@ -2323,20 +2332,20 @@ export default function App() {
                               key={sk}
                               onClick={() => { setSelectedRollSkill(sk); setIsDiceDrawerOpen(true); showNotification(`已选择技能：[${sk}] (+${val})`, 'info'); }}
                               className={`p-2 flex items-center justify-between cursor-pointer transition-all ${
-                                index < 9 ? 'border-b-2 border-stone-900' : 'border-b-2 border-stone-900 md:border-b-0'
+                                index < 9 ? 'border-b-2 border-surface-border' : 'border-b-2 border-surface-border md:border-b-0'
                               } ${
                                 index === 11 ? 'border-b-0' : ''
                               } ${
-                                index % 3 !== 2 ? 'md:border-r-2 md:border-stone-900' : ''
+                                index % 3 !== 2 ? 'md:border-r-2 md:border-surface-border' : ''
                               } ${
-                                isSelected ? 'bg-sky-50 font-extrabold text-sky-950' : 'hover:bg-stone-50 text-stone-900'
+                                isSelected ? 'bg-sky-50 font-extrabold text-sky-950' : 'hover:bg-surface-border text-ink'
                               }`}
                             >
-                              <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-stone-700'}>{sk}</span>
+                              <span className={val > 0 ? 'text-sky-900 font-extrabold' : 'text-ink'}>{sk}</span>
                               
                               {/* Skill Value & Slashes checkbox rendering */}
                               <div className="flex items-center space-x-1.5" onClick={(e) => e.stopPropagation()}>
-                                <div className="flex items-center space-x-0.5 text-stone-700 bg-stone-50 border border-stone-300 px-1 rounded-sm">
+                                <div className="flex items-center space-x-0.5 text-ink bg-surface-border border border-surface-border px-1 rounded-sm">
                                   <span className="font-bold text-[9px] text-sky-900 pr-0.5">+{val}</span>
                                   <span className="font-mono text-xs select-none">⊕</span>
                                   {val >= 1 && <span className="font-mono text-xs font-black text-sky-900 select-none">/</span>}
@@ -2348,14 +2357,14 @@ export default function App() {
                                 <div className="flex flex-col -space-y-0.5">
                                   <button 
                                     onClick={() => updateActiveCharSkill(sk, Math.min(3, val + 1))}
-                                    className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                    className="w-3.5 h-3.5 bg-surface-border hover:bg-surface-border border border-stone-400 flex items-center justify-center text-[8px] text-ink rounded-sm font-bold"
                                     title="增加技能值"
                                   >
                                     ▲
                                   </button>
                                   <button 
                                     onClick={() => updateActiveCharSkill(sk, Math.max(0, val - 1))}
-                                    className="w-3.5 h-3.5 bg-stone-50 hover:bg-stone-200 border border-stone-400 flex items-center justify-center text-[8px] text-stone-700 rounded-sm font-bold"
+                                    className="w-3.5 h-3.5 bg-surface-border hover:bg-surface-border border border-stone-400 flex items-center justify-center text-[8px] text-ink rounded-sm font-bold"
                                     title="减少技能值"
                                   >
                                     ▼
@@ -2370,49 +2379,49 @@ export default function App() {
                   </div>
 
                   {/* BOTTOM HALF OF PAGE 1: TOOL BOX & TRAITS BOX */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t-2 border-stone-900">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t-2 border-surface-border">
                     
                     {/* Left: Tool and Techniques Box */}
-                    <div className="border-3 border-stone-900 bg-white rounded p-4 space-y-3 relative shadow-sm">
+                    <div className="border-3 border-surface-border bg-white rounded p-4 space-y-3 relative shadow-sm">
                       <div className="absolute top-1 right-2 flex space-x-1">
                         <span className="w-2.5 h-2.5 rounded-full bg-[#fc8419]"></span>
                         <span className="w-2.5 h-2.5 rounded-full bg-[#fc8419]"></span>
                       </div>
                       
-                      <h4 className="font-serif font-black text-md text-stone-900 border-b-2 border-stone-900 pb-1.5 flex items-center gap-1">
+                      <h4 className="font-serif font-black text-md text-ink border-b-2 border-surface-border pb-1.5 flex items-center gap-1">
                         ❖ 工具与战技 ❖
                       </h4>
 
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-stone-50 p-2 border border-stone-300 rounded">
-                          <span className="block text-[9px] text-stone-500 font-bold uppercase">装备工具</span>
-                          <span className="font-bold text-stone-900 text-sm">{activeChar.tool}</span>
+                        <div className="bg-surface-border p-2 border border-surface-border rounded">
+                          <span className="block text-[9px] text-ink-light font-bold uppercase">装备工具</span>
+                          <span className="font-bold text-ink text-sm">{activeChar.tool}</span>
                         </div>
-                        <div className="bg-stone-50 p-2 border border-stone-300 rounded flex justify-between items-center">
+                        <div className="bg-surface-border p-2 border border-surface-border rounded flex justify-between items-center">
                           <div>
-                            <span className="block text-[9px] text-stone-500 font-bold uppercase">当前耐久</span>
-                            <span className="font-bold text-stone-900 text-sm">{activeChar.durability}</span>
+                            <span className="block text-[9px] text-ink-light font-bold uppercase">当前耐久</span>
+                            <span className="font-bold text-ink text-sm">{activeChar.durability}</span>
                           </div>
                           <div className="text-right">
-                            <span className="block text-[9px] text-stone-500 font-bold uppercase">最大耐久</span>
-                            <span className="font-bold text-stone-900 text-sm">{activeChar.durabilityMax}</span>
+                            <span className="block text-[9px] text-ink-light font-bold uppercase">最大耐久</span>
+                            <span className="font-bold text-ink text-sm">{activeChar.durabilityMax}</span>
                           </div>
                         </div>
-                        <div className="col-span-2 bg-stone-50 p-2 border border-stone-300 rounded text-[11px]">
-                          <span className="font-bold text-stone-900">射程: </span>
+                        <div className="col-span-2 bg-surface-border p-2 border border-surface-border rounded text-[11px]">
+                          <span className="font-bold text-ink">射程: </span>
                           <span className="font-mono">1 (打击)</span> | 损坏时：射程:1(打击)。该身体部位造成伤害减半。
                         </div>
                       </div>
 
                       {/* Tool specific Techniques */}
                       <div className="pt-2 border-t border-stone-200 space-y-2">
-                        <span className="block text-[10px] font-bold text-stone-500 uppercase">武器流派特性:</span>
+                        <span className="block text-[10px] font-bold text-ink-light uppercase">武器流派特性:</span>
                         {activeChar.traits.slice(0, 2).map(tName => {
                           const foundTech = TOOLS.flatMap(tl => tl.techniques).find(tk => tk.name === tName);
                           return (
                             <div key={tName} className="text-xs">
-                              <span className="font-bold text-[#fc8419]">{tName}</span> <span className="text-[9px] bg-stone-100 border border-stone-300 px-1 rounded">{foundTech?.cost || '被动'}</span>
-                              <p className="text-[10px] text-stone-600 leading-tight mt-0.5">{foundTech?.effect}</p>
+                              <span className="font-bold text-[#fc8419]">{tName}</span> <span className="text-[9px] bg-surface-border border border-surface-border px-1 rounded">{foundTech?.cost || '被动'}</span>
+                              <p className="text-[10px] text-ink-muted leading-tight mt-0.5">{foundTech?.effect}</p>
                             </div>
                           );
                         })}
@@ -2428,11 +2437,11 @@ export default function App() {
                       <div className="space-y-3 text-xs leading-tight">
                         <div className="border-b border-dashed border-emerald-300 pb-1.5">
                           <span className="font-extrabold text-emerald-900">毅力。</span><span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
-                          <p className="text-[10px] text-stone-700 mt-0.5">将 行动评级 [A] 增加 1。</p>
+                          <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
                         </div>
                         <div className="border-b border-dashed border-emerald-300 pb-1.5">
                           <span className="font-extrabold text-emerald-900">洞察。</span><span className="text-[9px] bg-emerald-900 text-white px-1 rounded font-mono">1次成功</span>
-                          <p className="text-[10px] text-stone-700 mt-0.5">确立一个关于当前情境的细节。</p>
+                          <p className="text-[10px] text-ink mt-0.5">确立一个关于当前情境的细节。</p>
                         </div>
 
                         {/* Linage starting traits */}
@@ -2455,7 +2464,7 @@ export default function App() {
                             <div key={tName}>
                               <span className="font-extrabold text-amber-900">{tName}。</span>
                               <span className="text-[9px] bg-amber-900 text-white px-1 rounded font-mono">{trCost}</span>
-                              <p className="text-[10px] text-stone-700 mt-0.5">{trEffect}</p>
+                              <p className="text-[10px] text-ink mt-0.5">{trEffect}</p>
                             </div>
                           );
                         })}
@@ -2466,16 +2475,16 @@ export default function App() {
                 </div>
 
                 {/* ==================== PAGE 2 OF THE CHARACTER SHEET ==================== */}
-                <div className="bg-[#faf6ef] text-stone-950 p-6 rounded border-2 border-stone-900 shadow-rough space-y-6 relative overflow-hidden">
+                <div className="bg-[#faf6ef] text-ink p-6 rounded border-2 border-surface-border shadow-rough space-y-6 relative overflow-hidden">
                   
                   {/* Decorative Page 2 Header */}
-                  <div className="flex justify-between items-center border-b-2 border-stone-900 pb-4">
+                  <div className="flex justify-between items-center border-b-2 border-surface-border pb-4">
                     <div className="flex items-center space-x-2">
-                      <span className="text-stone-900">{getInkIcon('园丁', 32)}</span>
+                      <span className="text-ink">{getInkIcon('园丁', 32)}</span>
                       <span className="font-serif font-black text-2xl tracking-wider text-sky-950">猎 群 契 约 · 背景与同伴</span>
-                      <span className="text-stone-900 rotate-180">{getInkIcon('园丁', 32)}</span>
+                      <span className="text-ink rotate-180">{getInkIcon('园丁', 32)}</span>
                     </div>
-                    <span className="text-xs font-serif font-bold text-stone-600 border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 2 / 2</span>
+                    <span className="text-xs font-serif font-bold text-ink-muted border border-stone-400 px-2 py-0.5 rounded bg-white/50">PAGE 2 / 2</span>
                   </div>
 
                   {/* Top half: Identity grid and Sketched portrait side by side */}
@@ -2484,33 +2493,33 @@ export default function App() {
                     {/* Left details column (Col Span 7) */}
                     <div className="md:col-span-7 space-y-4">
                       {/* Identity boxes */}
-                      <div className="border-2 border-stone-900 bg-white rounded divide-y-2 divide-stone-900 text-xs">
+                      <div className="border-2 border-surface-border bg-white rounded divide-y-2 divide-stone-900 text-xs">
                         <div className="p-3">
-                          <span className="block text-[9px] text-stone-500 font-bold uppercase mb-1">你现在的样子</span>
-                          <span className="font-serif font-black text-lg text-stone-900">{activeChar.adjectives[0]}</span>
+                          <span className="block text-[9px] text-ink-light font-bold uppercase mb-1">你现在的样子</span>
+                          <span className="font-serif font-black text-lg text-ink">{activeChar.adjectives[0]}</span>
                         </div>
                         <div className="p-3">
-                          <span className="block text-[9px] text-stone-500 font-bold uppercase mb-1">你想要成为的样子</span>
+                          <span className="block text-[9px] text-ink-light font-bold uppercase mb-1">你想要成为的样子</span>
                           <span className="font-serif font-black text-lg text-sky-900">{activeChar.adjectives[1]}</span>
                         </div>
                         <div className="p-3 bg-amber-50/30">
                           <span className="block text-[9px] text-amber-700 font-bold uppercase mb-1">密切关系怪物 (Companion)</span>
                           <span className="font-serif font-black text-sm text-amber-950">{activeChar.companion.name}</span>
-                          <p className="text-[11px] text-stone-600 leading-snug mt-1 italic">"{activeChar.companion.description}"</p>
+                          <p className="text-[11px] text-ink-muted leading-snug mt-1 italic">"{activeChar.companion.description}"</p>
                         </div>
                       </div>
 
                       {/* Local specialties & Spices */}
-                      <div className="grid grid-cols-2 border-2 border-stone-900 divide-x-2 divide-stone-900 bg-white text-xs">
+                      <div className="grid grid-cols-2 border-2 border-surface-border divide-x-2 divide-stone-900 bg-white text-xs">
                         <div className="p-3">
-                          <span className="block text-[9px] text-stone-500 font-bold uppercase mb-1">家乡特产 (Specialty)</span>
-                          <span className="font-bold text-stone-900 text-sm">
+                          <span className="block text-[9px] text-ink-light font-bold uppercase mb-1">家乡特产 (Specialty)</span>
+                          <span className="font-bold text-ink text-sm">
                             {activeChar.backgroundMeals.upbringing.meal.split('&')[0]?.trim() || '黑麦酸面包'}
                           </span>
                         </div>
                         <div className="p-3 bg-orange-50/20">
-                          <span className="block text-[9px] text-orange-850 font-bold uppercase mb-1">家乡香料 (Spice)</span>
-                          <span className="font-bold text-orange-950 text-sm">
+                          <span className="block text-[9px] text-wilder-amber font-bold uppercase mb-1">家乡香料 (Spice)</span>
+                          <span className="font-bold text-ink text-sm">
                             {activeChar.backgroundMeals.upbringing.meal.split('&')[1]?.trim() || '方舟乌木胡椒'}
                           </span>
                         </div>
@@ -2518,10 +2527,10 @@ export default function App() {
                     </div>
 
                     {/* Right Portrait Column (Col Span 5) */}
-                    <div className="md:col-span-5 border-2 border-stone-900 rounded bg-white p-4 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative">
-                      <div className="absolute top-2 left-2 text-[9px] font-bold text-stone-400 font-serif">SKETCH</div>
-                      {getCharacterPortrait(activeChar.name, 190, 'text-stone-900')}
-                      <span className="text-[10px] text-stone-400 font-serif mt-2 border-t border-stone-200 pt-1 w-full text-center">
+                    <div className="md:col-span-5 border-2 border-surface-border rounded bg-white p-4 flex flex-col items-center justify-center min-h-[220px] shadow-sm relative">
+                      <div className="absolute top-2 left-2 text-[9px] font-bold text-ink-light font-serif">SKETCH</div>
+                      {getCharacterPortrait(activeChar.name, 190, 'text-ink')}
+                      <span className="text-[10px] text-ink-light font-serif mt-2 border-t border-stone-200 pt-1 w-full text-center">
                         - 猎人 {activeChar.name} 炭笔墨线肖像 -
                       </span>
                     </div>
@@ -2529,43 +2538,43 @@ export default function App() {
                   </div>
 
                   {/* BOTTOM HALF OF PAGE 2: BACKGROUND STORIES & LOGS */}
-                  <div className="border-t-2 border-stone-900 pt-4 space-y-4">
-                    <h3 className="text-center font-serif font-black text-md tracking-wider text-stone-900">
+                  <div className="border-t-2 border-surface-border pt-4 space-y-4">
+                    <h3 className="text-center font-serif font-black text-md tracking-wider text-ink">
                       ❖ “三道菜式”的背景故事 (The Three Courses Background) ❖
                     </h3>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-serif leading-relaxed">
-                      <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🍰 第一道菜：成长背景 (Upbringing)</span>
-                        <span className="font-bold text-orange-900 block text-[11px] mb-1">童年餐食：{activeChar.backgroundMeals.upbringing.meal}</span>
-                        <p className="text-stone-700 italic">"{activeChar.backgroundMeals.upbringing.text}"</p>
+                      <div className="border border-surface-border rounded p-3 bg-white/70 shadow-sm">
+                        <span className="font-black text-ink block border-b border-surface-border pb-1 mb-1">🍰 第一道菜：成长背景 (Upbringing)</span>
+                        <span className="font-bold text-ink-muted block text-[11px] mb-1">童年餐食：{activeChar.backgroundMeals.upbringing.meal}</span>
+                        <p className="text-ink italic">"{activeChar.backgroundMeals.upbringing.text}"</p>
                       </div>
 
-                      <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥣 第二道菜：动机 (Motivation)</span>
+                      <div className="border border-surface-border rounded p-3 bg-white/70 shadow-sm">
+                        <span className="font-black text-ink block border-b border-surface-border pb-1 mb-1">🥣 第二道菜：动机 (Motivation)</span>
                         <span className="font-bold text-sky-900 block text-[11px] mb-1">怪物之餐：{activeChar.backgroundMeals.motivation.meal}</span>
-                        <p className="text-stone-700 italic">"{activeChar.backgroundMeals.motivation.text}"</p>
+                        <p className="text-ink italic">"{activeChar.backgroundMeals.motivation.text}"</p>
                       </div>
 
-                      <div className="border border-stone-300 rounded p-3 bg-white/70 shadow-sm">
-                        <span className="font-black text-stone-900 block border-b border-stone-300 pb-1 mb-1">🥧 第三道菜：雄心 (Ambition)</span>
+                      <div className="border border-surface-border rounded p-3 bg-white/70 shadow-sm">
+                        <span className="font-black text-ink block border-b border-surface-border pb-1 mb-1">🥧 第三道菜：雄心 (Ambition)</span>
                         <span className="font-bold text-amber-900 block text-[11px] mb-1">梦想终极：{activeChar.backgroundMeals.ambition.meal}</span>
-                        <p className="text-stone-700 italic">"{activeChar.backgroundMeals.ambition.text}"</p>
+                        <p className="text-ink italic">"{activeChar.backgroundMeals.ambition.text}"</p>
                       </div>
                     </div>
 
                     {/* Bonds and notes log */}
                     <div className="grid grid-cols-1 md:grid-cols-12 gap-4 pt-2">
-                      <div className="md:col-span-4 border border-stone-300 rounded p-3 bg-white text-xs">
+                      <div className="md:col-span-4 border border-surface-border rounded p-3 bg-white text-xs">
                         <span className="font-bold block border-b border-stone-200 pb-1 mb-1">🤝 盟约羁绊 (Bonds)</span>
-                        <p className="text-stone-600 leading-normal italic">"{activeChar.bond}"</p>
+                        <p className="text-ink-muted leading-normal italic">"{activeChar.bond}"</p>
                       </div>
                       <div className="md:col-span-8">
                         <textarea 
                           value={activeChar.notes || ''}
                           onChange={(e) => updateActiveCharStat('notes', e.target.value)}
                           placeholder="在此记录你本次冒险中狩猎到的怪物身体部位、获取的食材、或是休整期间的烹饪灵感与笔记..."
-                          className="w-full bg-white border-2 border-stone-900 rounded p-3 text-xs text-stone-950 focus:outline-none focus:bg-stone-50 h-[84px] resize-none"
+                          className="w-full bg-white border-2 border-surface-border rounded p-3 text-xs text-ink focus:outline-none focus:bg-surface-border h-[84px] resize-none"
                         />
                       </div>
                     </div>
@@ -2590,11 +2599,11 @@ export default function App() {
             {/* Dice Roller Toggle Button */}
             <button
               onClick={() => { setIsDiceDrawerOpen(!isDiceDrawerOpen); setIsManualDrawerOpen(false); }}
-              className="w-14 h-14 bg-earth-700 border-3 border-stone-950 hover:bg-earth-600 rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
+              className="w-14 h-14 bg-wilder-blue border-3 border-surface-border hover:bg-wilder-blue rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
             >
               <Dice5 size={22} className="group-hover:rotate-45 transition-transform" />
               <span className="text-[9px] font-bold mt-0.5 select-none">进行检定</span>
-              <span className="absolute right-16 bg-stone-950 text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-stone-800">
+              <span className="absolute right-16 bg-surface-dark text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-surface-border">
                 打开掷骰检定面板
               </span>
             </button>
@@ -2602,11 +2611,11 @@ export default function App() {
             {/* Manual Toggle Button */}
             <button
               onClick={() => { setIsManualDrawerOpen(!isManualDrawerOpen); setIsDiceDrawerOpen(false); }}
-              className="w-14 h-14 bg-orange-700 border-3 border-stone-950 hover:bg-orange-600 rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
+              className="w-14 h-14 bg-orange-700 border-3 border-surface-border hover:bg-orange-600 rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
             >
               <BookIcon size={20} className="group-hover:scale-110 transition-transform" />
               <span className="text-[9px] font-bold mt-0.5 select-none">参考手册</span>
-              <span className="absolute right-16 bg-stone-950 text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-stone-800">
+              <span className="absolute right-16 bg-surface-dark text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-surface-border">
                 打开附录规则手册
               </span>
             </button>
@@ -2617,22 +2626,22 @@ export default function App() {
 
       {/* Slide-out Dice Roller Drawer */}
       {activeChar && (
-        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-[#150a02] border-l-3 border-stone-950 p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
+        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-surface border-l-3 border-surface-border p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
           isDiceDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}>
-          <div className="flex justify-between items-center border-b border-orange-900 pb-3 mb-4">
-            <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
-              <Dice5 className="text-orange-400" /> 荒野掷骰检定
+          <div className="flex justify-between items-center border-b border-surface-border pb-3 mb-4">
+            <h3 className="font-serif font-bold text-lg text-ink flex items-center gap-1.5">
+              <Dice5 className="text-wilder-amber" /> 荒野掷骰检定
             </h3>
             <button 
               onClick={() => setIsDiceDrawerOpen(false)}
-              className="text-orange-400 hover:text-white font-bold text-lg border border-orange-800 rounded-full w-6 h-6 flex items-center justify-center bg-stone-950/30"
+              className="text-ink-muted hover:text-ink font-bold text-lg border border-surface-border rounded-full w-6 h-6 flex items-center justify-center"
             >
               ×
             </button>
           </div>
 
-          <p className="text-[11px] text-orange-300 leading-relaxed mb-4">
+          <p className="text-[11px] text-ink-muted leading-relaxed mb-4">
             你可以<b>任意组合</b> 1 种风格和 1 种技能。在下方配置并进行投掷！
           </p>
 
@@ -2648,10 +2657,10 @@ export default function App() {
             const currentSkillVal = activeChar.skills[selectedRollSkill] || 0;
 
             return (
-              <div className="space-y-4 bg-orange-950/40 p-4 rounded border border-orange-900 text-xs">
+              <div className="space-y-4 bg-surface-border/40 p-4 rounded border border-surface-border text-xs">
                 {/* Style selection */}
                 <div>
-                  <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 风格骰 ):</label>
+                  <label className="block text-[10px] text-ink-muted font-bold mb-1.5 uppercase">1. 选择行动风格 ( d6 风格骰 ):</label>
                   <div className="grid grid-cols-4 gap-1">
                     {['力量', '精准', '迅捷', '技巧'].map(st => {
                       const styleVal = activeChar.styleValues[styleKeyMap[st] || 'power'] || 1;
@@ -2663,8 +2672,8 @@ export default function App() {
                           onClick={() => setSelectedRollStyle(st)}
                           className={`py-1.5 rounded text-center border font-bold transition-all text-[11px] ${
                             isSelected 
-                              ? 'bg-earth-600 border-earth-400 text-white font-extrabold shadow scale-105' 
-                              : 'bg-[#150a02] border-orange-900 text-orange-300 hover:border-orange-855'
+                              ? 'bg-wilder-blue border-wilder-amber text-white font-extrabold shadow scale-105' 
+                              : 'bg-surface-well border-surface-border text-ink-muted hover:border-orange-855'
                           }`}
                         >
                           <div>{st}</div>
@@ -2677,11 +2686,11 @@ export default function App() {
 
                 {/* Skill selection */}
                 <div>
-                  <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">2. 选择配套技能 ( +1 等级加成 ):</label>
+                  <label className="block text-[10px] text-ink-muted font-bold mb-1.5 uppercase">2. 选择配套技能 ( +1 等级加成 ):</label>
                   <select
                     value={selectedRollSkill}
                     onChange={(e) => setSelectedRollSkill(e.target.value)}
-                    className="w-full bg-[#150a02] border-2 border-orange-900 text-parchment-200 rounded px-2.5 py-2 text-xs focus:outline-none focus:border-earth-500"
+                    className="w-full bg-surface-well border-2 border-surface-border text-ink rounded px-2.5 py-2 text-xs focus:outline-none focus:border-wilder-blue"
                   >
                     {['激励', '发声', '手艺', '治愈', '展示', '抓取', '储存', '搜索', '射击', '打击', '学习', '穿越'].map(sk => {
                       const skillVal = activeChar.skills[sk] || 0;
@@ -2696,19 +2705,19 @@ export default function App() {
 
                 {/* Action Die selection */}
                 <div>
-                  <label className="block text-[10px] text-orange-300 font-bold mb-1.5 uppercase">3. 选择行动骰与心境 (Action Die & Mindset):</label>
+                  <label className="block text-[10px] text-ink-muted font-bold mb-1.5 uppercase">3. 选择行动骰与心境 (Action Die & Mindset):</label>
                   <div className="grid grid-cols-1 gap-2">
                     <button
                       type="button"
                       onClick={() => { setActionDieMode('focus'); showNotification('心境已设为：集中精神 (d8)', 'success'); }}
                       className={`p-2 rounded text-left border transition-all ${
                         actionDieMode === 'focus'
-                          ? 'bg-earth-900 border-earth-500 text-white font-extrabold shadow scale-102'
-                          : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
+                          ? 'bg-wilder-blue border-wilder-blue text-white font-extrabold shadow scale-102'
+                          : 'bg-surface-well border-surface-border text-wilder-amber hover:border-orange-850'
                       }`}
                     >
                       <div className="font-bold font-serif text-xs">集中精神 (Focus)</div>
-                      <p className="text-[9px] text-stone-400 leading-snug mt-0.5">使用 1d8 行动骰。获得稳定、可靠、安全的判定效果。</p>
+                      <p className="text-[9px] text-ink-light leading-snug mt-0.5">使用 1d8 行动骰。获得稳定、可靠、安全的判定效果。</p>
                     </button>
 
                     <button
@@ -2717,27 +2726,27 @@ export default function App() {
                       className={`p-2 rounded text-left border transition-all ${
                         actionDieMode === 'wild'
                           ? 'bg-red-950 border-red-500 text-white font-extrabold shadow scale-102'
-                          : 'bg-[#150a02] border-orange-900 text-orange-400 hover:border-orange-850'
+                          : 'bg-surface-well border-surface-border text-wilder-amber hover:border-orange-850'
                       }`}
                     >
                       <div className="font-bold font-serif text-xs text-red-400">释放野性 (Go Wild)</div>
-                      <p className="text-[9px] text-stone-400 leading-snug mt-0.5">使用 1d20 行动骰。风格骰 d6 数量将扣减 1（代表丧失理智）。</p>
+                      <p className="text-[9px] text-ink-light leading-snug mt-0.5">使用 1d20 行动骰。风格骰 d6 数量将扣减 1（代表丧失理智）。</p>
                     </button>
                   </div>
                 </div>
 
                 {/* Confirm combination message */}
-                <div className="border-t border-orange-950 pt-3 text-center">
-                  <div className="text-parchment-200 font-serif text-sm font-bold">
-                    当前备战：<span className="text-earth-400 font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
+                <div className="border-t border-surface-border pt-3 text-center">
+                  <div className="text-ink font-serif text-sm font-bold">
+                    当前备战：<span className="text-wilder-blue font-black">{selectedRollStyle}</span> + <span className="text-yellow-500 font-black">{selectedRollSkill}</span>
                   </div>
-                  <div className="text-[10px] text-orange-400 mt-1">
+                  <div className="text-[10px] text-wilder-amber mt-1">
                     投掷：{styleDiceCount}d6 (风格) + {actionDieMode === 'focus' ? '1d8' : '1d20'} (行动) • +{currentSkillVal} 技能加值
                   </div>
                   
                   <button
                     onClick={() => handleRollDice(selectedRollStyle, styleDiceCount, selectedRollSkill, currentSkillVal, actionDieMode)}
-                    className="w-full btn-sketch rounded mt-3 py-2.5 bg-earth-600 border-earth-400 text-white font-serif font-black text-sm flex items-center justify-center gap-1.5"
+                    className="w-full btn-sketch rounded mt-3 py-2.5 bg-wilder-blue border-wilder-amber text-white font-serif font-black text-sm flex items-center justify-center gap-1.5"
                   >
                     进行掷骰检定
                   </button>
@@ -2748,9 +2757,9 @@ export default function App() {
 
           {/* RESULTS RENDERING */}
           {diceRoll && (
-            <div className="mt-4 space-y-4 pt-4 border-t border-orange-900">
+            <div className="mt-4 space-y-4 pt-4 border-t border-surface-border">
               <div className="space-y-2">
-                <span className="block text-xs font-bold text-parchment-300">
+                <span className="block text-xs font-bold text-ink-muted">
                   投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：
                 </span>
 
@@ -2763,8 +2772,8 @@ export default function App() {
                         onClick={() => toggleDiceActive(index)}
                         className={`w-11 h-11 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${
                           d.adjustedValue >= 5 
-                            ? 'bg-earth-600 border-earth-300 text-white shadow-md scale-105' 
-                            : 'bg-[#150a02] border-orange-900 text-parchment-400'
+                            ? 'bg-wilder-blue border-wilder-amber text-white shadow-md scale-105' 
+                            : 'bg-surface-well border-surface-border text-ink-light'
                         }`}
                         title="点击应用或撤销技能 +1 修正"
                       >
@@ -2775,7 +2784,7 @@ export default function App() {
                   </div>
 
                   {/* Divider spacer */}
-                  <span className="text-orange-900 font-bold mx-1">＋</span>
+                  <span className="text-ink-muted font-bold mx-1">＋</span>
 
                   {/* Action Die Box */}
                   <div className={`p-1.5 border-3 rounded-lg flex flex-col items-center justify-center text-center shadow-md min-w-[70px] ${
@@ -2790,29 +2799,29 @@ export default function App() {
               </div>
 
               {/* Score results card */}
-              <div className="bg-[#150a02] p-4 rounded-lg border border-orange-900 text-center space-y-2 shadow-inner text-xs">
+              <div className="bg-surface-well p-4 rounded-lg border border-surface-border text-center space-y-2 shadow-inner text-xs">
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="border-r border-orange-900">
-                    <span className="text-[10px] text-orange-400 block uppercase font-bold">成功次数</span>
-                    <span className="text-3xl font-black font-serif text-earth-400">
+                  <div className="border-r border-surface-border">
+                    <span className="text-[10px] text-wilder-amber block uppercase font-bold">成功次数</span>
+                    <span className="text-3xl font-black font-serif text-wilder-blue">
                       {diceRoll.successes}
                     </span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-orange-400 block uppercase font-bold">行动评级 [A]</span>
+                    <span className="text-[10px] text-wilder-amber block uppercase font-bold">行动评级 [A]</span>
                     <span className="text-3xl font-black font-serif text-yellow-500">
                       {diceRoll.actionRating}
                     </span>
                   </div>
                 </div>
 
-                <div className="text-xs pt-2 border-t border-orange-900 leading-tight">
+                <div className="text-xs pt-2 border-t border-surface-border leading-tight">
                   {diceRoll.successes > 0 ? (
-                    <span className="text-orange-400 font-bold">
+                    <span className="text-wilder-amber font-bold">
                       检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！
                     </span>
                   ) : (
-                    <span className="text-earth-400 font-bold">
+                    <span className="text-wilder-blue font-bold">
                       检定失败！未掷出5点以上的成功值。你可以配合技能修正是达到成功。
                     </span>
                   )}
@@ -2825,16 +2834,16 @@ export default function App() {
 
       {/* Slide-out Reference Manual Drawer */}
       {activeChar && (
-        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-amber-950 border-l-3 border-stone-950 p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
+        <div className={`fixed top-0 right-0 h-full w-full sm:w-[420px] bg-surface border-l-3 border-surface-border p-6 shadow-rough-lg overflow-y-auto z-40 transition-transform duration-300 transform print:hidden ${
           isManualDrawerOpen ? 'translate-x-0' : 'translate-x-full'
         }`}>
-          <div className="flex justify-between items-center border-b border-orange-900 pb-3 mb-4">
-            <h3 className="font-serif font-bold text-lg text-parchment-200 flex items-center gap-1.5">
-              <BookIcon size={18} className="text-orange-400" /> 附录参考手册
+          <div className="flex justify-between items-center border-b border-surface-border pb-3 mb-4">
+            <h3 className="font-serif font-bold text-lg text-ink flex items-center gap-1.5">
+              <BookIcon size={18} className="text-wilder-amber" /> 附录参考手册
             </h3>
             <button 
               onClick={() => setIsManualDrawerOpen(false)}
-              className="text-orange-400 hover:text-white font-bold text-lg border border-orange-800 rounded-full w-6 h-6 flex items-center justify-center bg-stone-950/30"
+              className="text-wilder-amber hover:text-white font-bold text-lg border border-wilder-amber rounded-full w-6 h-6 flex items-center justify-center bg-stone-950/30"
             >
               ×
             </button>
@@ -2854,8 +2863,8 @@ export default function App() {
                 onClick={() => { setActiveAppendixTab(tb.key as any); setAppendixSearchQuery(''); }}
                 className={`py-1.5 text-center text-xs font-bold transition-all border rounded ${
                   activeAppendixTab === tb.key 
-                    ? 'bg-earth-600 border-earth-400 text-white shadow' 
-                    : 'bg-[#241103] border-orange-800 text-parchment-300 hover:bg-[#150a02]'
+                    ? 'bg-wilder-blue border-wilder-amber text-white shadow' 
+                    : 'bg-surface border-wilder-amber text-ink-muted hover:bg-surface-well'
                 }`}
               >
                 {tb.label}
@@ -2864,14 +2873,14 @@ export default function App() {
           </div>
 
           {/* Search Input bar */}
-          <div className="flex items-center bg-[#150a02] border border-orange-900 rounded px-2.5 py-1.5 mt-3">
-            <Search size={14} className="text-orange-400 mr-2" />
+          <div className="flex items-center bg-surface-well border border-surface-border rounded px-2.5 py-1.5 mt-3">
+            <Search size={14} className="text-wilder-amber mr-2" />
             <input 
               type="text"
               value={appendixSearchQuery}
               onChange={(e) => setAppendixSearchQuery(e.target.value)}
               placeholder="搜索当前手册内容..."
-              className="bg-transparent focus:outline-none text-xs text-parchment-200 placeholder:text-orange-800 w-full"
+              className="bg-transparent focus:outline-none text-xs text-ink placeholder:text-wilder-amber w-full"
             />
           </div>
 
@@ -2885,8 +2894,8 @@ export default function App() {
                   onClick={() => setAppendixFilterWeapon(wp)}
                   className={`px-2 py-0.5 rounded text-[10px] transition-all border ${
                     appendixFilterWeapon === wp 
-                      ? 'bg-earth-800 border-earth-500 text-white font-bold' 
-                      : 'bg-[#150a02] border-orange-900 text-orange-300'
+                      ? 'bg-wilder-blue border-wilder-blue text-white font-bold' 
+                      : 'bg-surface-well border-surface-border text-ink-muted'
                   }`}
                 >
                   {wp === 'all' ? '全部' : wp === '通用' ? '通用' : wp}
@@ -2904,12 +2913,12 @@ export default function App() {
                 tr.name.includes(appendixSearchQuery) || 
                 tr.effect.includes(appendixSearchQuery)
               ).map(tr => (
-                <div key={tr.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
-                  <div className="flex justify-between items-center font-bold text-parchment-200">
+                <div key={tr.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber">
+                  <div className="flex justify-between items-center font-bold text-ink">
                     <span className="font-serif">{tr.name}</span>
-                    <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tr.cost}</span>
+                    <span className="text-[9px] bg-surface-well text-wilder-amber px-1.5 rounded">{tr.cost}</span>
                   </div>
-                  <p className="text-orange-300 text-[11px] mt-1 leading-tight">{tr.effect}</p>
+                  <p className="text-ink-muted text-[11px] mt-1 leading-tight">{tr.effect}</p>
                 </div>
               ))
             )}
@@ -2922,17 +2931,17 @@ export default function App() {
                 if (appendixFilterWeapon === '通用') return tk.weapon.includes('/') && matchesSearch;
                 return tk.weapon === appendixFilterWeapon && matchesSearch;
               }).map(tk => (
-                <div key={tk.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
-                  <div className="flex justify-between items-center font-bold text-parchment-200">
+                <div key={tk.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber">
+                  <div className="flex justify-between items-center font-bold text-ink">
                     <span className="font-serif">{tk.name}</span>
-                    <span className="text-[9px] bg-[#150a02] text-earth-300 px-1.5 rounded">{tk.cost}</span>
+                    <span className="text-[9px] bg-surface-well text-wilder-amber px-1.5 rounded">{tk.cost}</span>
                   </div>
-                  <div className="flex space-x-2 text-[9px] text-orange-400 mt-0.5">
+                  <div className="flex space-x-2 text-[9px] text-wilder-amber mt-0.5">
                     <span>🔧 {tk.weapon}</span>
                     <span>•</span>
                     <span>⭐ {tk.rank}</span>
                   </div>
-                  <p className="text-orange-300 text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
+                  <p className="text-ink-muted text-[11px] mt-1.5 leading-tight">{tk.effect}</p>
                 </div>
               ))
             )}
@@ -2943,10 +2952,10 @@ export default function App() {
                 st.name.includes(appendixSearchQuery) || 
                 st.effect.includes(appendixSearchQuery)
               ).map(st => (
-                <div key={st.name} className="bg-[#241103] border border-orange-950 p-2.5 rounded hover:border-orange-800">
-                  <div className="font-serif font-bold text-parchment-200">{st.name}</div>
-                  <p className="text-orange-300 text-[11px] mt-1 leading-tight"><span className="font-bold text-earth-400">效果:</span> {st.effect}</p>
-                  <p className="text-[10px] text-orange-400 mt-1"><span className="font-bold text-parchment-300">结束条件:</span> {st.endCondition}</p>
+                <div key={st.name} className="bg-surface border border-surface-border p-2.5 rounded hover:border-wilder-amber">
+                  <div className="font-serif font-bold text-ink">{st.name}</div>
+                  <p className="text-ink-muted text-[11px] mt-1 leading-tight"><span className="font-bold text-wilder-blue">效果:</span> {st.effect}</p>
+                  <p className="text-[10px] text-wilder-amber mt-1"><span className="font-bold text-ink-muted">结束条件:</span> {st.endCondition}</p>
                 </div>
               ))
             )}
@@ -2957,14 +2966,14 @@ export default function App() {
                 {/* Combat */}
                 {(!appendixSearchQuery || '战斗行动'.includes(appendixSearchQuery)) && (
                   <div className="space-y-1.5">
-                    <div className="text-[10px] bg-[#150a02] px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">⚔️ 狩猎行动 (Combat Actions)</div>
+                    <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">⚔️ 狩猎行动 (Combat Actions)</div>
                     {APPENDIX_ACTIONS.filter(act => act.type === 'combat' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                      <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
-                        <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
+                      <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                        <div className="flex justify-between font-bold text-ink text-[11px]">
                           <span>{act.name}</span>
-                          <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
+                          <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
                         </div>
-                        <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                        <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
                       </div>
                     ))}
                   </div>
@@ -2973,10 +2982,10 @@ export default function App() {
                 {/* Feast */}
                 {(!appendixSearchQuery || '盛宴问题'.includes(appendixSearchQuery)) && (
                   <div className="space-y-1.5">
-                    <div className="text-[10px] bg-[#150a02] px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🍲 盛宴问题 (Feast Questions)</div>
+                    <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🍲 盛宴问题 (Feast Questions)</div>
                     {APPENDIX_ACTIONS.filter(act => act.type === 'feast' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                      <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
-                        <p className="text-parchment-200 text-[11px] leading-tight font-serif">{act.effect}</p>
+                      <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                        <p className="text-ink text-[11px] leading-tight font-serif">{act.effect}</p>
                       </div>
                     ))}
                   </div>
@@ -2985,14 +2994,14 @@ export default function App() {
                 {/* Rest */}
                 {(!appendixSearchQuery || '休整行动'.includes(appendixSearchQuery)) && (
                   <div className="space-y-1.5">
-                    <div className="text-[10px] bg-[#150a02] px-2 py-0.5 text-parchment-300 font-bold border-l-2 border-earth-500">🏕️ 休整行动 (Rest Actions)</div>
+                    <div className="text-[10px] bg-surface-well px-2 py-0.5 text-ink-muted font-bold border-l-2 border-wilder-blue">🏕️ 休整行动 (Rest Actions)</div>
                     {APPENDIX_ACTIONS.filter(act => act.type === 'rest' && (act.name.includes(appendixSearchQuery) || act.effect.includes(appendixSearchQuery))).map(act => (
-                      <div key={act.name} className="bg-[#241103]/50 p-2 rounded border border-orange-950">
-                        <div className="flex justify-between font-bold text-parchment-200 text-[11px]">
+                      <div key={act.name} className="bg-surface/50 p-2 rounded border border-surface-border">
+                        <div className="flex justify-between font-bold text-ink text-[11px]">
                           <span>{act.name}</span>
-                          <span className="text-[9px] text-orange-400 font-mono">{act.cost}</span>
+                          <span className="text-[9px] text-wilder-amber font-mono">{act.cost}</span>
                         </div>
-                        <p className="text-orange-400 text-[10px] mt-0.5 leading-snug">{act.effect}</p>
+                        <p className="text-wilder-amber text-[10px] mt-0.5 leading-snug">{act.effect}</p>
                       </div>
                     ))}
                   </div>
@@ -3005,7 +3014,7 @@ export default function App() {
         )}
 
       {/* FOOTER */}
-      <footer className="text-center py-8 mt-12 border-t border-orange-950 text-xs text-orange-400">
+      <footer className="text-center py-8 mt-12 border-t border-surface-border text-xs text-wilder-amber">
         <p>© 2026 荒野盛宴 TTRPG 电子人物卡辅助工具. All Rules and Concepts belong to KC Shi and respective authors.</p>
         <p className="mt-1">Based on "Wilderfeast" core rules. Craft with Love & Wilderness.</p>
       </footer>

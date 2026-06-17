@@ -7,6 +7,23 @@ export default {
   theme: {
     extend: {
       colors: {
+        wilder: {
+          blue: '#1E4D8C',
+          orange: '#F26522',
+          amber: '#E07A2C',
+          teal: '#00A396',
+        },
+        surface: {
+          DEFAULT: '#FBF7F0',
+          well: '#FDFBF7',
+          dark: '#12284C',
+          border: '#E0D8CC',
+        },
+        ink: {
+          DEFAULT: '#2D2D2D',
+          muted: '#6B5E4E',
+          light: '#A0927E',
+        },
         parchment: {
           50: '#FAF8F5',
           100: '#F4F1EA',
