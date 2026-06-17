@@ -209,13 +209,19 @@ export default function App() {
   const drawingStateRef = useRef<{ isDrawing: boolean; lastX: number; lastY: number }>({ isDrawing: false, lastX: 0, lastY: 0 });
   const canvasHistoryRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number>(-1);
+  const [canvasHistoryTick, setCanvasHistoryTick] = useState(0);
 
   // Drawing modal: prevent body scroll + ESC close
   useEffect(() => {
     if (isDrawingModalOpen) {
       document.body.style.overflow = 'hidden';
       const handleKey = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') setIsDrawingModalOpen(false);
+        if (e.key === 'Escape') {
+          if (isPortraitEditMode) {
+            setIsPortraitModalOpen(true);
+          }
+          setIsDrawingModalOpen(false);
+        }
       };
       window.addEventListener('keydown', handleKey);
       return () => {
@@ -1198,6 +1204,9 @@ export default function App() {
     setIsPortraitModalOpen(false);
     setIsPortraitEditMode(true);
     setIsDrawingModalOpen(true);
+    canvasHistoryRef.current = [];
+    historyIndexRef.current = -1;
+    setCanvasHistoryTick(t => t + 1);
     setTimeout(() => {
       initCanvas();
       if (editPortraitType === 'drawing' && editPortraitValue) {
@@ -1220,6 +1229,7 @@ export default function App() {
         img.src = editPortraitValue;
       } else {
         initCanvas();
+        saveHistoryState();
       }
     }, 100);
   };
@@ -1227,6 +1237,9 @@ export default function App() {
   // Drawing Canvas Handlers (for background image)
   const openBackgroundDrawingModal = () => {
     setIsDrawingModalOpen(true);
+    canvasHistoryRef.current = [];
+    historyIndexRef.current = -1;
+    setCanvasHistoryTick(t => t + 1);
     setTimeout(() => {
       initCanvas();
       // Load existing drawing onto canvas for re-editing
@@ -1251,6 +1264,7 @@ export default function App() {
         img.src = wizBackgroundValue;
       } else {
         initCanvas();
+        saveHistoryState();
       }
     }, 100);
   };
@@ -1290,11 +1304,11 @@ export default function App() {
     const dataUrl = canvas.toDataURL();
     const hist = canvasHistoryRef.current;
     const idx = historyIndexRef.current;
-    // Truncate any redo states beyond current position
     hist.length = idx + 1;
     hist.push(dataUrl);
     if (hist.length > 20) hist.shift();
     historyIndexRef.current = hist.length - 1;
+    setCanvasHistoryTick(t => t + 1);
   };
 
   const undoCanvas = () => {
@@ -1317,6 +1331,7 @@ export default function App() {
       ctx.lineJoin = 'round';
     };
     img.src = hist[historyIndexRef.current];
+    setCanvasHistoryTick(t => t + 1);
   };
 
   const redoCanvas = () => {
@@ -1339,6 +1354,7 @@ export default function App() {
       ctx.lineJoin = 'round';
     };
     img.src = hist[historyIndexRef.current];
+    setCanvasHistoryTick(t => t + 1);
   };
 
   const getCanvasPos = (e: React.MouseEvent<HTMLCanvasElement> | MouseEvent) => {
@@ -1436,6 +1452,7 @@ export default function App() {
     // Reset history
     canvasHistoryRef.current = [];
     historyIndexRef.current = -1;
+    setCanvasHistoryTick(t => t + 1);
   };
 
   const saveBackgroundDrawing = () => {
@@ -2519,6 +2536,7 @@ export default function App() {
                           onClick={undoCanvas}
                           disabled={historyIndexRef.current <= 0}
                           className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed"
+                          data-tick={canvasHistoryTick}
                         >
                           ↩️ 撤销
                         </button>
@@ -2546,7 +2564,14 @@ export default function App() {
                       <div className="flex space-x-2">
                         <button
                           type="button"
-                          onClick={() => setIsDrawingModalOpen(false)}
+                          onClick={() => {
+                            if (isPortraitEditMode) {
+                              setIsDrawingModalOpen(false);
+                              setIsPortraitModalOpen(true);
+                            } else {
+                              setIsDrawingModalOpen(false);
+                            }
+                          }}
                           className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-3 py-1 rounded hover:bg-amber-900"
                         >
                           取消
