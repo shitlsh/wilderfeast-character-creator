@@ -2759,7 +2759,7 @@ export default function App() {
                               <div key={tName} className="flex items-start justify-between group">
                                   <div className="text-xs flex-1 min-w-0">
                                     <span className="font-bold text-ink">{tName}</span>
-                                    <span className="text-[9px] text-ink-muted">（{foundTech?.cost || '被动'}）</span>
+                                    <span className="text-[9px] text-ink-muted ml-1">{foundTech?.cost || '被动'}</span>
                                     <p className="text-[10px] text-ink-muted leading-snug mt-0.5 break-words">{foundTech?.effect || tName}</p>
                                 </div>
                                 <button
@@ -2800,15 +2800,15 @@ export default function App() {
                         {/* Base traits - always present, cannot be removed */}
                         <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
                           <div>
-                            <span className="font-extrabold text-emerald-900">毅力。</span>
-                            <span className="text-[9px] text-ink-muted">（1次成功）</span>
+                             <span className="font-extrabold text-emerald-900">毅力。</span>
+                            <span className="text-[9px] text-ink-muted ml-1">1次成功</span>
                             <p className="text-[10px] text-ink mt-0.5">将 行动评级 [A] 增加 1。</p>
                           </div>
                         </div>
                         <div className="border-b border-dashed border-emerald-300 pb-1.5 flex items-start justify-between">
                           <div>
                             <span className="font-extrabold text-emerald-900">洞察。</span>
-                            <span className="text-[9px] text-ink-muted">（1次成功）</span>
+                            <span className="text-[9px] text-ink-muted ml-1">1次成功</span>
                             <p className="text-[10px] text-ink mt-0.5">确立一个关于当前情境的细节。</p>
                           </div>
                         </div>
@@ -2832,7 +2832,7 @@ export default function App() {
                             <div key={tName} className="flex items-start justify-between group">
                               <div>
                                 <span className="font-extrabold text-amber-900">{tName}。</span>
-                                <span className="text-[9px] text-ink-muted">（{trCost}）</span>
+                                <span className="text-[9px] text-ink-muted ml-1">{trCost}</span>
                                 <p className="text-[10px] text-ink mt-0.5">{trEffect}</p>
                               </div>
                               <button
