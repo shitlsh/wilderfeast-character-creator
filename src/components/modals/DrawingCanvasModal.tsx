@@ -44,7 +44,7 @@ const DrawingCanvasModal = React.memo(function DrawingCanvasModal({
         </div>
         <div className="flex items-center justify-between mt-3 flex-wrap gap-2">
           <div className="flex space-x-2">
-            <button type="button" onClick={drawing.undoCanvas} disabled={!drawing.canUndo} className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed" data-tick={drawing.canvasHistoryTick}>↩️ 撤销</button>
+            <button type="button" onClick={drawing.undoCanvas} disabled={!drawing.canUndo} className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed">↩️ 撤销</button>
             <button type="button" onClick={drawing.redoCanvas} disabled={!drawing.canRedo} className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900 disabled:opacity-30 disabled:cursor-not-allowed">↪️ 重做</button>
             <button type="button" onClick={drawing.clearCanvas} className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded hover:bg-amber-900">🗑️ 清除</button>
             <label className="text-xs bg-surface-border border border-wilder-amber text-ink-muted px-2 py-1 rounded cursor-pointer hover:bg-amber-900">🖼️ 底图<input type="file" accept="image/*" onChange={drawing.uploadDrawingPhoto} className="hidden" /></label>

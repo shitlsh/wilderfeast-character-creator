@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
-import { Dice5, Download, ArrowLeft, FileDown, BookOpen as BookIcon } from 'lucide-react';
+import { Dice5, Download, ArrowLeft, FileDown } from 'lucide-react';
 import { PDFDocument, rgb, PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { TOOLS, LINEAGES } from '../data';
@@ -10,7 +10,6 @@ import { useCharacter } from '../context/CharacterContext';
 import { useCanvasDrawing } from '../hooks/useCanvasDrawing';
 import { SheetPage1 } from '../components/sheet/SheetPage1';
 import { SheetPage2 } from '../components/sheet/SheetPage2';
-import { ReferenceManualDrawer } from '../components/sheet/ReferenceManualDrawer';
 
 const DiceDrawer = React.lazy(() => import('../components/sheet/DiceDrawer').then(m => ({ default: m.DiceDrawer })));
 const ExportModal = React.lazy(() => import('../components/modals/ExportModal').then(m => ({ default: m.ExportModal })));
@@ -49,12 +48,8 @@ export default function PlayPage() {
   const [selectedRollSkill, setSelectedRollSkill] = useState<string>('打击');
   const [actionDieMode, setActionDieMode] = useState<'focus' | 'wild'>('focus');
 
-  const [activeAppendixTab, setActiveAppendixTab] = useState<'a' | 'b' | 'c' | 'd' | 'e'>('d');
-  const [appendixSearchQuery, setAppendixSearchQuery] = useState('');
-  const [appendixFilterWeapon, setAppendixFilterWeapon] = useState('all');
-
   const [isDiceDrawerOpen, setIsDiceDrawerOpen] = useState<boolean>(false);
-  const [isManualDrawerOpen, setIsManualDrawerOpen] = useState<boolean>(false);
+  const [appendixSearchQuery] = useState('');
   const [pickerModal, setPickerModal] = useState<'none' | 'technique' | 'trait'>('none');
   const [pickerSearch, setPickerSearch] = useState('');
   const [isStateModalOpen, setIsStateModalOpen] = useState(false);
@@ -628,27 +623,18 @@ export default function PlayPage() {
         />
       </div>
 
-      {(isDiceDrawerOpen || isManualDrawerOpen) && (
-        <div onClick={() => { setIsDiceDrawerOpen(false); setIsManualDrawerOpen(false); }} className="fixed inset-0 bg-stone-950/60 z-30 transition-opacity animate-fade-in print:hidden" />
+      {isDiceDrawerOpen && (
+        <div onClick={() => { setIsDiceDrawerOpen(false); }} className="fixed inset-0 bg-stone-950/60 z-30 transition-opacity animate-fade-in print:hidden" />
       )}
 
       <div className="fixed bottom-6 right-6 z-40 flex flex-col gap-3 print:hidden">
         <button
-          onClick={() => { setIsDiceDrawerOpen(!isDiceDrawerOpen); setIsManualDrawerOpen(false); }}
+          onClick={() => { setIsDiceDrawerOpen(!isDiceDrawerOpen); }}
           className="w-14 h-14 bg-wilder-blue border-3 border-surface-border hover:bg-wilder-blue rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
         >
           <Dice5 size={22} className="group-hover:rotate-45 transition-transform" />
           <span className="text-[9px] font-bold mt-0.5 select-none">进行检定</span>
           <span className="absolute right-16 bg-surface-dark text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-surface-border">打开掷骰检定面板</span>
-        </button>
-
-        <button
-          onClick={() => { setIsManualDrawerOpen(!isManualDrawerOpen); setIsDiceDrawerOpen(false); }}
-          className="w-14 h-14 bg-orange-700 border-3 border-surface-border hover:bg-orange-600 rounded-full flex flex-col items-center justify-center text-white shadow-rough-md transition-all active:translate-x-0.5 active:translate-y-0.5 group relative"
-        >
-          <BookIcon size={20} className="group-hover:scale-110 transition-transform" />
-          <span className="text-[9px] font-bold mt-0.5 select-none">参考手册</span>
-          <span className="absolute right-16 bg-surface-dark text-white px-2 py-1 rounded text-[10px] whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-md border border-surface-border">打开附录规则手册</span>
         </button>
       </div>
 
@@ -671,17 +657,6 @@ export default function PlayPage() {
           />
         </Suspense>
       )}
-
-      <ReferenceManualDrawer
-        isManualDrawerOpen={isManualDrawerOpen}
-        setIsManualDrawerOpen={setIsManualDrawerOpen}
-        activeAppendixTab={activeAppendixTab}
-        setActiveAppendixTab={setActiveAppendixTab}
-        appendixSearchQuery={appendixSearchQuery}
-        setAppendixSearchQuery={setAppendixSearchQuery}
-        appendixFilterWeapon={appendixFilterWeapon}
-        setAppendixFilterWeapon={setAppendixFilterWeapon}
-      />
 
       <Suspense fallback={suspenseFallback}>
         <PickerModal

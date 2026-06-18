@@ -36,14 +36,20 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
   const [drawPenColor, setDrawPenColor] = useState('#2d100c');
   const [drawPenSize, setDrawPenSize] = useState(3);
   const [canvasHistoryTick, setCanvasHistoryTick] = useState(0);
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingStateRef = useRef<DrawingState>({ isDrawing: false, lastX: 0, lastY: 0 });
   const canvasHistoryRef = useRef<string[]>([]);
   const historyIndexRef = useRef<number>(-1);
 
-  const canUndo = historyIndexRef.current > 0;
-  const canRedo = historyIndexRef.current < canvasHistoryRef.current.length - 1;
+  const updateHistoryButtons = useCallback(() => {
+    const idx = historyIndexRef.current;
+    const hist = canvasHistoryRef.current;
+    setCanUndo(idx > 0);
+    setCanRedo(idx < hist.length - 1);
+  }, []);
 
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -83,7 +89,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     if (hist.length > 20) hist.shift();
     historyIndexRef.current = hist.length - 1;
     setCanvasHistoryTick(t => t + 1);
-  }, []);
+    updateHistoryButtons();
+  }, [updateHistoryButtons]);
 
   const undoCanvas = useCallback(() => {
     if (historyIndexRef.current <= 0) return;
@@ -106,7 +113,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     };
     img.src = hist[historyIndexRef.current];
     setCanvasHistoryTick(t => t + 1);
-  }, [drawPenColor, drawPenSize]);
+    updateHistoryButtons();
+  }, [drawPenColor, drawPenSize, updateHistoryButtons]);
 
   const redoCanvas = useCallback(() => {
     const hist = canvasHistoryRef.current;
@@ -129,7 +137,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     };
     img.src = hist[historyIndexRef.current];
     setCanvasHistoryTick(t => t + 1);
-  }, [drawPenColor, drawPenSize]);
+    updateHistoryButtons();
+  }, [drawPenColor, drawPenSize, updateHistoryButtons]);
 
   const getCanvasPos = useCallback((e: React.MouseEvent<HTMLCanvasElement> | MouseEvent) => {
     const canvas = canvasRef.current;
@@ -226,7 +235,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     canvasHistoryRef.current = [];
     historyIndexRef.current = -1;
     setCanvasHistoryTick(t => t + 1);
-  }, [drawPenColor, drawPenSize]);
+    updateHistoryButtons();
+  }, [drawPenColor, drawPenSize, updateHistoryButtons]);
 
   const getCanvasDataUrl = useCallback(() => {
     const canvas = canvasRef.current;
@@ -269,7 +279,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     canvasHistoryRef.current = [];
     historyIndexRef.current = -1;
     setCanvasHistoryTick(t => t + 1);
-  }, []);
+    updateHistoryButtons();
+  }, [updateHistoryButtons]);
 
   return {
     canvasRef,
