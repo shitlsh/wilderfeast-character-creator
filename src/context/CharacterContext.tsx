@@ -11,13 +11,15 @@ interface CharacterState {
   characters: Character[];
   selectedCharId: string;
   notification: NotificationState | null;
+  isManualDrawerOpen: boolean;
 }
 
 type CharacterAction =
   | { type: 'SET_CHARACTERS'; characters: Character[] }
   | { type: 'SET_SELECTED_CHAR_ID'; id: string }
   | { type: 'SHOW_NOTIFICATION'; notification: NotificationState }
-  | { type: 'DISMISS_NOTIFICATION' };
+  | { type: 'DISMISS_NOTIFICATION' }
+  | { type: 'SET_MANUAL_DRAWER'; open: boolean };
 
 function migrateCharacter(c: Character): Character {
   return {
@@ -99,6 +101,7 @@ function initializeState(): CharacterState {
     characters: [...preGenList, ...customChars],
     selectedCharId: '',
     notification: null,
+    isManualDrawerOpen: false,
   };
 }
 
@@ -112,6 +115,8 @@ function characterReducer(state: CharacterState, action: CharacterAction): Chara
       return { ...state, notification: action.notification };
     case 'DISMISS_NOTIFICATION':
       return { ...state, notification: null };
+    case 'SET_MANUAL_DRAWER':
+      return { ...state, isManualDrawerOpen: action.open };
     default:
       return state;
   }
@@ -122,6 +127,8 @@ interface CharacterContextValue {
   selectedCharId: string;
   notification: NotificationState | null;
   activeChar: Character | undefined;
+  isManualDrawerOpen: boolean;
+  setManualDrawerOpen: (open: boolean) => void;
   setSelectedCharId: (id: string) => void;
   setCharacters: (characters: Character[]) => void;
   saveCustomCharacters: (updatedCustoms: Character[]) => void;
@@ -156,6 +163,10 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
 
   const setSelectedCharId = useCallback((id: string) => {
     dispatch({ type: 'SET_SELECTED_CHAR_ID', id });
+  }, []);
+
+  const setManualDrawerOpen = useCallback((open: boolean) => {
+    dispatch({ type: 'SET_MANUAL_DRAWER', open });
   }, []);
 
   const setCharacters = useCallback((characters: Character[]) => {
@@ -387,6 +398,8 @@ export function CharacterProvider({ children }: { children: React.ReactNode }) {
     selectedCharId: state.selectedCharId,
     notification: state.notification,
     activeChar,
+    isManualDrawerOpen: state.isManualDrawerOpen,
+    setManualDrawerOpen,
     setSelectedCharId,
     setCharacters,
     saveCustomCharacters,
