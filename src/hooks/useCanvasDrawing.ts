@@ -49,6 +49,19 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     setCanRedo(historyIndexRef.current < canvasHistoryRef.current.length - 1);
   }, [canvasHistoryTick]);
 
+  const saveHistoryState = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const dataUrl = canvas.toDataURL();
+    const hist = canvasHistoryRef.current;
+    const idx = historyIndexRef.current;
+    hist.length = idx + 1;
+    hist.push(dataUrl);
+    if (hist.length > 20) hist.shift();
+    historyIndexRef.current = hist.length - 1;
+    setCanvasHistoryTick(t => t + 1);
+  }, []);
+
   const initCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -63,7 +76,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     ctx.lineWidth = drawPenSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-  }, [drawPenColor, drawPenSize]);
+    saveHistoryState();
+  }, [drawPenColor, drawPenSize, saveHistoryState]);
 
   const applyPenStyle = useCallback(() => {
     const canvas = canvasRef.current;
@@ -75,19 +89,6 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
   }, [drawPenColor, drawPenSize]);
-
-  const saveHistoryState = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const dataUrl = canvas.toDataURL();
-    const hist = canvasHistoryRef.current;
-    const idx = historyIndexRef.current;
-    hist.length = idx + 1;
-    hist.push(dataUrl);
-    if (hist.length > 20) hist.shift();
-    historyIndexRef.current = hist.length - 1;
-    setCanvasHistoryTick(t => t + 1);
-  }, []);
 
   const undoCanvas = useCallback(() => {
     if (historyIndexRef.current <= 0) return;
@@ -227,10 +228,8 @@ export function useCanvasDrawing(): UseCanvasDrawingReturn {
     ctx.lineWidth = drawPenSize;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    canvasHistoryRef.current = [];
-    historyIndexRef.current = -1;
-    setCanvasHistoryTick(t => t + 1);
-  }, [drawPenColor, drawPenSize]);
+    saveHistoryState();
+  }, [drawPenColor, drawPenSize, saveHistoryState]);
 
   const getCanvasDataUrl = useCallback(() => {
     const canvas = canvasRef.current;
