@@ -120,7 +120,7 @@ const Step1ToolIdentity = React.memo(function Step1ToolIdentity({
                     onChange={() => setWizStylesChoice('a')}
                     className="accent-wilder-teal"
                   />
-                  <span>分配 (A): 3级高点，2级次高点</span>
+                  <span>分配 (A): {wizTool.styles.choices[0].replace(/^\(a\)\s*/, '')}</span>
                 </label>
                 <label className="flex items-center space-x-2 text-xs cursor-pointer">
                   <input
@@ -129,7 +129,7 @@ const Step1ToolIdentity = React.memo(function Step1ToolIdentity({
                     onChange={() => setWizStylesChoice('b')}
                     className="accent-wilder-teal"
                   />
-                  <span>分配 (B): 2级高点，3级次高点</span>
+                  <span>分配 (B): {wizTool.styles.choices[1].replace(/^\(b\)\s*/, '')}</span>
                 </label>
               </div>
             </div>
