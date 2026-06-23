@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dice5 } from 'lucide-react';
+import { Dice5, RotateCcw } from 'lucide-react';
 import type { Character, DiceRollResult } from '../../types';
 
 interface DiceDrawerProps {
@@ -14,7 +14,9 @@ interface DiceDrawerProps {
   setActionDieMode: (v: 'focus' | 'wild') => void;
   diceRoll: DiceRollResult | null;
   handleRollDice: (styleName: string, styleCount: number, skillName: string, skillBonus: number, dieMode: 'focus' | 'wild') => void;
-  toggleDiceActive: (index: number) => void;
+  setDiceBonus: (index: number) => void;
+  setActionDieBonus: () => void;
+  resetAllBonuses: () => void;
   showNotification: (msg: string, type?: 'success' | 'error' | 'info') => void;
 }
 
@@ -30,7 +32,9 @@ const DiceDrawer = React.memo(function DiceDrawer({
   setActionDieMode,
   diceRoll,
   handleRollDice,
-  toggleDiceActive,
+  setDiceBonus,
+  setActionDieBonus,
+  resetAllBonuses,
   showNotification,
 }: DiceDrawerProps) {
   return (
@@ -96,20 +100,65 @@ const DiceDrawer = React.memo(function DiceDrawer({
       {diceRoll && (
         <div className="mt-4 space-y-4 pt-4 border-t border-surface-border">
           <div className="space-y-2">
-            <span className="block text-xs font-bold text-ink-muted">投掷结果（点击骰子应用技能 +1 加成，最多可点 {diceRoll.skillBonus} 个）：</span>
+            {(() => {
+              const totalUsed = diceRoll.dice.reduce((s, d) => s + d.appliedBonus, 0) + diceRoll.actionDieAppliedBonus;
+              return (
+                <div className="flex items-center justify-between">
+                  <span className="block text-xs font-bold text-ink-muted">
+                    点击骰子分配技能加值（剩余 {diceRoll.skillBonus - totalUsed}/{diceRoll.skillBonus}）
+                  </span>
+                  {totalUsed > 0 && (
+                    <button
+                      onClick={resetAllBonuses}
+                      className="text-[10px] bg-surface-border border border-orange-700 text-ink px-2 py-1 rounded hover:bg-amber-100 flex items-center gap-1"
+                    >
+                      <RotateCcw size={12} /> 重置加值
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
             <div className="flex flex-wrap gap-2.5 justify-center py-2 items-center">
               <div className="flex flex-wrap gap-1.5 justify-center">
                 {diceRoll.dice.map((d, index) => (
-                  <div key={index} onClick={() => toggleDiceActive(index)} className={`w-11 h-11 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all ${d.adjustedValue >= 5 ? 'bg-wilder-blue border-wilder-amber text-white shadow-md scale-105' : 'bg-surface-well border-surface-border text-ink-light'}`} title="点击应用或撤销技能 +1 修正">
+                  <div
+                    key={index}
+                    onClick={() => setDiceBonus(index)}
+                    className={`w-12 h-12 border-3 rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all relative ${
+                      d.adjustedValue >= 5
+                        ? 'bg-wilder-blue border-wilder-amber text-white shadow-md scale-105'
+                        : 'bg-surface-well border-surface-border text-ink-light'
+                    }`}
+                    title="点击分配 +1 加值"
+                  >
                     <span className="text-lg font-extrabold font-serif">{d.adjustedValue}</span>
-                    {d.active && <span className="text-[8px] bg-yellow-500 text-amber-950 font-bold px-1 rounded scale-75 mt-[-3px]">+1</span>}
+                    {d.appliedBonus > 0 && (
+                      <span className="absolute -top-2 -right-2 text-[9px] bg-yellow-500 text-amber-950 font-bold px-1 rounded-full min-w-[18px] h-[18px] flex items-center justify-center">
+                        +{d.appliedBonus}
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
               <span className="text-ink-muted font-bold mx-1">＋</span>
-              <div className={`p-1.5 border-3 rounded-lg flex flex-col items-center justify-center text-center shadow-md min-w-[70px] ${diceRoll.actionDieType === 'd8' ? 'bg-amber-900/40 border-amber-500 text-amber-100' : 'bg-red-950/40 border-red-500 text-red-200'}`}>
+              <div
+                onClick={setActionDieBonus}
+                className={`p-2 border-3 rounded-lg flex flex-col items-center justify-center text-center shadow-md min-w-[80px] cursor-pointer transition-all ${
+                  diceRoll.actionDieType === 'd8'
+                    ? 'bg-amber-900/40 border-amber-500 text-amber-100'
+                    : 'bg-red-950/40 border-red-500 text-red-200'
+                }`}
+                title="点击分配 +1 加值"
+              >
                 <span className="text-[8px] font-bold uppercase tracking-wider block leading-none">行动骰 {diceRoll.actionDieType}</span>
-                <span className="text-xl font-serif font-black block mt-0.5">{diceRoll.actionDieValue}</span>
+                <span className="text-xl font-serif font-black block mt-0.5">
+                  {diceRoll.actionDieValue + diceRoll.actionDieAppliedBonus}
+                </span>
+                {diceRoll.actionDieAppliedBonus > 0 && (
+                  <span className="text-[9px] bg-yellow-500 text-amber-950 font-bold px-1 rounded-full mt-0.5">
+                    +{diceRoll.actionDieAppliedBonus}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -128,7 +177,7 @@ const DiceDrawer = React.memo(function DiceDrawer({
               {diceRoll.successes > 0 ? (
                 <span className="text-wilder-amber font-bold">检定成功！最高骰为 [A]={diceRoll.actionRating}，造成对应的结算效果！</span>
               ) : (
-                <span className="text-wilder-blue font-bold">检定失败！未掷出5点以上的成功值。你可以配合技能修正是达到成功。</span>
+                <span className="text-wilder-blue font-bold">检定失败！未掷出5点以上的成功值。你可以配合技能修正来达到成功。</span>
               )}
             </div>
           </div>

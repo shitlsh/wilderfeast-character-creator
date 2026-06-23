@@ -128,11 +128,12 @@ export interface DiceRollResult {
   styleCount: number;
   skillBonus: number;
   rolled: boolean;
-  dice: { value: number; active: boolean; adjustedValue: number }[];
+  dice: { value: number; appliedBonus: number; adjustedValue: number }[];
   successes: number;
   actionRating: number;
   actionDieType: 'd8' | 'd20';
   actionDieValue: number;
+  actionDieAppliedBonus: number;
 }
 
 export const BUILTIN_AVATARS = [

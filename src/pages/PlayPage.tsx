@@ -6,6 +6,7 @@ import { PDFDocument, rgb, PDFPage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { TOOLS, LINEAGES } from '../data';
 import { APPENDIX_TRAITS, APPENDIX_STATES } from '../appendixData';
+import type { DiceRollResult } from '../types';
 import { useCharacter } from '../context/CharacterContext';
 import { useCanvasDrawing } from '../hooks/useCanvasDrawing';
 import { SheetPage1 } from '../components/sheet/SheetPage1';
@@ -31,18 +32,7 @@ export default function PlayPage() {
     if (id) setSelectedCharId(id);
   }, [id, setSelectedCharId]);
 
-  const [diceRoll, setDiceRoll] = useState<{
-    styleName: string;
-    skillName: string;
-    styleCount: number;
-    skillBonus: number;
-    rolled: boolean;
-    dice: { value: number; active: boolean; adjustedValue: number }[];
-    successes: number;
-    actionRating: number;
-    actionDieType: 'd8' | 'd20';
-    actionDieValue: number;
-  } | null>(null);
+  const [diceRoll, setDiceRoll] = useState<DiceRollResult | null>(null);
 
   const [selectedRollStyle, setSelectedRollStyle] = useState<string>('力量');
   const [selectedRollSkill, setSelectedRollSkill] = useState<string>('打击');
@@ -90,7 +80,7 @@ export default function PlayPage() {
   const handleRollDice = (styleName: string, styleCount: number, skillName: string, skillBonus: number, dieMode: 'focus' | 'wild') => {
     const diceList = Array.from({ length: styleCount }, () => {
       const val = Math.floor(Math.random() * 6) + 1;
-      return { value: val, active: false, adjustedValue: val };
+      return { value: val, appliedBonus: 0, adjustedValue: val };
     });
 
     const dieType = dieMode === 'focus' ? 'd8' : 'd20';
@@ -108,29 +98,24 @@ export default function PlayPage() {
       successes,
       actionRating: successes > 0 ? dieVal : 0,
       actionDieType: dieType,
-      actionDieValue: dieVal
+      actionDieValue: dieVal,
+      actionDieAppliedBonus: 0,
     });
   };
 
-  const toggleDiceActive = (index: number) => {
+  const setDiceBonus = (index: number) => {
     if (!diceRoll) return;
 
-    const currentBonusUsed = diceRoll.dice.filter(d => d.active).length;
+    const totalUsed = diceRoll.dice.reduce((s, d) => s + d.appliedBonus, 0) + diceRoll.actionDieAppliedBonus;
+    if (totalUsed >= diceRoll.skillBonus) {
+      showNotification(`已用尽全部 +${diceRoll.skillBonus} 技能加值`, 'info');
+      return;
+    }
 
     const nextDice = diceRoll.dice.map((d, i) => {
-      if (i === index) {
-        const willBeActive = !d.active;
-        if (willBeActive && currentBonusUsed >= diceRoll.skillBonus) {
-          showNotification(`你的 [${diceRoll.skillName}] 技能等级只有 +${diceRoll.skillBonus}，无法应用更多加值。`, 'info');
-          return d;
-        }
-        return {
-          ...d,
-          active: willBeActive,
-          adjustedValue: willBeActive ? Math.min(6, d.value + 1) : d.value
-        };
-      }
-      return d;
+      if (i !== index) return d;
+      const nextBonus = d.appliedBonus + 1;
+      return { ...d, appliedBonus: nextBonus, adjustedValue: Math.min(6, d.value + nextBonus) };
     });
 
     const successes = nextDice.filter(d => d.adjustedValue >= 5).length;
@@ -139,7 +124,44 @@ export default function PlayPage() {
       ...diceRoll,
       dice: nextDice,
       successes,
-      actionRating: successes > 0 ? diceRoll.actionDieValue : 0
+      actionRating: successes > 0 ? diceRoll.actionDieValue : 0,
+    });
+  };
+
+  const setActionDieBonus = () => {
+    if (!diceRoll) return;
+
+    const totalUsed = diceRoll.dice.reduce((s, d) => s + d.appliedBonus, 0) + diceRoll.actionDieAppliedBonus;
+    if (totalUsed >= diceRoll.skillBonus) {
+      showNotification(`已用尽全部 +${diceRoll.skillBonus} 技能加值`, 'info');
+      return;
+    }
+
+    const nextBonus = diceRoll.actionDieAppliedBonus + 1;
+    setDiceRoll({
+      ...diceRoll,
+      actionDieAppliedBonus: nextBonus,
+      actionRating: diceRoll.actionRating > 0 ? diceRoll.actionDieValue + nextBonus : 0,
+    });
+  };
+
+  const resetAllBonuses = () => {
+    if (!diceRoll) return;
+
+    const nextDice = diceRoll.dice.map(d => ({
+      ...d,
+      appliedBonus: 0,
+      adjustedValue: d.value,
+    }));
+
+    const successes = nextDice.filter(d => d.adjustedValue >= 5).length;
+
+    setDiceRoll({
+      ...diceRoll,
+      dice: nextDice,
+      actionDieAppliedBonus: 0,
+      successes,
+      actionRating: successes > 0 ? diceRoll.actionDieValue : 0,
     });
   };
 
@@ -660,7 +682,9 @@ export default function PlayPage() {
             setActionDieMode={setActionDieMode}
             diceRoll={diceRoll}
             handleRollDice={handleRollDice}
-            toggleDiceActive={toggleDiceActive}
+            setDiceBonus={setDiceBonus}
+            setActionDieBonus={setActionDieBonus}
+            resetAllBonuses={resetAllBonuses}
             showNotification={showNotification}
           />
         </Suspense>
